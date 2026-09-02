@@ -1,6 +1,6 @@
 export type LogChannel =
   | 'ic'         // Normal diyalog, fısıltı, bağırma (Beyaz)
-  | 'me'         // /me, /ame, /melow (Mor - #C2A2DA)
+  | 'me'         // /me, /ame, /melow (Mor - #c2a3da)
   | 'do'         // /do, /dolow (Mavi - #4A90E2)
   | 'radio'      // [R: ...], [Telsiz] (Yeşil - #8AE234)
   | 'phone'      // [SMS], [Arama] (Sarı - #FCE94F)

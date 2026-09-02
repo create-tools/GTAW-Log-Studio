@@ -1,5 +1,5 @@
 import { useLanguage } from '../../i18n/LanguageContext';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Type, 
   ListOrdered, 
@@ -15,7 +15,7 @@ import {
   Pipette,
   EyeOff,
   Hash,
-  ShieldAlert
+  Check
 } from 'lucide-react';
 import type { SSLineItem } from '../../types/ssMaker';
 import { GTAW_PALETTE_COLORS } from '../../types/ssMaker';
@@ -96,8 +96,6 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
         end,
         selectedText,
       });
-    } else {
-      setLastSelection(null);
     }
   };
 
@@ -117,8 +115,6 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
         end,
         selectedText,
       });
-    } else {
-      setLastSelection(null);
     }
   };
 
@@ -196,25 +192,43 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
     }
   };
 
-  // Seçilen Kelimeyi Renklendirme ({FCE94F}seçilen{FFFFFF}) veya Satır Rengini Değiştirme
+  // Seçilen Kelimeyi Renklendirme ({FCE94F}seçilen{FFFFFF}) veya Satır Rengini Değiştirme (Üst üste binmeyi önleyen temizleyici)
   const applyColorToSelection = (colorHex: string) => {
     const cleanHex = colorHex.replace('#', '').toUpperCase();
 
-    // 1. Eğer bir kelime/metin parçası seçiliyse SADECE o kelimeyi renklendir
+    // 1. Eğer bir kelime/metin parçası seçiliyse SADECE o kelimeyi renklendir (ve varsa eski tag'leri temizle/güncelle)
     if (lastSelection && lastSelection.start !== lastSelection.end && lastSelection.selectedText) {
-      const selectedText = lastSelection.selectedText;
-      const wrapped = `{${cleanHex}}${selectedText}{FFFFFF}`;
+      let start = lastSelection.start;
+      let end = lastSelection.end;
+      let textToWrap = lastSelection.selectedText;
+
+      // Seçilen metin içindeki herhangi bir renk tag'ini temizle ({FFFFFF}, {FCE94F} vb)
+      textToWrap = textToWrap.replace(/\{#?[0-9a-fA-F]{6}\}/g, '');
 
       if (lastSelection.mode === 'paragraph') {
-        const start = lastSelection.start;
-        const end = lastSelection.end;
-        const newText = rawParagraphText.slice(0, start) + wrapped + rawParagraphText.slice(end);
+        const sourceText = rawParagraphText;
+        // Seçimin hemen solundaki veya sağındaki önceki renk etiketlerini kontrol et
+        const beforeSlice = sourceText.slice(Math.max(0, start - 8), start);
+        const afterSlice = sourceText.slice(end, end + 8);
+
+        const beforeMatch = beforeSlice.match(/\{#?[0-9a-fA-F]{6}\}$/);
+        const afterMatch = afterSlice.match(/^\{#?[0-9a-fA-F]{6}\}/);
+
+        if (beforeMatch) {
+          start -= beforeMatch[0].length;
+        }
+        if (afterMatch) {
+          end += afterMatch[0].length;
+        }
+
+        const wrapped = `{${cleanHex}}${textToWrap}{FFFFFF}`;
+        const newText = sourceText.slice(0, start) + wrapped + sourceText.slice(end);
         handleParagraphChange(newText);
         setLastSelection({
           mode: 'paragraph',
-          start,
+          start: start,
           end: start + wrapped.length,
-          selectedText: wrapped,
+          selectedText: textToWrap,
         });
         setTimeout(() => {
           if (textareaRef.current) {
@@ -227,16 +241,29 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
         const idx = lastSelection.lineIndex;
         const line = lines[idx];
         if (line) {
-          const start = lastSelection.start;
-          const end = lastSelection.end;
-          const newText = line.text.slice(0, start) + wrapped + line.text.slice(end);
+          const sourceText = line.text;
+          const beforeSlice = sourceText.slice(Math.max(0, start - 8), start);
+          const afterSlice = sourceText.slice(end, end + 8);
+
+          const beforeMatch = beforeSlice.match(/\{#?[0-9a-fA-F]{6}\}$/);
+          const afterMatch = afterSlice.match(/^\{#?[0-9a-fA-F]{6}\}/);
+
+          if (beforeMatch) {
+            start -= beforeMatch[0].length;
+          }
+          if (afterMatch) {
+            end += afterMatch[0].length;
+          }
+
+          const wrapped = `{${cleanHex}}${textToWrap}{FFFFFF}`;
+          const newText = sourceText.slice(0, start) + wrapped + sourceText.slice(end);
           updateSingleLineText(idx, newText);
           setLastSelection({
             mode: 'line',
             lineIndex: idx,
-            start,
+            start: start,
             end: start + wrapped.length,
-            selectedText: wrapped,
+            selectedText: textToWrap,
           });
           setTimeout(() => {
             const inputEl = lineInputRefs.current[idx];
@@ -288,7 +315,6 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
     const updated = [...lines];
     updated[idx] = { ...updated[idx], color: newColor };
     onUpdateLines(updated);
-    setActiveColorPickerIdx(null);
   };
 
   const toggleSelectLine = (idx: number) => {
@@ -574,31 +600,66 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
                       title={t('pe_line_color')}
                     />
 
-                    {/* Renk Seçici Popover */}
+                    {/* Renk Seçici Popover (16 Renk + Manuel Seçim) */}
                     {showPicker && (
-                      <div className="absolute left-10 top-6 z-40 bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 shadow-2xl space-y-1.5 w-48">
-                        <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                          {t('color_palette_title')}
+                      <div className="absolute left-10 top-6 z-40 bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 shadow-2xl space-y-2 w-52">
+                        <div className="flex items-center justify-between text-[10px] font-bold text-zinc-300 uppercase tracking-wider">
+                          <span>{t('color_palette_title')}</span>
+                          <button
+                            onClick={() => setActiveColorPickerIdx(null)}
+                            className="text-zinc-500 hover:text-white p-0.5"
+                          >
+                            ✕
+                          </button>
                         </div>
+
+                        {/* 16 Renk Grid */}
                         <div className="grid grid-cols-4 gap-1">
                           {GTAW_PALETTE_COLORS.map((cp) => (
                             <button
                               key={cp.id}
-                              onClick={() => updateSingleLineColor(idx, cp.hex)}
+                              onClick={() => {
+                                updateSingleLineColor(idx, cp.hex);
+                                setActiveColorPickerIdx(null);
+                              }}
                               title={`${t(cp.nameKey as any)} (${cp.hex})`}
                               className="aspect-square rounded border border-zinc-700/80 hover:scale-110 hover:border-white transition-all shadow-sm"
                               style={{ backgroundColor: cp.hex }}
                             />
                           ))}
                         </div>
-                        <div className="flex items-center gap-1 pt-1 border-t border-zinc-800">
-                          <input
-                            type="color"
-                            value={line.color}
-                            onChange={(e) => updateSingleLineColor(idx, e.target.value)}
-                            className="w-5 h-5 rounded border-0 bg-transparent cursor-pointer shrink-0"
-                          />
-                          <span className="text-[10px] font-mono text-zinc-300">{line.color}</span>
+
+                        {/* Manuel Renk Seçimi / HEX Girişi */}
+                        <div className="pt-1.5 border-t border-zinc-800 space-y-1.5">
+                          <div className="text-[10px] text-zinc-400 font-semibold flex items-center gap-1">
+                            <Pipette className="w-3 h-3 text-purple-400" />
+                            <span>{t('ss_custom_color')}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="color"
+                              value={line.color}
+                              onChange={(e) => updateSingleLineColor(idx, e.target.value)}
+                              className="w-6 h-6 rounded border-0 bg-transparent cursor-pointer shrink-0"
+                            />
+                            <input
+                              type="text"
+                              value={line.color}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                updateSingleLineColor(idx, val);
+                              }}
+                              placeholder="#FFFFFF"
+                              className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-1.5 py-0.5 text-xs font-mono text-zinc-200 uppercase focus:outline-none focus:border-purple-500"
+                            />
+                            <button
+                              onClick={() => setActiveColorPickerIdx(null)}
+                              className="p-1 rounded bg-purple-600 hover:bg-purple-500 text-white"
+                              title="Tamam"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )}

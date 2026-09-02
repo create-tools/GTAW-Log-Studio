@@ -17,8 +17,8 @@ export interface GTAWColorPreset {
 
 export const GTAW_PALETTE_COLORS: GTAWColorPreset[] = [
   { id: 'white', nameKey: 'color_white', hex: '#FFFFFF', descKey: 'color_white_desc' },
-  { id: 'me', nameKey: 'color_me', hex: '#C2A2DA', descKey: 'color_me_desc' },
-  { id: 'ame', nameKey: 'color_ame', hex: '#D4B8E8', descKey: 'color_ame_desc' },
+  { id: 'me', nameKey: 'color_me', hex: '#c2a3da', descKey: 'color_me_desc' },
+  { id: 'ame', nameKey: 'color_ame', hex: '#c2a3da', descKey: 'color_ame_desc' },
   { id: 'do', nameKey: 'color_do', hex: '#4A90E2', descKey: 'color_do_desc' },
   { id: 'darkgrey', nameKey: 'color_darkgrey', hex: '#5A5A5B', descKey: 'color_darkgrey_desc' },
   { id: 'grey', nameKey: 'color_grey', hex: '#939799', descKey: 'color_grey_desc' },

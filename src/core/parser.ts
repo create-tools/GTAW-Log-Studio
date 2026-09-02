@@ -4,7 +4,7 @@ import { cleanLogLine, extractTimestamp } from './cleaner';
 
 export const CHANNEL_COLORS: Record<LogChannel, string> = {
   ic: '#FFFFFF',
-  me: '#C2A2DA',
+  me: '#c2a3da',
   do: '#4A90E2',
   radio: '#EAB308',
   phone: '#FCE94F',
