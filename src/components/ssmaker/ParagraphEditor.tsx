@@ -250,7 +250,13 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
             ) : (
               <Square className="w-3.5 h-3.5" />
             )}
-            <span>{selectedLineIndices.size > 0 ? `${selectedLineIndices.size} ${t('filter_selected_count')}` : t('select_all')}</span>
+            <span>
+              {selectedLineIndices.size === lines.length
+                ? t('deselect_all')
+                : selectedLineIndices.size > 0
+                ? `${selectedLineIndices.size} ${t('filter_selected_count')}`
+                : t('select_all')}
+            </span>
           </button>
         )}
       </div>
