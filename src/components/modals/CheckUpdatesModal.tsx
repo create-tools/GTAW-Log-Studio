@@ -96,18 +96,18 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-purple-300 text-xs">{t('updates_available')}</span>
                   <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-200">
-                    v{updateInfo.latestVersion}
+                    v{String(updateInfo.latestVersion || '1.0.0').replace(/^v+/, '')}
                   </span>
                 </div>
                 <p className="text-[11px] text-zinc-400">
-                  {t('updates_current')}: v{updateInfo.currentVersion}
+                  {t('updates_current')}: v{String(updateInfo.currentVersion || '1.0.0').replace(/^v+/, '')}
                 </p>
               </div>
 
               {updateInfo.releaseNotes && (
                 <div className="space-y-1">
                   <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">
-                    {language === 'tr' ? 'Sürüm Notları' : 'Release Notes'}
+                    {t('updates_release_notes')}
                   </span>
                   <div className="p-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-[11px] text-zinc-300 max-h-32 overflow-y-auto whitespace-pre-wrap">
                     {updateInfo.releaseNotes}
@@ -132,7 +132,7 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
               <div>
                 <h3 className="font-bold text-zinc-100 text-sm">{t('updates_up_to_date')}</h3>
                 <p className="text-[11px] text-zinc-400 mt-0.5">
-                  v{updateInfo?.currentVersion || '1.0.0'}
+                  v{String(updateInfo?.currentVersion || '1.0.0').replace(/^v+/, '')}
                 </p>
               </div>
             </div>
@@ -147,7 +147,7 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
             className="flex items-center gap-1.5 px-3 py-1 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 text-xs transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-            <span>{language === 'tr' ? 'Yeniden Kontrol Et' : 'Check Again'}</span>
+            <span>{t('updates_check_again')}</span>
           </button>
 
           <button

@@ -24,6 +24,7 @@ export const translations = {
 
 
 
+
     // Titlebar
     app_title: 'GTAW Log Studio',
     check_updates: 'Check for Updates',
@@ -409,8 +410,11 @@ export const translations = {
     ps_on_phone: "On Phone / SMS message",
     downloading: "Downloading...",
     copied: "Copied",
+    updates_release_notes: "Release Notes",
+    updates_check_again: "Check Again",
   },
   tr: {
+
 
 
 
@@ -802,8 +806,11 @@ export const translations = {
     ps_on_phone: "SMS / Telefon geldiğinde",
     downloading: "İndiriliyor...",
     copied: "Kopyalandı",
+    updates_release_notes: "Sürüm Notları",
+    updates_check_again: "Yeniden Kontrol Et",
   },
   ru: {
+
 
 
 
@@ -1195,8 +1202,11 @@ export const translations = {
     ps_on_phone: "При SMS / телефонном звонке",
     downloading: "Скачивание...",
     copied: "Скопировано",
+    updates_release_notes: "Примечания к выпуску",
+    updates_check_again: "Проверить снова",
   },
   fr: {
+
 
 
 
@@ -1588,6 +1598,8 @@ export const translations = {
     ps_on_phone: "Sur message SMS / Téléphone",
     downloading: "Téléchargement...",
     copied: "Copié",
+    updates_release_notes: "Notes de version",
+    updates_check_again: "Vérifier à nouveau",
   },
   es: {
     // Titlebar

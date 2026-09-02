@@ -250,18 +250,18 @@ ipcMain.handle('check-for-updates', async () => {
           const hasUpdate = rawTag !== currentVer && json.tag_name !== undefined;
 
           resolve({
-            currentVersion: `v${currentVer}`,
-            latestVersion: `v${rawTag}`,
+            currentVersion: currentVer.replace(/^v+/, ''),
+            latestVersion: rawTag.replace(/^v+/, ''),
             hasUpdate: hasUpdate,
-            releaseNotes: json.body || 'En güncel sürümü kullanıyorsunuz.',
+            releaseNotes: json.body || '',
             url: json.html_url || 'https://github.com/create-tools/GTAW-Log-Studio/releases',
           });
         } catch (e) {
           resolve({
-            currentVersion: `v${currentVer}`,
-            latestVersion: `v${currentVer}`,
+            currentVersion: currentVer.replace(/^v+/, ''),
+            latestVersion: currentVer.replace(/^v+/, ''),
             hasUpdate: false,
-            releaseNotes: 'En güncel sürümü kullanıyorsunuz.',
+            releaseNotes: '',
           });
         }
       });
@@ -269,10 +269,10 @@ ipcMain.handle('check-for-updates', async () => {
 
     req.on('error', () => {
       resolve({
-        currentVersion: `v${currentVer}`,
-        latestVersion: `v${currentVer}`,
+        currentVersion: currentVer.replace(/^v+/, ''),
+        latestVersion: currentVer.replace(/^v+/, ''),
         hasUpdate: false,
-        releaseNotes: 'İnternet bağlantısı kurulamadı veya GitHub API yanıt vermedi.',
+        releaseNotes: '',
       });
     });
 
