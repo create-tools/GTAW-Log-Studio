@@ -15,6 +15,7 @@ import { DEFAULT_APP_SETTINGS } from './types/settings';
 import { parseRawLogText, extractSessionsFromLogText } from './core/parser';
 import { generateCleanText } from './core/bbcode';
 import { soundAlerts } from './core/soundAlerts';
+import { Sparkles, Download, X } from 'lucide-react';
 
 import { Titlebar } from './components/layout/Titlebar';
 import { Navbar } from './components/layout/Navbar';
@@ -136,6 +137,41 @@ export function App() {
     return localStorage.getItem('gtaw_lang_selected') !== 'true';
   });
   const [customSSLines, setCustomSSLines] = useState<ParsedLogLine[] | null>(null);
+
+  // Otomatik Arka Plan Güncelleme Denetimi
+  const [availableUpdate, setAvailableUpdate] = useState<{
+    version: string;
+    url?: string;
+    notes?: string;
+  } | null>(null);
+  const [isUpdateBannerDismissed, setIsUpdateBannerDismissed] = useState(false);
+
+  useEffect(() => {
+    const checkBackgroundUpdates = async () => {
+      try {
+        const electronAPI = (window as any).electronAPI;
+        if (!electronAPI?.checkForUpdates) return;
+        const res = await electronAPI.checkForUpdates();
+        if (res && res.hasUpdate && res.latestVersion) {
+          setAvailableUpdate({
+            version: res.latestVersion,
+            url: res.url,
+            notes: res.releaseNotes,
+          });
+        }
+      } catch (err) {
+        // Hata durumunda sessizce devam et
+      }
+    };
+
+    const initialTimer = setTimeout(checkBackgroundUpdates, 3000);
+    const interval = setInterval(checkBackgroundUpdates, 30 * 60 * 1000);
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Global Klavye Kısayolları (Hotkeys)
   useEffect(() => {
@@ -747,6 +783,7 @@ export function App() {
         fiveMMessage={fiveMMessage}
         activeSessionName={activeSessionObj?.name}
         settings={appSettings}
+        hasUpdateBadge={!!availableUpdate}
         onOpenBackupSettings={() => setIsBackupSettingsOpen(true)}
         onOpenProgramSettings={() => setIsProgramSettingsOpen(true)}
         onOpenCheckUpdates={() => setIsCheckUpdatesOpen(true)}
@@ -947,6 +984,57 @@ export function App() {
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
       />
+
+      {/* 🚀 Kibar & Rahatsız Etmeyen Güncelleme Bildirimi (Toast) */}
+      {availableUpdate && !isUpdateBannerDismissed && (
+        <div className="fixed bottom-6 right-6 z-50 max-w-sm bg-zinc-900/95 border border-purple-500/50 rounded-2xl p-4 shadow-2xl backdrop-blur-md flex items-start gap-3 select-none">
+          <div className="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center shrink-0 text-purple-300 shadow-inner">
+            <Sparkles className="w-4 h-4 text-purple-400" />
+          </div>
+
+          <div className="flex-1 space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-xs text-zinc-100 flex items-center gap-1.5">
+                {t('updates_available')}
+                <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-purple-600 text-white">
+                  v{String(availableUpdate.version).replace(/^v+/, '')}
+                </span>
+              </span>
+              <button
+                onClick={() => setIsUpdateBannerDismissed(true)}
+                className="text-zinc-500 hover:text-zinc-200 p-0.5 rounded transition-colors"
+                title={t('modal_close')}
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <p className="text-[11px] text-zinc-400 leading-snug">
+              {t('updates_new_version_hint')}
+            </p>
+
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                onClick={() => {
+                  setIsCheckUpdatesOpen(true);
+                  setIsUpdateBannerDismissed(true);
+                }}
+                className="px-3 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md"
+              >
+                <Download className="w-3 h-3" />
+                <span>{t('updates_download_button')}</span>
+              </button>
+
+              <button
+                onClick={() => setIsUpdateBannerDismissed(true)}
+                className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs transition-colors"
+              >
+                {t('updates_remind_later')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

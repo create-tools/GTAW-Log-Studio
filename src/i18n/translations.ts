@@ -449,6 +449,8 @@ export const translations = {
     select_all: "Select All",
     filter_selected_count: "selected",
     lines_selected: "lines selected",
+    updates_new_version_hint: "A new version of GTAW Log Studio is available with improvements.",
+    updates_remind_later: "Later",
   },
   tr: {
     app_title: "GTAW Log Studio",
@@ -882,6 +884,8 @@ export const translations = {
     select_all: "Tümünü Seç",
     filter_selected_count: "seçildi",
     lines_selected: "satır seçildi",
+    updates_new_version_hint: "GTAW Log Studio için yeni bir güncelleme yayınlandı.",
+    updates_remind_later: "Sonra",
   },
   ru: {
     app_title: "GTAW Log Studio",
@@ -1315,6 +1319,8 @@ export const translations = {
     select_all: "Выбрать все",
     filter_selected_count: "выбрано",
     lines_selected: "строк выбрано",
+    updates_new_version_hint: "Доступна новая версия GTAW Log Studio с улучшениями.",
+    updates_remind_later: "Позже",
   },
   fr: {
     app_title: "GTAW Log Studio",
@@ -1748,6 +1754,8 @@ export const translations = {
     select_all: "Tout sélectionner",
     filter_selected_count: "sélectionné(s)",
     lines_selected: "lignes sélectionnées",
+    updates_new_version_hint: "Une nouvelle version de GTAW Log Studio est disponible.",
+    updates_remind_later: "Plus tard",
   },
   es: {
     app_title: "GTAW Log Studio",
@@ -2181,6 +2189,8 @@ export const translations = {
     select_all: "Seleccionar todo",
     filter_selected_count: "seleccionado(s)",
     lines_selected: "líneas seleccionadas",
+    updates_new_version_hint: "Una nueva versión de GTAW Log Studio está disponible.",
+    updates_remind_later: "Más tarde",
   }
 };
 

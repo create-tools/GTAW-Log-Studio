@@ -23,6 +23,7 @@ interface TitlebarProps {
   fiveMMessage: string;
   activeSessionName?: string;
   settings: AppSettings;
+  hasUpdateBadge?: boolean;
   onOpenBackupSettings: () => void;
   onOpenProgramSettings: () => void;
   onOpenCheckUpdates: () => void;
@@ -35,6 +36,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
   fiveMState,
   fiveMMessage,
   settings,
+  hasUpdateBadge,
   onOpenBackupSettings,
   onOpenProgramSettings,
   onOpenCheckUpdates,
@@ -124,11 +126,18 @@ export const Titlebar: React.FC<TitlebarProps> = ({
 
           <button
             onClick={onOpenCheckUpdates}
-            className="px-2 py-0.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 transition-colors hidden sm:flex items-center gap-1"
+            className={`px-2 py-0.5 rounded transition-colors hidden sm:flex items-center gap-1.5 ${
+              hasUpdateBadge
+                ? 'bg-purple-950/60 border border-purple-500/40 text-purple-200 hover:bg-purple-900/60'
+                : 'hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100'
+            }`}
             title={t('check_updates')}
           >
-            <RefreshCw className="w-3 h-3 text-purple-400" />
+            <RefreshCw className={`w-3 h-3 ${hasUpdateBadge ? 'text-purple-300 animate-spin-slow' : 'text-purple-400'}`} />
             <span className="hidden md:inline">{t('check_updates')}</span>
+            {hasUpdateBadge && (
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm animate-pulse"></span>
+            )}
           </button>
 
           <button
