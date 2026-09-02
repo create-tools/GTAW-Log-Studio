@@ -353,10 +353,10 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
               disabled={downloading}
               onClick={handleCopyMergedToClipboard}
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition-colors shadow-sm"
-              title="Birleştirilmiş görseli doğrudan panoya kopyalar (Discord / Photoshop Ctrl+V)"
+              title={t('io_copy_all_tip')}
             >
               {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copied ? 'Panoya Kopyalandı!' : 'SS Panoya Kopyala'}</span>
+              <span>{copied ? t('io_copied') : t('io_copy_ss')}</span>
             </button>
 
             {/* İndir */}
@@ -366,7 +366,7 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-zinc-700 transition-colors"
             >
               <Download className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{downloading ? 'Hazırlanıyor...' : `${config.exportFormat.toUpperCase()} İndir`}</span>
+              <span>{downloading ? t('io_preparing') : `${config.exportFormat.toUpperCase()} ${t('download')}`}</span>
             </button>
           </div>
         )}
@@ -376,7 +376,7 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
       {bgImage && (
         <div className="flex items-center justify-between bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-lg text-xs">
           <div className="flex items-center gap-2">
-            <span className="text-zinc-400 text-[11px] font-semibold">Taşıma:</span>
+            <span className="text-zinc-400 text-[11px] font-semibold">{t('io_drag_mode')}:</span>
             
             <button
               onClick={() => setActiveDragMode('text')}
@@ -387,7 +387,7 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
               }`}
             >
               <Type className="w-3.5 h-3.5" />
-              <span>Yazıyı Taşı</span>
+              <span>{t('io_drag_text')}</span>
             </button>
 
             <button
@@ -399,7 +399,7 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
               }`}
             >
               <Move className="w-3.5 h-3.5" />
-              <span>{t('ss_frame_image')}</span>
+              <span>{t('io_drag_image')}</span>
             </button>
           </div>
 

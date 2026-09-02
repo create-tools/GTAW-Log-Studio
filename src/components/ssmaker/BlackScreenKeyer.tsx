@@ -181,11 +181,11 @@ export const BlackScreenKeyer: React.FC<BlackScreenKeyerProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 text-xs font-semibold transition-colors shadow-sm"
           >
             <ImageIcon className="w-3.5 h-3.5 text-purple-400" />
-            <span>Siyah Arkaplanlı Görsel Seç</span>
+            <span>{t('bsk_select_image')}</span>
           </button>
 
           <span className="text-[11px] text-zinc-500 hidden sm:inline">
-            (veya doğrudan <kbd className="px-1 py-0.5 rounded bg-zinc-800 text-zinc-300 font-mono text-[10px]">Ctrl+V</kbd> ile yapıştırın)
+            ({t('bsk_or_paste')} <kbd className="px-1 py-0.5 rounded bg-zinc-800 text-zinc-300 font-mono text-[10px]">Ctrl+V</kbd> {t('bsk_paste_direct')})
           </span>
         </div>
 
@@ -193,7 +193,7 @@ export const BlackScreenKeyer: React.FC<BlackScreenKeyerProps> = ({
           <div className="flex items-center gap-2">
             {/* Önizleme Arkaplan Seçimi */}
             <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 p-0.5 rounded-md text-[11px]">
-              <span className="text-zinc-500 px-1 font-medium">Zemin:</span>
+              <span className="text-zinc-500 px-1 font-medium">{t('bsk_bg_label')}:</span>
               <button
                 onClick={() => setPreviewMode('checker')}
                 className={`px-2 py-0.5 rounded ${previewMode === 'checker' ? 'bg-purple-600 text-white font-bold' : 'text-zinc-400 hover:text-zinc-200'}`}
@@ -221,7 +221,7 @@ export const BlackScreenKeyer: React.FC<BlackScreenKeyerProps> = ({
               title="Şeffaf chat katmanını panoya kopyalar (Photoshop / Discord Ctrl+V)"
             >
               {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copied ? 'Panoya Kopyalandı!' : 'Transparan PNG Kopyala'}</span>
+              <span>{copied ? t('bsk_copied') : t('bsk_copy_transparent')}</span>
             </button>
 
             {/* İndir */}
@@ -244,12 +244,12 @@ export const BlackScreenKeyer: React.FC<BlackScreenKeyerProps> = ({
             <div className="flex items-center justify-between pb-1 border-b border-zinc-800">
               <span className="font-bold uppercase text-[10px] text-zinc-400 tracking-wider flex items-center gap-1">
                 <Sliders className="w-3 h-3" />
-                Siyah Ayıklama (Luma Key)
+                {t('bsk_luma_key')}
               </span>
               <button
                 onClick={() => { setThreshold(35); setFeather(15); setContrastBoost(110); }}
                 className="p-0.5 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded"
-                title="Sıfırla"
+                title={t('reset')}
               >
                 <RotateCcw className="w-3 h-3" />
               </button>
@@ -258,7 +258,7 @@ export const BlackScreenKeyer: React.FC<BlackScreenKeyerProps> = ({
             {/* Siyah Eşik Değeri */}
             <div className="space-y-1 bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-lg">
               <div className="flex justify-between text-[10px]">
-                <span className="text-zinc-300 font-semibold">Siyah Eşiği (Threshold)</span>
+                <span className="text-zinc-300 font-semibold">{t('bsk_threshold')}</span>
                 <span className="text-purple-300 font-mono font-bold">{threshold}</span>
               </div>
               <input
@@ -270,14 +270,14 @@ export const BlackScreenKeyer: React.FC<BlackScreenKeyerProps> = ({
                 className="w-full accent-purple-600"
               />
               <p className="text-[10px] text-zinc-500 leading-tight">
-                Siyah piksellerin tamamen şeffaf yapılacağı parlaklık sınırı.
+                {t('bsk_threshold_desc')}
               </p>
             </div>
 
             {/* Kenar Yumuşatma (Feather) */}
             <div className="space-y-1 bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-lg">
               <div className="flex justify-between text-[10px]">
-                <span className="text-zinc-300 font-semibold">Kenar Yumuşatma (Feather)</span>
+                <span className="text-zinc-300 font-semibold">{t('bsk_smoothness')}</span>
                 <span className="text-purple-300 font-mono font-bold">{feather}px</span>
               </div>
               <input
@@ -289,14 +289,14 @@ export const BlackScreenKeyer: React.FC<BlackScreenKeyerProps> = ({
                 className="w-full accent-purple-600"
               />
               <p className="text-[10px] text-zinc-500 leading-tight">
-                Harflerin kenarındaki pürüzsüz geçiş (anti-aliasing) payı.
+                {t('bsk_smoothness_desc')}
               </p>
             </div>
 
             {/* Renk Canlılığı */}
             <div className="space-y-1 bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-lg">
               <div className="flex justify-between text-[10px]">
-                <span className="text-zinc-300 font-semibold">Yazı Renk Canlılığı</span>
+                <span className="text-zinc-300 font-semibold">{t('bsk_contrast')}</span>
                 <span className="text-purple-300 font-mono font-bold">%{contrastBoost}</span>
               </div>
               <input
@@ -330,13 +330,13 @@ export const BlackScreenKeyer: React.FC<BlackScreenKeyerProps> = ({
                 <Upload className="w-6 h-6" />
               </div>
               <h3 className="text-xs font-bold text-zinc-200 mb-1">
-                Siyah Arkaplanlı Chatlog Görselini Yükleyin
+                {t('bsk_upload_title')}
               </h3>
               <p className="text-[11px] text-zinc-500 leading-relaxed mb-3">
-                Oyun içinde siyah arkaplanla (örn: /blindfold veya siyah kutu) aldığınız chat ekran görüntüsünü seçin veya doğrudan <kbd className="px-1 py-0.5 rounded bg-zinc-800 text-zinc-300 font-mono">Ctrl+V</kbd> ile yapıştırın. Siyah zemin anında tamamen şeffaf hale getirilecektir.
+                {t('bsk_upload_desc')}
               </p>
               <span className="px-3 py-1 rounded bg-zinc-800 text-zinc-300 text-xs font-semibold border border-zinc-700">
-                Görsel Dosyası Seç
+                {t('bsk_choose_btn')}
               </span>
             </div>
           ) : (

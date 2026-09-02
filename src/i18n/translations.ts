@@ -21,6 +21,7 @@ export const translations = {
 
 
 
+
     // Titlebar
     app_title: 'GTAW Log Studio',
     check_updates: 'Check for Updates',
@@ -364,8 +365,31 @@ export const translations = {
     pcm_copied: "Copied to clipboard!",
     pcm_copy_ss: "Copy Phone Screenshot",
     online: "Online",
+    bsk_select_image: "Select Black Background Image",
+    bsk_or_paste: "or paste directly with",
+    bsk_paste_direct: "",
+    bsk_bg_label: "Background",
+    bsk_checker: "Checkerboard",
+    bsk_white: "White",
+    bsk_black: "Original Black",
+    bsk_luma_key: "Luma Key Controls",
+    bsk_threshold_desc: "Luminance cutoff threshold where dark pixels become 100% transparent.",
+    bsk_smoothness_desc: "Edge anti-aliasing radius around character glyphs.",
+    bsk_contrast: "Font Color Vibrancy",
+    bsk_upload_title: "Upload Black Background Chatlog Screenshot",
+    bsk_upload_desc: "Select or paste with Ctrl+V an in-game /blindfold or black box chatbox screenshot. Black pixels are keyed out into clean transparent PNG instantly.",
+    bsk_choose_btn: "Choose Screenshot File",
+    io_copy_all_tip: "Copy rendered screenshot directly to clipboard (Photoshop / Discord Ctrl+V)",
+    io_copy_ss: "Copy SS to Clipboard",
+    io_preparing: "Rendering...",
+    io_drag_mode: "Drag Mode",
+    io_drag_text: "Move Chatbox",
+    io_drag_image: "Frame Image",
+    download: "Download",
+    reset: "Reset",
   },
   tr: {
+
 
 
 
@@ -712,8 +736,31 @@ export const translations = {
     pcm_copied: "Panoya kopyalandı!",
     pcm_copy_ss: "Telefon SS Kopyala",
     online: "Çevrimiçi",
+    bsk_select_image: "Siyah Arkaplanlı Görsel Seç",
+    bsk_or_paste: "veya doğrudan",
+    bsk_paste_direct: "ile yapıştırın",
+    bsk_bg_label: "Zemin",
+    bsk_checker: "Şeffaf",
+    bsk_white: "Beyaz",
+    bsk_black: "Orijinal Siyah",
+    bsk_luma_key: "Siyah Ayıklama (Luma Key)",
+    bsk_threshold_desc: "Siyah piksellerin tamamen şeffaf yapılacağı parlaklık sınırı.",
+    bsk_smoothness_desc: "Harflerin kenarındaki pürüzsüz geçiş (anti-aliasing) payı.",
+    bsk_contrast: "Yazı Renk Canlılığı",
+    bsk_upload_title: "Siyah Arkaplanlı Chatlog Görselini Yükleyin",
+    bsk_upload_desc: "Oyun içinde siyah arkaplanla (örn: /blindfold veya siyah kutu) aldığınız chat ekran görüntüsünü seçin veya doğrudan Ctrl+V ile yapıştırın. Siyah zemin anında tamamen şeffaf hale getirilecektir.",
+    bsk_choose_btn: "Görsel Dosyası Seç",
+    io_copy_all_tip: "Birleştirilmiş görseli doğrudan panoya kopyalar (Discord / Photoshop Ctrl+V)",
+    io_copy_ss: "SS Panoya Kopyala",
+    io_preparing: "Hazırlanıyor...",
+    io_drag_mode: "Taşıma Modu",
+    io_drag_text: "Yazıyı Taşı",
+    io_drag_image: "Görseli Kadrajla",
+    download: "İndir",
+    reset: "Sıfırla",
   },
   ru: {
+
 
 
 
@@ -1060,8 +1107,31 @@ export const translations = {
     pcm_copied: "Скопировано в буфер!",
     pcm_copy_ss: "Копировать скриншот телефона",
     online: "В сети",
+    bsk_select_image: "Выбрать изображение с черным фоном",
+    bsk_or_paste: "или вставьте через",
+    bsk_paste_direct: "",
+    bsk_bg_label: "Фон",
+    bsk_checker: "Прозрачный",
+    bsk_white: "Белый",
+    bsk_black: "Черный оригинал",
+    bsk_luma_key: "Настройки Luma Key",
+    bsk_threshold_desc: "Порог яркости, при котором темные пиксели становятся прозрачными.",
+    bsk_smoothness_desc: "Сглаживание контуров текста.",
+    bsk_contrast: "Насыщенность текста",
+    bsk_upload_title: "Загрузите скриншот с черным фоном",
+    bsk_upload_desc: "Выберите скриншот чата /blindfold или вставьте через Ctrl+V. Черный фон будет мгновенно удален.",
+    bsk_choose_btn: "Выбрать скриншот",
+    io_copy_all_tip: "Копировать скриншот в буфер обмена (Photoshop / Discord Ctrl+V)",
+    io_copy_ss: "Копировать СС в буфер",
+    io_preparing: "Подготовка...",
+    io_drag_mode: "Режим перемещения",
+    io_drag_text: "Переместить текст",
+    io_drag_image: "Кадрировать фон",
+    download: "Скачать",
+    reset: "Сбросить",
   },
   fr: {
+
 
 
 
@@ -1408,6 +1478,28 @@ export const translations = {
     pcm_copied: "Copié dans le presse-papiers !",
     pcm_copy_ss: "Copier la capture du téléphone",
     online: "En ligne",
+    bsk_select_image: "Sélectionner une image sur fond noir",
+    bsk_or_paste: "ou collez directement avec",
+    bsk_paste_direct: "",
+    bsk_bg_label: "Fond",
+    bsk_checker: "Transparent",
+    bsk_white: "Blanc",
+    bsk_black: "Noir original",
+    bsk_luma_key: "Contrôles Luma Key",
+    bsk_threshold_desc: "Seuil de luminosité pour rendre les pixels noirs 100% transparents.",
+    bsk_smoothness_desc: "Lissage des bords autour du texte.",
+    bsk_contrast: "Éclat des couleurs",
+    bsk_upload_title: "Téléverser la capture de chat sur fond noir",
+    bsk_upload_desc: "Sélectionnez ou collez avec Ctrl+V une capture /blindfold. Le fond noir sera instantanément rendu transparent.",
+    bsk_choose_btn: "Choisir un fichier",
+    io_copy_all_tip: "Copier la capture directement dans le presse-papiers (Photoshop / Discord Ctrl+V)",
+    io_copy_ss: "Copier le SS",
+    io_preparing: "Génération...",
+    io_drag_mode: "Mode déplacement",
+    io_drag_text: "Déplacer le texte",
+    io_drag_image: "Cadrer l'image",
+    download: "Télécharger",
+    reset: "Réinitialiser",
   },
   es: {
     // Titlebar

@@ -331,7 +331,7 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
     };
   }
 
-  // 8. Standart IC Konuşma (örn: Daniel Rivas: Eğer saldırı... VEYA Daniel Rivas says: ...)
+  // 8. Standart IC Konuşma (örn: John Doe: Eğer saldırı... VEYA John Doe says: ...)
   const icPrefixMatch = text.match(/^(?:\[(Fısıltı|Whisper|Bağırma|Shout|Megafon|Megaphone)\]\s*)?([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)(?:\s*\[[^\]]+\])?\s*(?:says|diyor ki|fısıldıyor|whispers|shouts|bağırıyor|konuşuyor)?\s*:\s*(.*)/i);
   if (icPrefixMatch) {
     const sp = icPrefixMatch[2].trim();
