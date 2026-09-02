@@ -1,5 +1,5 @@
 import { useLanguage } from '../../i18n/LanguageContext';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Type, 
   ListOrdered, 
@@ -14,7 +14,8 @@ import {
   Square,
   Pipette,
   EyeOff,
-  Hash
+  Hash,
+  ShieldAlert
 } from 'lucide-react';
 import type { SSLineItem } from '../../types/ssMaker';
 import { GTAW_PALETTE_COLORS } from '../../types/ssMaker';
@@ -24,6 +25,14 @@ import { parseSingleLogLine } from '../../core/parser';
 interface ParagraphEditorProps {
   lines: SSLineItem[];
   onUpdateLines: (lines: SSLineItem[]) => void;
+}
+
+interface TextSelectionInfo {
+  mode: 'paragraph' | 'line';
+  lineIndex?: number;
+  start: number;
+  end: number;
+  selectedText: string;
 }
 
 export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
@@ -41,7 +50,11 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
   const [customColor, setCustomColor] = useState('#FFFFFF');
   const [activeCensorChar, setActiveCensorChar] = useState('÷');
 
+  // Aktif Seçilen Kelime / Metin Takibi
+  const [lastSelection, setLastSelection] = useState<TextSelectionInfo | null>(null);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const lineInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
   // Paragraf / Çoklu Satır Metin Alanı Güncellemesi
   const handleParagraphChange = (text: string) => {
@@ -69,6 +82,46 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
     onUpdateLines(parsedItems);
   };
 
+  // Textarea Seçim Olaylarını Yakala
+  const handleTextareaSelection = () => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart ?? 0;
+    const end = el.selectionEnd ?? 0;
+    if (start !== end) {
+      const selectedText = rawParagraphText.slice(start, end);
+      setLastSelection({
+        mode: 'paragraph',
+        start,
+        end,
+        selectedText,
+      });
+    } else {
+      setLastSelection(null);
+    }
+  };
+
+  // Line Input Seçim Olaylarını Yakala
+  const handleLineInputSelection = (idx: number) => {
+    const el = lineInputRefs.current[idx];
+    if (!el) return;
+    const start = el.selectionStart ?? 0;
+    const end = el.selectionEnd ?? 0;
+    const lineText = lines[idx]?.text || '';
+    if (start !== end) {
+      const selectedText = lineText.slice(start, end);
+      setLastSelection({
+        mode: 'line',
+        lineIndex: idx,
+        start,
+        end,
+        selectedText,
+      });
+    } else {
+      setLastSelection(null);
+    }
+  };
+
   // Hızlı Eylem Ekleme Yardımcıları
   const handleInsertQuickTemplate = (template: string) => {
     const newText = rawParagraphText ? `${rawParagraphText}\n${template}` : template;
@@ -76,60 +129,128 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
   };
 
   // Seçilen Kelimeyi / Metni Sansürleme (÷, █, *, •)
-  const censorSelectionInParagraph = (censorChar: string) => {
-    const el = textareaRef.current;
-    if (!el) return;
-    const start = el.selectionStart;
-    const end = el.selectionEnd;
-    if (start === end) {
-      // Seçili metin yoksa imleç yerine tek karakter ekle
-      const newText = rawParagraphText.slice(0, start) + censorChar + rawParagraphText.slice(end);
+  const censorActiveSelection = (censorChar: string) => {
+    // 1. Eğer aktif bir kelime/metin seçimi varsa SADECE onu sansürle
+    if (lastSelection && lastSelection.start !== lastSelection.end && lastSelection.selectedText) {
+      const len = lastSelection.selectedText.length;
+      const masked = censorChar.repeat(len);
+
+      if (lastSelection.mode === 'paragraph') {
+        const start = lastSelection.start;
+        const end = lastSelection.end;
+        const newText = rawParagraphText.slice(0, start) + masked + rawParagraphText.slice(end);
+        handleParagraphChange(newText);
+        setLastSelection({
+          mode: 'paragraph',
+          start,
+          end: start + masked.length,
+          selectedText: masked,
+        });
+        setTimeout(() => {
+          if (textareaRef.current) {
+            textareaRef.current.focus();
+            textareaRef.current.setSelectionRange(start, start + masked.length);
+          }
+        }, 10);
+        return;
+      } else if (lastSelection.mode === 'line' && lastSelection.lineIndex !== undefined) {
+        const idx = lastSelection.lineIndex;
+        const line = lines[idx];
+        if (line) {
+          const start = lastSelection.start;
+          const end = lastSelection.end;
+          const newText = line.text.slice(0, start) + masked + line.text.slice(end);
+          updateSingleLineText(idx, newText);
+          setLastSelection({
+            mode: 'line',
+            lineIndex: idx,
+            start,
+            end: start + masked.length,
+            selectedText: masked,
+          });
+          setTimeout(() => {
+            const inputEl = lineInputRefs.current[idx];
+            if (inputEl) {
+              inputEl.focus();
+              inputEl.setSelectionRange(start, start + masked.length);
+            }
+          }, 10);
+          return;
+        }
+      }
+    }
+
+    // 2. Eğer seçim yoksa ama textarea aktifse, imleç yerine 4 adet karakter ekle
+    if (editorMode === 'paragraph' && textareaRef.current) {
+      const el = textareaRef.current;
+      const start = el.selectionStart ?? rawParagraphText.length;
+      const end = el.selectionEnd ?? rawParagraphText.length;
+      const count = Math.max(1, end - start);
+      const masked = censorChar.repeat(count);
+      const newText = rawParagraphText.slice(0, start) + masked + rawParagraphText.slice(end);
       handleParagraphChange(newText);
       setTimeout(() => {
-        el.setSelectionRange(start + censorChar.length, start + censorChar.length);
         el.focus();
-      }, 0);
-      return;
+        el.setSelectionRange(start + masked.length, start + masked.length);
+      }, 10);
     }
-
-    const selectedText = rawParagraphText.slice(start, end);
-    const masked = censorChar.repeat(selectedText.length);
-    const newText = rawParagraphText.slice(0, start) + masked + rawParagraphText.slice(end);
-    handleParagraphChange(newText);
-    setTimeout(() => {
-      el.setSelectionRange(start + masked.length, start + masked.length);
-      el.focus();
-    }, 0);
   };
 
-  // Seçilen Kelimeyi Renklendirme Tag'i ile Sarma ({FCE94F}seçim{FFFFFF})
-  const wrapSelectionWithColor = (colorHex: string) => {
-    const el = textareaRef.current;
-    if (!el) return;
-    const start = el.selectionStart;
-    const end = el.selectionEnd;
-    if (start === end) return;
-
-    const selectedText = rawParagraphText.slice(start, end);
-    const cleanHex = colorHex.replace('#', '').toUpperCase();
-    const wrapped = `{${cleanHex}}${selectedText}{FFFFFF}`;
-    const newText = rawParagraphText.slice(0, start) + wrapped + rawParagraphText.slice(end);
-    handleParagraphChange(newText);
-    setTimeout(() => {
-      el.setSelectionRange(start + wrapped.length, start + wrapped.length);
-      el.focus();
-    }, 0);
-  };
-
-  // Tekil veya Seçili Satırlara Renk Uygulama
+  // Seçilen Kelimeyi Renklendirme ({FCE94F}seçilen{FFFFFF}) veya Satır Rengini Değiştirme
   const applyColorToSelection = (colorHex: string) => {
-    // Eğer textarea'da bir metin parçası seçiliyse, kelime renklendirme etiketini sar
-    const el = textareaRef.current;
-    if (editorMode === 'paragraph' && el && el.selectionStart !== el.selectionEnd) {
-      wrapSelectionWithColor(colorHex);
-      return;
+    const cleanHex = colorHex.replace('#', '').toUpperCase();
+
+    // 1. Eğer bir kelime/metin parçası seçiliyse SADECE o kelimeyi renklendir
+    if (lastSelection && lastSelection.start !== lastSelection.end && lastSelection.selectedText) {
+      const selectedText = lastSelection.selectedText;
+      const wrapped = `{${cleanHex}}${selectedText}{FFFFFF}`;
+
+      if (lastSelection.mode === 'paragraph') {
+        const start = lastSelection.start;
+        const end = lastSelection.end;
+        const newText = rawParagraphText.slice(0, start) + wrapped + rawParagraphText.slice(end);
+        handleParagraphChange(newText);
+        setLastSelection({
+          mode: 'paragraph',
+          start,
+          end: start + wrapped.length,
+          selectedText: wrapped,
+        });
+        setTimeout(() => {
+          if (textareaRef.current) {
+            textareaRef.current.focus();
+            textareaRef.current.setSelectionRange(start, start + wrapped.length);
+          }
+        }, 10);
+        return;
+      } else if (lastSelection.mode === 'line' && lastSelection.lineIndex !== undefined) {
+        const idx = lastSelection.lineIndex;
+        const line = lines[idx];
+        if (line) {
+          const start = lastSelection.start;
+          const end = lastSelection.end;
+          const newText = line.text.slice(0, start) + wrapped + line.text.slice(end);
+          updateSingleLineText(idx, newText);
+          setLastSelection({
+            mode: 'line',
+            lineIndex: idx,
+            start,
+            end: start + wrapped.length,
+            selectedText: wrapped,
+          });
+          setTimeout(() => {
+            const inputEl = lineInputRefs.current[idx];
+            if (inputEl) {
+              inputEl.focus();
+              inputEl.setSelectionRange(start, start + wrapped.length);
+            }
+          }, 10);
+          return;
+        }
+      }
     }
 
+    // 2. Kelime seçili değilse, seçili tüm satırların (veya son satırın) rengini değiştir
     if (selectedLineIndices.size === 0) {
       if (lines.length > 0) {
         const updated = [...lines];
@@ -261,15 +382,23 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
         )}
       </div>
 
-      {/* 🎨 Hızlı GTAW Renk Paleti Çubuğu */}
+      {/* 🎨 Hızlı GTAW Renk Paleti & Sansür Çubuğu */}
       <div className="bg-zinc-900/90 border border-zinc-800 rounded-lg p-2 space-y-1.5 shadow-inner">
         <div className="flex items-center justify-between text-[11px]">
           <span className="font-semibold text-zinc-300 flex items-center gap-1">
             <Palette className="w-3.5 h-3.5 text-purple-400" />
             {t('color_palette_title')}
           </span>
-          <span className="text-[10px] text-zinc-500 font-mono">
-            {selectedLineIndices.size > 0 ? `${selectedLineIndices.size} ${t('ss_apply_color_to_selected')}` : t('color_palette_title')}
+          <span className="text-[10px] text-zinc-400 font-mono">
+            {lastSelection && lastSelection.selectedText ? (
+              <span className="text-purple-300 font-semibold bg-purple-950/60 border border-purple-800/60 px-1.5 py-0.5 rounded">
+                "{lastSelection.selectedText.slice(0, 15)}{lastSelection.selectedText.length > 15 ? '...' : ''}" ({lastSelection.selectedText.length} hrf)
+              </span>
+            ) : selectedLineIndices.size > 0 ? (
+              `${selectedLineIndices.size} ${t('ss_apply_color_to_selected')}`
+            ) : (
+              t('color_palette_title')
+            )}
           </span>
         </div>
 
@@ -278,7 +407,10 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
           {GTAW_PALETTE_COLORS.map((cp) => (
             <button
               key={cp.id}
-              onClick={() => applyColorToSelection(cp.hex)}
+              onMouseDown={(e) => {
+                e.preventDefault(); // Metin seçiminin kaybolmasını engelle
+                applyColorToSelection(cp.hex);
+              }}
               title={`${t(cp.nameKey as any)} (${cp.hex})`}
               className="group relative aspect-square rounded border border-zinc-700/80 hover:scale-110 hover:z-10 hover:border-white transition-all shadow-sm flex items-center justify-center cursor-pointer"
               style={{ backgroundColor: cp.hex }}
@@ -318,7 +450,7 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
             />
           </div>
 
-          {/* 🔒 Sansür Araçları (Chatlog Magician Stili) */}
+          {/* 🔒 Kelime Sansürleme Butonları (÷, █, *, •) */}
           <div className="flex items-center gap-1">
             <span className="text-[10px] text-zinc-400 flex items-center gap-0.5 mr-0.5">
               <EyeOff className="w-3 h-3 text-amber-400" />
@@ -327,14 +459,15 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
             {['÷', '█', '*', '•'].map((char) => (
               <button
                 key={char}
-                onClick={() => {
+                onMouseDown={(e) => {
+                  e.preventDefault(); // Metin seçiminin kaybolmasını engelle
                   setActiveCensorChar(char);
-                  censorSelectionInParagraph(char);
+                  censorActiveSelection(char);
                 }}
                 title={`${t('censor_censor_selection')} (${char})`}
-                className={`w-5 h-5 rounded text-xs font-mono font-bold flex items-center justify-center border transition-all ${
+                className={`w-6 h-5 rounded text-xs font-mono font-bold flex items-center justify-center border transition-all cursor-pointer ${
                   activeCensorChar === char
-                    ? 'bg-amber-600/30 border-amber-500 text-amber-300'
+                    ? 'bg-amber-600/40 border-amber-500 text-amber-200 shadow-sm'
                     : 'bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-white'
                 }`}
               >
@@ -359,6 +492,9 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
             ref={textareaRef}
             value={rawParagraphText}
             onChange={(e) => handleParagraphChange(e.target.value)}
+            onSelect={handleTextareaSelection}
+            onKeyUp={handleTextareaSelection}
+            onMouseUp={handleTextareaSelection}
             placeholder={t('pe_sample_dialogue')}
             className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-200 font-mono leading-relaxed placeholder-zinc-600 focus:outline-none focus:border-purple-500 transition-colors resize-none select-text"
           />
@@ -468,10 +604,16 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
                     )}
 
                     <input
+                      ref={(el) => {
+                        lineInputRefs.current[idx] = el;
+                      }}
                       type="text"
                       value={line.text}
                       onChange={(e) => updateSingleLineText(idx, e.target.value)}
-                      className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 focus:outline-none focus:border-purple-500"
+                      onSelect={() => handleLineInputSelection(idx)}
+                      onKeyUp={() => handleLineInputSelection(idx)}
+                      onMouseUp={() => handleLineInputSelection(idx)}
+                      className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 focus:outline-none focus:border-purple-500 font-mono"
                     />
 
                     {/* Taşıma & Silme */}
