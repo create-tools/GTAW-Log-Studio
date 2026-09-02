@@ -1,4 +1,4 @@
-﻿import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import type { ParsedLogLine } from '../../types/log';
 import { LogRow } from './LogRow';
 import { FileText, ArrowDown } from 'lucide-react';
@@ -113,7 +113,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
           title={t('viewer_auto_scroll_tip')}
         >
           <ArrowDown className={`w-3 h-3 ${autoScroll ? 'animate-bounce' : ''}`} />
-          <span>`${t('viewer_auto_scroll')}: ${autoScroll ? t('on') : t('off')}`</span>
+          <span>{`${t('viewer_auto_scroll')}: ${autoScroll ? t('on') : t('off')}`}</span>
         </button>
       </div>
     </div>
