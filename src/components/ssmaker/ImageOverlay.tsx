@@ -314,6 +314,7 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          data-testid="overlay-file-input"
           className="hidden"
           onChange={handleImageUpload}
         />

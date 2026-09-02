@@ -171,6 +171,7 @@ export const BlackScreenKeyer: React.FC<BlackScreenKeyerProps> = ({
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          data-testid="keyer-file-input"
           className="hidden"
           onChange={handleImageUpload}
         />
