@@ -22,6 +22,8 @@ export const translations = {
 
 
 
+
+
     // Titlebar
     app_title: 'GTAW Log Studio',
     check_updates: 'Check for Updates',
@@ -387,8 +389,30 @@ export const translations = {
     io_drag_image: "Frame Image",
     download: "Download",
     reset: "Reset",
+    io_select_screenshot: "Select In-Game Screenshot",
+    io_frame_label: "Frame",
+    about_disclaimer_title: "Community Project Disclaimer",
+    about_disclaimer_text: "This software is an independent open-source community tool and not an official product of GTA World or FiveM.",
+    about_feature_live: "Live FiveM memory log engine & background parser",
+    about_feature_ps: "Transparent Roleplay SS & Chatbox Studio for Photoshop",
+    about_feature_free: "Free & Open Source for the text-roleplay community",
+    shortcuts_footer_tip: "Press ? key anywhere to open this shortcuts guide.",
+    sidebar_tab_speakers: "Speakers",
+    sb_import_json: "Import JSON",
+    tb_visual_lang_modal: "Visual Language Modal...",
+    lm_pov1_label: "1. Character / Your Logs (POV 1):",
+    lm_pov2_label: "2. Character / Partner Logs (POV 2):",
+    lm_merge_btn: "Merge & Interleave Chronologically",
+    ps_enable_sound: "Enable Sound Alerts",
+    ps_alt_tab_only: "Only alert when Alt-Tabbed:",
+    ps_on_pm: "On Private Message (/pm)",
+    ps_on_phone: "On Phone / SMS message",
+    downloading: "Downloading...",
+    copied: "Copied",
   },
   tr: {
+
+
 
 
 
@@ -758,8 +782,30 @@ export const translations = {
     io_drag_image: "Görseli Kadrajla",
     download: "İndir",
     reset: "Sıfırla",
+    io_select_screenshot: "Ekran Görüntüsü Seç",
+    io_frame_label: "Kadraj",
+    about_disclaimer_title: "Topluluk Projesi Beyanı",
+    about_disclaimer_text: "Bu yazılım resmi bir GTA World veya FiveM ürünü değildir. Yazı tabanlı rol topluluğuna kolaylık sağlamak amacıyla bağımsız ve açık kaynaklı olarak geliştirilmiştir.",
+    about_feature_live: "Canlı FiveM chat takibi ve arka plan bellek ayrıştırma",
+    about_feature_ps: "Photoshop uyumlu transparan SS & Chatbox Stüdyosu",
+    about_feature_free: "Rol topluluğuna özel açık kaynaklı ve ücretsiz",
+    shortcuts_footer_tip: "Kısayolları dilediğiniz an klavyenizdeki ? tuşuna basarak açabilirsiniz.",
+    sidebar_tab_speakers: "Kişiler",
+    sb_import_json: "Yedek Yükle",
+    tb_visual_lang_modal: "Dil Seçim Penceresi...",
+    lm_pov1_label: "1. Karakter / Kendi Loglarınız (POV 1):",
+    lm_pov2_label: "2. Karakter / Partnerinizin Logları (POV 2):",
+    lm_merge_btn: "Logları Kronolojik Olarak Harmanla & Birleştir",
+    ps_enable_sound: "Sesli Uyarıları Etkinleştir",
+    ps_alt_tab_only: "Sadece Alt-Tab'dayken ses çal:",
+    ps_on_pm: "Özel Mesaj (/pm) geldiğinde",
+    ps_on_phone: "SMS / Telefon geldiğinde",
+    downloading: "İndiriliyor...",
+    copied: "Kopyalandı",
   },
   ru: {
+
+
 
 
 
@@ -1129,8 +1175,30 @@ export const translations = {
     io_drag_image: "Кадрировать фон",
     download: "Скачать",
     reset: "Сбросить",
+    io_select_screenshot: "Выбрать скриншот из игры",
+    io_frame_label: "Кадр",
+    about_disclaimer_title: "Отказ от ответственности",
+    about_disclaimer_text: "Это независимый инструмент с открытым исходным кодом для ролевого сообщества, не являющийся официальным продуктом GTA World или FiveM.",
+    about_feature_live: "Парсинг логов FiveM из памяти в реальном времени",
+    about_feature_ps: "Прозрачная студия СС и чатбокса для Photoshop",
+    about_feature_free: "Бесплатно и с открытым исходным кодом для RP сообщества",
+    shortcuts_footer_tip: "Нажмите клавишу ? в любом месте, чтобы открыть горячие клавиши.",
+    sidebar_tab_speakers: "Персонажи",
+    sb_import_json: "Импорт JSON",
+    tb_visual_lang_modal: "Окно выбора языка...",
+    lm_pov1_label: "1. Персонаж / Ваши логи (POV 1):",
+    lm_pov2_label: "2. Персонаж / Логи партнера (POV 2):",
+    lm_merge_btn: "Хронологически объединить логи",
+    ps_enable_sound: "Включить звуковые оповещения",
+    ps_alt_tab_only: "Звук только при свернутой игре (Alt-Tab):",
+    ps_on_pm: "При личном сообщении (/pm)",
+    ps_on_phone: "При SMS / телефонном звонке",
+    downloading: "Скачивание...",
+    copied: "Скопировано",
   },
   fr: {
+
+
 
 
 
@@ -1500,6 +1568,26 @@ export const translations = {
     io_drag_image: "Cadrer l'image",
     download: "Télécharger",
     reset: "Réinitialiser",
+    io_select_screenshot: "Sélectionner une capture du jeu",
+    io_frame_label: "Cadrage",
+    about_disclaimer_title: "Avis de non-responsabilité",
+    about_disclaimer_text: "Ce logiciel est un outil communautaire open source indépendant et n'est pas un produit officiel de GTA World ou FiveM.",
+    about_feature_live: "Moteur de lecture des logs FiveM en direct",
+    about_feature_ps: "Studio SS et Chatbox transparent compatible Photoshop",
+    about_feature_free: "Gratuit et Open Source pour la communauté roleplay",
+    shortcuts_footer_tip: "Appuyez sur ? à tout moment pour ouvrir les raccourcis.",
+    sidebar_tab_speakers: "Personnages",
+    sb_import_json: "Importer JSON",
+    tb_visual_lang_modal: "Fenêtre de choix de langue...",
+    lm_pov1_label: "1. Personnage / Vos logs (POV 1) :",
+    lm_pov2_label: "2. Personnage / Logs du partenaire (POV 2) :",
+    lm_merge_btn: "Fusionner et entrelacer chronologiquement",
+    ps_enable_sound: "Activer les alertes sonores",
+    ps_alt_tab_only: "Alerter uniquement en Alt-Tab :",
+    ps_on_pm: "Sur message privé (/pm)",
+    ps_on_phone: "Sur message SMS / Téléphone",
+    downloading: "Téléchargement...",
+    copied: "Copié",
   },
   es: {
     // Titlebar

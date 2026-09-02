@@ -132,7 +132,7 @@ export const CanvasPreview: React.FC<CanvasPreviewProps> = ({ lines, config, pre
             title={t('io_export_image')}
           >
             <Download className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{downloading ? (language === 'tr' ? 'İndiriliyor...' : 'Downloading...') : t('io_export_image')}</span>
+            <span>{downloading ? t('downloading') : t('io_export_image')}</span>
           </button>
         </div>
       </div>

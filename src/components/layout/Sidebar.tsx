@@ -125,7 +125,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }`}
         >
           <Users className="w-3.5 h-3.5" />
-          <span>{language === 'tr' ? 'Kişiler' : 'Speakers'}</span>
+          <span>{t('sidebar_tab_speakers')}</span>
           {topSpeakers.length > 0 && (
             <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-zinc-700/80 text-zinc-300 font-mono">
               {topSpeakers.length}
@@ -461,7 +461,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title="Import JSON Backup"
           >
             <Upload className="w-3.5 h-3.5 text-purple-400" />
-            <span>{language === 'tr' ? 'Yedek Yükle' : 'Import JSON'}</span>
+            <span>{t('sb_import_json')}</span>
           </button>
         </div>
       </div>

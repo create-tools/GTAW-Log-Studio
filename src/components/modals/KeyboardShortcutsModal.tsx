@@ -62,11 +62,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
 
         <div className="p-3 bg-zinc-950 border-t border-zinc-800 text-center">
           <span className="text-[11px] text-zinc-500">
-            {language === 'tr' ? (
-              <>Kısayolları dilediğiniz an klavyenizdeki <strong>?</strong> tuşuna basarak açabilirsiniz.</>
-            ) : (
-              <>Press <strong>?</strong> key anywhere to open this shortcuts guide.</>
-            )}
+            {t('shortcuts_footer_tip')}
           </span>
         </div>
       </div>

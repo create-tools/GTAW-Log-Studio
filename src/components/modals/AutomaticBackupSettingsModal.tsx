@@ -139,7 +139,7 @@ export const AutomaticBackupSettingsModal: React.FC<AutomaticBackupSettingsModal
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 text-xs transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>{language === 'tr' ? 'Varsayılana Sıfırla' : 'Reset to Defaults'}</span>
+            <span>{t('ps_reset_settings')}</span>
           </button>
 
           <div className="flex items-center gap-2">

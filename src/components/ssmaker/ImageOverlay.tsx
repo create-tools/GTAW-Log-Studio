@@ -324,12 +324,12 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 text-xs font-semibold transition-colors shadow-sm"
           >
             <ImageIcon className="w-3.5 h-3.5 text-purple-400" />
-            <span>Ekran Görüntüsü Seç</span>
+            <span>{t('io_select_screenshot')}</span>
           </button>
 
           {/* Kadraj Boyut Seçimi */}
           <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 p-0.5 rounded-md text-xs">
-            <span className="text-zinc-500 px-1 text-[11px] font-medium">Kadraj:</span>
+            <span className="text-zinc-500 px-1 text-[11px] font-medium">{t('io_frame_label')}:</span>
             {(['800x600', '900x650', '1000x700', '1200x800', '1920x1080'] as const).map((preset) => (
               <button
                 key={preset}

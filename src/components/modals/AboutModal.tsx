@@ -7,7 +7,8 @@ import {
   Globe, 
   Heart, 
   User, 
-  Sparkles 
+  Sparkles,
+  AlertTriangle 
 } from 'lucide-react';
 import appLogo from '../../assets/icon.png';
 import { useLanguage } from '../../i18n/LanguageContext';
@@ -80,13 +81,11 @@ export const AboutModal: React.FC<AboutModalProps> = ({
           {/* Sorumluluk Reddi (Disclaimer) */}
           <div className="p-3 bg-amber-950/30 border border-amber-500/30 rounded-xl text-amber-200/90 text-[11px] leading-relaxed">
             <p className="font-semibold text-amber-300 mb-1 flex items-center gap-1">
-              <span>⚠️</span>
-              <span>{language === 'tr' ? 'Topluluk Projesi Beyanı' : 'Community Disclaimer'}</span>
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>{t('about_disclaimer_title')}</span>
             </p>
             <p>
-              {language === 'tr'
-                ? 'Bu yazılım resmi bir GTA World veya FiveM ürünü değildir. Yazı tabanlı rol (text-roleplay) topluluğuna kolaylık sağlamak amacıyla bağımsız ve açık kaynaklı olarak geliştirilmiştir.'
-                : 'This software is an independent open-source community tool and not an official product of GTA World or FiveM.'}
+              {t('about_disclaimer_text')}
             </p>
           </div>
 
@@ -94,15 +93,15 @@ export const AboutModal: React.FC<AboutModalProps> = ({
           <div className="space-y-2 text-zinc-300 text-[11px]">
             <div className="flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-              <span>{language === 'tr' ? 'Canlı FiveM chat takibi ve arka plan bellek ayrıştırma' : 'Live FiveM memory log engine & auto parsing'}</span>
+              <span>{t('about_feature_live')}</span>
             </div>
             <div className="flex items-center gap-2">
               <Code2 className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-              <span>{language === 'tr' ? 'Photoshop uyumlu transparan SS & Chatbox Stüdyosu' : 'Transparent Roleplay SS & Chatbox Studio'}</span>
+              <span>{t('about_feature_ps')}</span>
             </div>
             <div className="flex items-center gap-2">
               <Heart className="w-3.5 h-3.5 text-pink-400 shrink-0" />
-              <span>{language === 'tr' ? 'Rol topluluğuna özel açık kaynaklı ve ücretsiz' : 'Free & Open Source for the Roleplay Community'}</span>
+              <span>{t('about_feature_free')}</span>
             </div>
           </div>
 

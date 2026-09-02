@@ -171,7 +171,7 @@ export const PhoneChatView: React.FC<PhoneChatViewProps> = ({
                       title={t('pc_copy_all_tip')}
                     >
                       {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copied ? (language === 'tr' ? 'Kopyalandı' : 'Copied') : t('nav_copy')}</span>
+                      <span>{copied ? t('copied') : t('nav_copy')}</span>
                     </button>
 
                     {onOpenSSWithLines && (

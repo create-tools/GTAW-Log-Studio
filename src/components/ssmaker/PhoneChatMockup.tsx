@@ -85,7 +85,7 @@ export const PhoneChatMockup: React.FC<PhoneChatMockupProps> = ({ lines }) => {
       <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-zinc-800">
         <div className="flex items-center gap-2">
           <Smartphone className="w-4 h-4 text-purple-400" />
-          <span className="text-xs font-bold text-zinc-200">Telefon Ekranı Mockup</span>
+          <span className="text-xs font-bold text-zinc-200">{t('pcm_title')}</span>
 
           <div className="flex items-center gap-1 ml-3 bg-zinc-950 border border-zinc-800 rounded px-2 py-0.5 text-xs">
             <span className="text-zinc-500 text-[10px]">{t('pcm_contact')}:</span>

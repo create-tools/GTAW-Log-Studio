@@ -111,7 +111,7 @@ export const LogMergerModal: React.FC<LogMergerModalProps> = ({
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-zinc-300 flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5 text-purple-400" />
-                <span>{language === 'tr' ? '1. Karakter / Kendi Loglarınız (POV 1):' : '1. Character / Your Logs (POV 1):'}</span>
+                <span>{t('lm_pov1_label')}</span>
               </label>
               <textarea
                 value={textPOV1}
@@ -125,7 +125,7 @@ export const LogMergerModal: React.FC<LogMergerModalProps> = ({
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-zinc-300 flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5 text-indigo-400" />
-                <span>{language === 'tr' ? '2. Karakter / Partnerinizin Logları (POV 2):' : '2. Character / Partner Logs (POV 2):'}</span>
+                <span>{t('lm_pov2_label')}</span>
               </label>
               <textarea
                 value={textPOV2}
@@ -143,7 +143,7 @@ export const LogMergerModal: React.FC<LogMergerModalProps> = ({
               className="flex items-center gap-2 px-6 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:hover:bg-purple-600 text-white font-bold text-xs shadow-lg shadow-purple-950/40 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <GitMerge className="w-4 h-4" />
-              <span>{language === 'tr' ? 'Logları Kronolojik Olarak Harmanla & Birleştir' : 'Merge & Interleave Chronologically'}</span>
+              <span>{t('lm_merge_btn')}</span>
             </button>
           </div>
 
@@ -169,7 +169,7 @@ export const LogMergerModal: React.FC<LogMergerModalProps> = ({
                     className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-colors"
                   >
                     {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
-                    <span>{copied ? (language === 'tr' ? 'Kopyalandı' : 'Copied') : t('nav_copy')}</span>
+                    <span>{copied ? t('copied') : t('nav_copy')}</span>
                   </button>
                   <button
                     onClick={handleSaveAsSession}

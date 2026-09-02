@@ -92,7 +92,7 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
                   onChange={(e) => setForm({ ...form, soundAlertsEnabled: e.target.checked })}
                   className="w-4 h-4 rounded border-zinc-700 bg-zinc-950 accent-purple-600 cursor-pointer"
                 />
-                <span className="text-[11px]">{language === 'tr' ? 'Sesli Uyarıları Etkinleştir' : 'Enable Sound Alerts'}</span>
+                <span className="text-[11px]">{t('ps_enable_sound')}</span>
               </label>
 
               {form.soundAlertsEnabled && (
@@ -106,7 +106,7 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
                       className="w-3.5 h-3.5 mt-0.5 rounded border-zinc-700 bg-zinc-950 accent-emerald-500 cursor-pointer"
                     />
                     <span className="text-[10px] leading-tight">
-                      <strong>{language === 'tr' ? "Sadece Alt-Tab'dayken ses çal:" : 'Only alert when Alt-Tabbed:'}</strong>{' '}
+                      <strong>{t('ps_alt_tab_only')}</strong>{' '}
                       {language === 'tr'
                         ? 'Oyunu aktif olarak oynarken sessiz kalır, masaüstüne veya tarayıcıya geçtiğinizde uyarır.'
                         : 'Stays quiet while in-game, only plays chime when switched to desktop or browser.'}
@@ -135,7 +135,7 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
                       onChange={(e) => setForm({ ...form, alertOnPM: e.target.checked })}
                       className="w-3.5 h-3.5 rounded border-zinc-700 bg-zinc-950 accent-purple-600"
                     />
-                    <span className="text-[11px]">{language === 'tr' ? 'Özel Mesaj (/pm) geldiğinde' : 'On Private Message (/pm)'}</span>
+                    <span className="text-[11px]">{t('ps_on_pm')}</span>
                   </label>
 
                   <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
@@ -145,7 +145,7 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
                       onChange={(e) => setForm({ ...form, alertOnSMS: e.target.checked })}
                       className="w-3.5 h-3.5 rounded border-zinc-700 bg-zinc-950 accent-purple-600"
                     />
-                    <span className="text-[11px]">{language === 'tr' ? 'SMS / Telefon geldiğinde' : 'On Phone / SMS message'}</span>
+                    <span className="text-[11px]">{t('ps_on_phone')}</span>
                   </label>
 
                   {/* Özel Anahtar Kelimeler */}
