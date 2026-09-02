@@ -161,21 +161,37 @@ class FiveMChatCapture {
 
     try {
       this.ws = new WebSocket(wsUrl);
+      this.currentContextId = null;
+      this.isAttaching = false;
 
       this.ws.on('open', () => {
         this.isConnected = true;
-        this.sendCDP('Page.enable');
-        this.sendCDP('Runtime.enable');
+        this.sendCDP('Page.enable').catch(() => {});
+        this.sendCDP('Runtime.enable').catch(() => {});
         this.findAndAttachChatFrame();
       });
 
       this.ws.on('message', (msg) => {
         try {
           const res = JSON.parse(msg.toString());
+          
+          // Pending request callbacks
           if (res.id && this.pendingCallbacks.has(res.id)) {
             const cb = this.pendingCallbacks.get(res.id);
             this.pendingCallbacks.delete(res.id);
             cb(res.result, res.error);
+          }
+
+          // CDP Events
+          if (res.method === 'Page.frameNavigated') {
+            // Frame changed (e.g. login screen -> in-game)
+            this.currentContextId = null;
+            this.findAndAttachChatFrame();
+          } else if (res.method === 'Runtime.executionContextDestroyed') {
+            if (this.currentContextId === res.params?.executionContextId) {
+              this.currentContextId = null;
+              this.findAndAttachChatFrame();
+            }
           }
         } catch (err) {}
       });
@@ -183,6 +199,7 @@ class FiveMChatCapture {
       this.ws.on('close', () => {
         this.isConnected = false;
         this.isCapturing = false;
+        this.currentContextId = null;
         this.checkFiveMProcess((running) => {
           if (!running) {
             this.isProcessRunning = false;
@@ -193,9 +210,11 @@ class FiveMChatCapture {
 
       this.ws.on('error', () => {
         this.isConnected = false;
+        this.currentContextId = null;
       });
     } catch (err) {
       this.isConnected = false;
+      this.currentContextId = null;
     }
   }
 
@@ -208,6 +227,11 @@ class FiveMChatCapture {
     }
     this.isConnected = false;
     this.isCapturing = false;
+    this.currentContextId = null;
+    if (this.chatInterval) {
+      clearInterval(this.chatInterval);
+      this.chatInterval = null;
+    }
   }
 
   sendCDP(method, params = {}) {
@@ -225,21 +249,26 @@ class FiveMChatCapture {
   }
 
   async findAndAttachChatFrame() {
+    if (this.isAttaching || !this.isConnected || !this.ws) return;
+    this.isAttaching = true;
+
     try {
       const treeRes = await this.sendCDP('Page.getFrameTree');
-      const chatFrameId = this.locateChatFrame(treeRes.frameTree);
+      const chatFrameId = this.locateChatFrame(treeRes?.frameTree);
 
       if (chatFrameId) {
         await this.attachToChatExecutionContext(chatFrameId);
       } else {
         setTimeout(() => {
-          if (this.isConnected) this.findAndAttachChatFrame();
-        }, 2000);
+          if (this.isConnected && !this.currentContextId) this.findAndAttachChatFrame();
+        }, 1500);
       }
     } catch (err) {
       setTimeout(() => {
-        if (this.isConnected) this.findAndAttachChatFrame();
-      }, 3000);
+        if (this.isConnected && !this.currentContextId) this.findAndAttachChatFrame();
+      }, 2000);
+    } finally {
+      this.isAttaching = false;
     }
   }
 
@@ -249,8 +278,7 @@ class FiveMChatCapture {
     const url = (frame.url || '').toLowerCase();
     const name = (frame.name || '').toLowerCase();
 
-    // GTA World uses 'client' (https://cfx-nui-client/web/index.html)
-    // Generic FiveM uses 'chat' (https://cfx-nui-chat/html/index.html)
+    // Prioritize GTA World client UI or standard chat
     if (
       url.includes('client') ||
       url.includes('chat') ||
@@ -283,20 +311,22 @@ class FiveMChatCapture {
     try {
       const worldRes = await this.sendCDP('Page.createIsolatedWorld', {
         frameId: frameId,
-        worldName: 'GTAW_Chat_Scraper',
+        worldName: `GTAW_Scraper_${Date.now()}`,
         grantUniveralAccess: true,
       });
 
-      const contextId = worldRes.executionContextId;
-      this.startChatScraping(contextId);
+      this.currentContextId = worldRes?.executionContextId;
+      this.startChatScraping();
     } catch (err) {
-      this.startChatScraping(undefined);
+      this.currentContextId = undefined;
+      this.startChatScraping();
     }
   }
 
-  startChatScraping(contextId) {
+  startChatScraping() {
     if (this.chatInterval) {
       clearInterval(this.chatInterval);
+      this.chatInterval = null;
     }
 
     this.isCapturing = true;
@@ -313,7 +343,7 @@ class FiveMChatCapture {
       (() => {
         try {
           const items = document.querySelectorAll(
-            '.chat__messages > li, .chat-messages > li, .chat__messages > *, .chat > ul > li, .chat-message, #chat-messages > li, #messages > div'
+            '.chat__messages > li, .chat-messages > li, .chat__messages > *, .chat > ul > li, .chat-message, #chat-messages > li, #messages > div, #chat > ul > li'
           );
           if (!items || items.length === 0) return [];
           const result = [];
@@ -328,26 +358,51 @@ class FiveMChatCapture {
       })()
     `;
 
+    let emptyCycles = 0;
+
     const runExtraction = async () => {
       if (!this.isConnected || !this.ws) {
-        if (this.chatInterval) clearInterval(this.chatInterval);
+        if (this.chatInterval) {
+          clearInterval(this.chatInterval);
+          this.chatInterval = null;
+        }
         return;
       }
 
       try {
-        const evalRes = await this.sendCDP('Runtime.evaluate', {
+        const evalParams = {
           expression: extractionScript,
-          contextId: contextId,
           returnByValue: true,
-        });
+        };
+        if (this.currentContextId) {
+          evalParams.contextId = this.currentContextId;
+        }
+
+        const evalRes = await this.sendCDP('Runtime.evaluate', evalParams);
 
         if (evalRes && evalRes.result && Array.isArray(evalRes.result.value)) {
-          this.processChatMessages(evalRes.result.value);
+          if (evalRes.result.value.length > 0) {
+            emptyCycles = 0;
+            this.processChatMessages(evalRes.result.value);
+          } else {
+            emptyCycles++;
+            // If empty for multiple cycles, check if frame tree reloaded (e.g. spawned into game)
+            if (emptyCycles >= 3) {
+              emptyCycles = 0;
+              this.findAndAttachChatFrame();
+            }
+          }
+        } else {
+          // Evaluation failed (e.g. invalid contextId)
+          this.currentContextId = null;
+          this.findAndAttachChatFrame();
         }
-      } catch (err) {}
+      } catch (err) {
+        this.currentContextId = null;
+        this.findAndAttachChatFrame();
+      }
     };
 
-    // İlk çalıştırma anında hemen çek
     runExtraction();
     this.chatInterval = setInterval(runExtraction, 1000);
   }
@@ -414,6 +469,11 @@ class FiveMChatCapture {
       sessionId: this.activeSessionId,
       lines: formattedNewLines,
     });
+
+    // Anlık olarak oturum dosyasını diske kaydet/güncelle
+    if (this.settings.autoBackupEnabled) {
+      this.saveSessionToFile(false);
+    }
   }
 
   findOverlap(oldLines, newLines) {
