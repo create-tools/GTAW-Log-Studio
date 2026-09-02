@@ -140,7 +140,7 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
     };
   }
 
-  const doMatch = text.match(/^\*\s*(?:(\[(?:LOW|low|Low)\])\s*)?(.+?)\s*\(\(\s*([A-Za-z0-9_ ]+?)(?:\s*\[\d+\])?\s*\)\)$/);
+  const doMatch = text.match(/^\*\s*(?:(\[(?:LOW|low|Low)\])\s*)?(.+?)\s*\(\(\s*([^\)]+?)(?:\s*\[\d+\])?\s*\)\)$/);
   if (doMatch) {
     const isLow = doMatch[1] ? '[LOW] ' : '';
     const sp = doMatch[3].trim();
@@ -158,7 +158,7 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
     };
   }
 
-  const meMatch = text.match(/^\*\s*([A-Za-z0-9_]+(?:\s+[A-Za-z0-9_]+)?)\s+(.*)/);
+  const meMatch = text.match(/^\*\s*([A-Za-z0-9_ÇĞİÖŞÜçğıöşü\u0400-\u04FF]+(?:\s+[A-Za-z0-9_ÇĞİÖŞÜçğıöşü\u0400-\u04FF]+)?)\s+(.*)/);
   if (meMatch) {
     const sp = meMatch[1].trim();
     return {
@@ -176,7 +176,7 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
   }
 
   // 2. Özel Mesaj (PM)
-  const pmMatch = text.match(/^\(\(\s*PM\s+(to|from)\s+([A-Za-z0-9_ ]+?)(?:\s*\(\d+\)|\s*\[\d+\/?[^\]]*\])?\s*:\s*(.*?)\s*\)\)$/i);
+  const pmMatch = text.match(/^\(\(\s*PM\s+(to|from)\s+([^\:]+?)(?:\s*\(\d+\)|\s*\[\d+\/?[^\]]*\])?\s*:\s*(.*?)\s*\)\)$/i);
   if (pmMatch) {
     const dir = pmMatch[1].toLowerCase();
     const sp = dir === 'from' ? pmMatch[2].trim() : 'Ben';
@@ -196,7 +196,7 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
   }
 
   // 3. Telsiz (Radio): ** [S: 1 | CH: LSSD DISP SCC] Adrienne Volmer: ... veya ** [CH: TAC 1] ...
-  const gtawRadioMatch = text.match(/^\*\*?\s*\[(?:S:\s*\d+\s*\|\s*)?(?:CH|Ch|ch|Channel|R|Radio|Telsiz|KANAL):\s*([^\]]+)\]\s*(?:([A-Za-z0-9_() ]+?):)?\s*(.*)/i);
+  const gtawRadioMatch = text.match(/^\*\*?\s*\[(?:S:\s*\d+\s*\|\s*)?(?:CH|Ch|ch|Channel|R|Radio|Telsiz|KANAL|D|DEPT|DEPARTMENT):\s*([^\]]+)\]\s*(?:([^\:]+?):)?\s*(.*)/i);
   if (gtawRadioMatch) {
     const sp = gtawRadioMatch[2]?.trim();
     return {
@@ -214,7 +214,7 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
   }
 
   // Departman Telsizi: ** [LSGOV -> LSSD] Elise Sullivan: ... **
-  const deptRadioMatch = text.match(/^\*\*?\s*\[([^\]]+->[^\]]+)\]\s*(?:([A-Za-z0-9_() ]+?):)?\s*(.*?)(?:\s*\*\*)?$/i);
+  const deptRadioMatch = text.match(/^\*\*?\s*\[([^\]]+->[^\]]+)\]\s*(?:([^\:]+?):)?\s*(.*?)(?:\s*\*\*)?$/i);
   if (deptRadioMatch) {
     const sp = deptRadioMatch[2]?.trim();
     return {
@@ -231,8 +231,8 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
     };
   }
 
-  // Standart [Radio] formatı
-  const radioMatch = text.match(/^\[(?:R|Radio|Telsiz|CH|KANAL)[\w\-: .|]+\]\s*(?:([A-Za-z0-9_() ]+?):)?\s*(.*)/i);
+  // Standart [Radio] veya [D] Departman formatı
+  const radioMatch = text.match(/^\[(?:R|Radio|Telsiz|CH|KANAL|D|DEPT|DEPARTMENT)[\w\-: .|]*\]\s*(?:([^\:]+?):)?\s*(.*)/i);
   if (radioMatch) {
     const sp = radioMatch[1]?.trim();
     return {
