@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   X, 
   RefreshCw, 
@@ -10,7 +10,7 @@ import {
   Sparkles,
   Check,
   FileText,
-  Loader2
+  Globe
 } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
 
@@ -62,13 +62,69 @@ function renderInlineFormatted(text: string): React.ReactNode {
   return <>{parts}</>;
 }
 
-function FormattedReleaseNotes({ rawText, fallbackText }: { rawText?: string; fallbackText: string }) {
-  if (!rawText) {
-    return <div className="text-zinc-400 text-xs italic py-2">{fallbackText}</div>;
+function extractLanguageSections(rawText: string): Record<string, string> {
+  const sections: Record<string, string> = {};
+  if (!rawText) return sections;
+
+  // 1. Details tag'lerini tara: <details><summary>...Türkçe...</summary>...</details>
+  const detailsRegex = /<details[^>]*>\s*<summary[^>]*>([\s\S]*?)<\/summary>([\s\S]*?)<\/details>/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = detailsRegex.exec(rawText)) !== null) {
+    const summary = match[1].toLowerCase();
+    const content = match[2];
+
+    if (summary.includes('türk') || summary.includes('turkish') || summary.includes('tr')) {
+      sections['tr'] = content;
+    } else if (summary.includes('рус') || summary.includes('russian') || summary.includes('ru')) {
+      sections['ru'] = content;
+    } else if (summary.includes('fran') || summary.includes('french') || summary.includes('fr')) {
+      sections['fr'] = content;
+    } else if (summary.includes('espa') || summary.includes('spanish') || summary.includes('es')) {
+      sections['es'] = content;
+    } else if (summary.includes('eng') || summary.includes('english') || summary.includes('en')) {
+      sections['en'] = content;
+    }
   }
 
+  // 2. Ana metni çıkar (details tagleri ve resimleri temizleyerek)
+  let mainContent = rawText
+    .replace(/<details[\s\S]*?<\/details>/gi, '')
+    .replace(/<img[^>]*>/gi, '')
+    .replace(/<p\s+[^>]*>/gi, '')
+    .replace(/<p>/gi, '')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n');
+
+  if (mainContent.trim().length > 0) {
+    sections['default'] = mainContent;
+  }
+
+  return sections;
+}
+
+function FormattedReleaseNotes({ 
+  rawText, 
+  activeLang,
+  fallbackText 
+}: { 
+  rawText?: string; 
+  activeLang: string;
+  fallbackText: string 
+}) {
+  const [selectedLang, setSelectedLang] = useState<string>(activeLang);
+
+  useEffect(() => {
+    setSelectedLang(activeLang);
+  }, [activeLang]);
+
+  const sections = useMemo(() => extractLanguageSections(rawText || ''), [rawText]);
+
+  // Hangi metni göstereceğimizi seç
+  let textToDisplay = sections[selectedLang] || sections['default'] || rawText || '';
+
   // HTML ve Ham Görsel Etiketlerini Temizle
-  const cleaned = rawText
+  const cleaned = textToDisplay
     .replace(/<img[^>]*>/gi, '')
     .replace(/<p\s+[^>]*>/gi, '')
     .replace(/<p>/gi, '')
@@ -79,54 +135,90 @@ function FormattedReleaseNotes({ rawText, fallbackText }: { rawText?: string; fa
     .replace(/<b>/gi, '**')
     .replace(/<\/b>/gi, '**')
     .replace(/<code>/gi, '`')
-    .replace(/<\/code>/gi, '`');
+    .replace(/<\/code>/gi, '`')
+    .replace(/<summary[\s\S]*?<\/summary>/gi, '')
+    .replace(/<\/?[a-z][a-z0-9]*[^<>]*>/gi, '');
 
   const lines = cleaned
     .split(/\r?\n/)
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
 
+  const availableLangs = ['en', 'tr', 'ru', 'fr', 'es'].filter((l) => !!sections[l]);
+
   if (lines.length === 0) {
     return <div className="text-zinc-400 text-xs italic py-2">{fallbackText}</div>;
   }
 
   return (
-    <div className="space-y-1.5 text-xs text-zinc-300 font-sans">
-      {lines.map((line, idx) => {
-        // Başlıklar (#, ##, ###)
-        if (line.startsWith('#')) {
-          const title = line.replace(/^#+\s*/, '');
-          return (
-            <div
-              key={idx}
-              className="font-bold text-purple-300 text-xs pt-1.5 pb-0.5 border-b border-zinc-800/80 flex items-center gap-1.5"
-            >
-              <span className="w-1 h-3 bg-purple-500 rounded-full" />
-              <span>{title}</span>
-            </div>
-          );
-        }
+    <div className="space-y-2 text-xs text-zinc-300 font-sans">
+      {/* Çoklu Dil Seçim Butonları (Eğer Release Notes içinde varsa) */}
+      {availableLangs.length > 1 && (
+        <div className="flex items-center justify-between border-b border-zinc-800/80 pb-1.5 mb-2">
+          <span className="text-[10px] text-zinc-500 font-semibold flex items-center gap-1">
+            <Globe className="w-3 h-3 text-purple-400" />
+            Language / Dil:
+          </span>
+          <div className="flex items-center gap-1">
+            {availableLangs.map((lang) => (
+              <button
+                key={lang}
+                onClick={() => setSelectedLang(lang)}
+                className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase transition-colors cursor-pointer ${
+                  selectedLang === lang
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                {lang}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
-        // Madde İşaretleri (-, *, •, 1.)
-        if (/^[-*•]\s+/.test(line) || /^\d+\.\s+/.test(line)) {
-          const itemText = line.replace(/^[-*•\d\.]+\s*/, '');
-          return (
-            <div key={idx} className="flex items-start gap-2 pl-1 py-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 shrink-0 mt-1.5 shadow-sm" />
-              <span className="flex-1 text-[11px] leading-relaxed text-zinc-200">
-                {renderInlineFormatted(itemText)}
-              </span>
-            </div>
-          );
-        }
+      <div className="space-y-1.5">
+        {lines.map((line, idx) => {
+          // Tablo satırlarını veya ayraçları atla / temizle
+          if (line.startsWith('|') || line.startsWith('---') || line.startsWith('===') || line.startsWith('&bull;')) {
+            return null;
+          }
 
-        // Normal Paragraf
-        return (
-          <p key={idx} className="text-[11px] leading-relaxed text-zinc-300">
-            {renderInlineFormatted(line)}
-          </p>
-        );
-      })}
+          // Başlıklar (#, ##, ###)
+          if (line.startsWith('#')) {
+            const title = line.replace(/^#+\s*/, '');
+            return (
+              <div
+                key={idx}
+                className="font-bold text-purple-300 text-xs pt-1.5 pb-0.5 border-b border-zinc-800/80 flex items-center gap-1.5"
+              >
+                <span className="w-1 h-3 bg-purple-500 rounded-full" />
+                <span>{title}</span>
+              </div>
+            );
+          }
+
+          // Madde İşaretleri (-, *, •, 1.)
+          if (/^[-*•]\s+/.test(line) || /^\d+\.\s+/.test(line)) {
+            const itemText = line.replace(/^[-*•\d\.]+\s*/, '');
+            return (
+              <div key={idx} className="flex items-start gap-2 pl-1 py-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 shrink-0 mt-1.5 shadow-sm" />
+                <span className="flex-1 text-[11px] leading-relaxed text-zinc-200">
+                  {renderInlineFormatted(itemText)}
+                </span>
+              </div>
+            );
+          }
+
+          // Normal Paragraf
+          return (
+            <p key={idx} className="text-[11px] leading-relaxed text-zinc-300">
+              {renderInlineFormatted(line)}
+            </p>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -354,9 +446,10 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
                   <FileText className="w-3 h-3 text-purple-400" />
                   {t('updates_release_notes')}
                 </span>
-                <div className="p-3 bg-zinc-950/90 border border-zinc-800 rounded-xl max-h-40 overflow-y-auto shadow-inner leading-relaxed">
+                <div className="p-3 bg-zinc-950/90 border border-zinc-800 rounded-xl max-h-44 overflow-y-auto shadow-inner leading-relaxed">
                   <FormattedReleaseNotes
                     rawText={updateInfo.releaseNotes}
+                    activeLang={language}
                     fallbackText={language === 'tr' ? 'Performans iyileştirmeleri ve hata düzeltmeleri.' : 'Performance improvements and bug fixes.'}
                   />
                 </div>
