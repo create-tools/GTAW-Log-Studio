@@ -1,5 +1,5 @@
 import { useLanguage } from '../../i18n/LanguageContext';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Type, 
   ListOrdered, 
@@ -12,7 +12,9 @@ import {
   AlignLeft,
   CheckSquare,
   Square,
-  Pipette
+  Pipette,
+  EyeOff,
+  Hash
 } from 'lucide-react';
 import type { SSLineItem } from '../../types/ssMaker';
 import { GTAW_PALETTE_COLORS } from '../../types/ssMaker';
@@ -37,6 +39,9 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
   const [selectedLineIndices, setSelectedLineIndices] = useState<Set<number>>(new Set());
   const [activeColorPickerIdx, setActiveColorPickerIdx] = useState<number | null>(null);
   const [customColor, setCustomColor] = useState('#FFFFFF');
+  const [activeCensorChar, setActiveCensorChar] = useState('÷');
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Paragraf / Çoklu Satır Metin Alanı Güncellemesi
   const handleParagraphChange = (text: string) => {
@@ -70,8 +75,61 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
     handleParagraphChange(newText);
   };
 
+  // Seçilen Kelimeyi / Metni Sansürleme (÷, █, *, •)
+  const censorSelectionInParagraph = (censorChar: string) => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    if (start === end) {
+      // Seçili metin yoksa imleç yerine tek karakter ekle
+      const newText = rawParagraphText.slice(0, start) + censorChar + rawParagraphText.slice(end);
+      handleParagraphChange(newText);
+      setTimeout(() => {
+        el.setSelectionRange(start + censorChar.length, start + censorChar.length);
+        el.focus();
+      }, 0);
+      return;
+    }
+
+    const selectedText = rawParagraphText.slice(start, end);
+    const masked = censorChar.repeat(selectedText.length);
+    const newText = rawParagraphText.slice(0, start) + masked + rawParagraphText.slice(end);
+    handleParagraphChange(newText);
+    setTimeout(() => {
+      el.setSelectionRange(start + masked.length, start + masked.length);
+      el.focus();
+    }, 0);
+  };
+
+  // Seçilen Kelimeyi Renklendirme Tag'i ile Sarma ({FCE94F}seçim{FFFFFF})
+  const wrapSelectionWithColor = (colorHex: string) => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    if (start === end) return;
+
+    const selectedText = rawParagraphText.slice(start, end);
+    const cleanHex = colorHex.replace('#', '').toUpperCase();
+    const wrapped = `{${cleanHex}}${selectedText}{FFFFFF}`;
+    const newText = rawParagraphText.slice(0, start) + wrapped + rawParagraphText.slice(end);
+    handleParagraphChange(newText);
+    setTimeout(() => {
+      el.setSelectionRange(start + wrapped.length, start + wrapped.length);
+      el.focus();
+    }, 0);
+  };
+
   // Tekil veya Seçili Satırlara Renk Uygulama
   const applyColorToSelection = (colorHex: string) => {
+    // Eğer textarea'da bir metin parçası seçiliyse, kelime renklendirme etiketini sar
+    const el = textareaRef.current;
+    if (editorMode === 'paragraph' && el && el.selectionStart !== el.selectionEnd) {
+      wrapSelectionWithColor(colorHex);
+      return;
+    }
+
     if (selectedLineIndices.size === 0) {
       if (lines.length > 0) {
         const updated = [...lines];
@@ -197,7 +255,7 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
         )}
       </div>
 
-      {/* 🎨 Hızlı GTAW Renk Paleti Çubuğu (Chatlog Magician Tarzı) */}
+      {/* 🎨 Hızlı GTAW Renk Paleti Çubuğu */}
       <div className="bg-zinc-900/90 border border-zinc-800 rounded-lg p-2 space-y-1.5 shadow-inner">
         <div className="flex items-center justify-between text-[11px]">
           <span className="font-semibold text-zinc-300 flex items-center gap-1">
@@ -226,13 +284,10 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
           ))}
         </div>
 
-        {/* Özel Renk Seçici */}
-        <div className="flex items-center gap-2 pt-1 border-t border-zinc-800/80">
-          <label className="text-[10px] text-zinc-400 flex items-center gap-1 shrink-0">
-            <Pipette className="w-3 h-3 text-zinc-400" />
-            {t('ss_custom_color')}:
-          </label>
-          <div className="flex items-center gap-1.5 flex-1">
+        {/* Alt Araç Çubuğu: Özel Renk & Sansürleme Araçları */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-zinc-800/80">
+          {/* Özel Renk Seçici */}
+          <div className="flex items-center gap-1.5">
             <input
               type="color"
               value={customColor}
@@ -240,7 +295,8 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
                 setCustomColor(e.target.value);
                 applyColorToSelection(e.target.value);
               }}
-              className="w-5 h-5 rounded border-0 bg-transparent cursor-pointer shrink-0"
+              className="w-4 h-4 rounded border-0 bg-transparent cursor-pointer shrink-0"
+              title={t('ss_custom_color')}
             />
             <input
               type="text"
@@ -252,8 +308,33 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
                 }
               }}
               placeholder="#FFFFFF"
-              className="w-20 bg-zinc-950 border border-zinc-800 rounded px-1.5 py-0.5 text-[10px] font-mono text-zinc-200 uppercase focus:outline-none focus:border-purple-500"
+              className="w-16 bg-zinc-950 border border-zinc-800 rounded px-1 py-0.5 text-[9px] font-mono text-zinc-200 uppercase focus:outline-none focus:border-purple-500"
             />
+          </div>
+
+          {/* 🔒 Sansür Araçları (Chatlog Magician Stili) */}
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-zinc-400 flex items-center gap-0.5 mr-0.5">
+              <EyeOff className="w-3 h-3 text-amber-400" />
+              {t('censor_title')}:
+            </span>
+            {['÷', '█', '*', '•'].map((char) => (
+              <button
+                key={char}
+                onClick={() => {
+                  setActiveCensorChar(char);
+                  censorSelectionInParagraph(char);
+                }}
+                title={`${t('censor_censor_selection')} (${char})`}
+                className={`w-5 h-5 rounded text-xs font-mono font-bold flex items-center justify-center border transition-all ${
+                  activeCensorChar === char
+                    ? 'bg-amber-600/30 border-amber-500 text-amber-300'
+                    : 'bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-white'
+                }`}
+              >
+                {char}
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -261,11 +342,15 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
       {/* 1. TOPLU PARAGRAF MODU */}
       {editorMode === 'paragraph' && (
         <div className="flex-1 flex flex-col space-y-2">
-          <div className="text-[11px] text-zinc-400">
-            {t('pe_subtitle')}:
+          <div className="flex items-center justify-between text-[11px] text-zinc-400">
+            <span>{t('pe_subtitle')}:</span>
+            <span className="text-[10px] text-zinc-500">
+              {t('censor_censor_selection')} / {t('censor_apply_color_tag')}
+            </span>
           </div>
 
           <textarea
+            ref={textareaRef}
             value={rawParagraphText}
             onChange={(e) => handleParagraphChange(e.target.value)}
             placeholder={t('pe_sample_dialogue')}

@@ -54,6 +54,11 @@ export interface SSStyleConfig {
   characterNameColor: string;
   italicizeActions: boolean;
 
+  // Sansür & Gizleme Ayarları
+  censorStyle: 'none' | 'division' | 'block' | 'asterisk' | 'dot';
+  censorCustomChar: string;
+  autoCensorWords: string;
+
   // Kadraj & Tuval Boyutu (Boyut daima sabit kalır)
   canvasPreset: '800x600' | '900x650' | '1000x700' | '1200x800' | '1920x1080' | 'custom';
   canvasWidth: number;

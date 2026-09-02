@@ -14,7 +14,8 @@ import {
   HardDrive, 
   Wand2, 
   Smartphone,
-  FolderArchive
+  FolderArchive,
+  EyeOff
 } from 'lucide-react';
 import type { SSLineItem, SSStyleConfig, SSSceneItem } from '../../types/ssMaker';
 import type { ParsedLogLine } from '../../types/log';
@@ -50,6 +51,10 @@ const DEFAULT_STYLE_CONFIG: SSStyleConfig = {
   highlightCharacterNames: false,
   characterNameColor: '#FFFFFF',
   italicizeActions: false,
+
+  censorStyle: 'none',
+  censorCustomChar: '÷',
+  autoCensorWords: '',
 
   canvasPreset: '900x650',
   canvasWidth: 900,
@@ -620,6 +625,51 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                           className="w-3.5 h-3.5 rounded border-zinc-700 bg-zinc-950 accent-purple-600 cursor-pointer"
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  {/* 🔒 Sansür & Gizleme Ayarları */}
+                  <div className="space-y-2 bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-lg">
+                    <span className="font-semibold text-zinc-300 text-[11px] flex items-center gap-1.5">
+                      <EyeOff className="w-3 h-3 text-amber-400" />
+                      {t('censor_title')}
+                    </span>
+
+                    <div className="space-y-1">
+                      <label className="text-zinc-400 text-[10px]">{t('censor_title')}</label>
+                      <div className="grid grid-cols-5 gap-1">
+                        {[
+                          { id: 'none', label: t('censor_style_none'), icon: '—' },
+                          { id: 'division', label: '÷', icon: '÷' },
+                          { id: 'block', label: '█', icon: '█' },
+                          { id: 'asterisk', label: '*', icon: '*' },
+                          { id: 'dot', label: '•', icon: '•' },
+                        ].map((cs) => (
+                          <button
+                            key={cs.id}
+                            onClick={() => setConfig({ ...config, censorStyle: cs.id as any })}
+                            title={cs.label}
+                            className={`py-1 rounded text-xs font-mono font-bold flex items-center justify-center transition-all ${
+                              config.censorStyle === cs.id
+                                ? 'bg-amber-600 text-white shadow-sm'
+                                : 'bg-zinc-800 text-zinc-400 hover:text-white'
+                            }`}
+                          >
+                            {cs.icon}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-zinc-400 text-[10px]">{t('censor_auto_words_label')}</label>
+                      <input
+                        type="text"
+                        value={config.autoCensorWords || ''}
+                        onChange={(e) => setConfig({ ...config, autoCensorWords: e.target.value })}
+                        placeholder={t('censor_auto_words_placeholder')}
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-purple-500"
+                      />
                     </div>
                   </div>
 

@@ -3,6 +3,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { toPng, toBlob } from 'html-to-image';
 import { Download, Copy, Check, ZoomIn, ZoomOut } from 'lucide-react';
 import type { SSLineItem, SSStyleConfig } from '../../types/ssMaker';
+import { renderLineSegments } from '../../core/textRenderer';
 
 interface CanvasPreviewProps {
   lines: SSLineItem[];
@@ -170,31 +171,13 @@ export const CanvasPreview: React.FC<CanvasPreviewProps> = ({ lines, config, pre
                 const isAction = line.channel === 'me' || line.text.startsWith('*') || line.text.startsWith('>');
                 const fontStyle = config.italicizeActions && isAction ? 'italic' : 'normal';
 
-                let contentNode: React.ReactNode = line.text;
-                if (config.highlightCharacterNames) {
-                  const icMatch = line.text.match(/^([A-Za-z0-9_ÇĞİÖŞÜçğıöşü\u0400-\u04FF\s]+?)\s*(says|diyor ki|fısıldıyor|whispers|shouts|bağırıyor|konuşuyor)?\s*:\s*(.*)/i);
-                  if (icMatch) {
-                    const speakerPart = icMatch[1];
-                    const verbPart = icMatch[2] ? ` ${icMatch[2]}` : '';
-                    const rest = icMatch[3];
-                    contentNode = (
-                      <>
-                        <span style={{ color: config.characterNameColor || '#FFFFFF', fontWeight: 'bold' }}>
-                          {speakerPart}{verbPart}:
-                        </span>{' '}
-                        <span>{rest}</span>
-                      </>
-                    );
-                  }
-                }
-
                 return (
                   <div
                     key={line.id || idx}
-                    style={{ color: line.color, fontStyle }}
+                    style={{ fontStyle }}
                     className="whitespace-pre-wrap break-words select-none"
                   >
-                    {contentNode}
+                    {renderLineSegments(line, config)}
                   </div>
                 );
               })}
