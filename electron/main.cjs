@@ -82,6 +82,46 @@ function createWindow() {
   });
 }
 
+const TRAY_TRANSLATIONS = {
+  en: { show: 'Show GTAW Log Studio', quit: 'Quit', tooltip: 'GTAW Log Studio (Active)' },
+  tr: { show: 'GTAW Log Studio Göster', quit: 'Çıkış', tooltip: 'GTAW Log Studio (Aktif)' },
+  ru: { show: 'Показать GTAW Log Studio', quit: 'Выход', tooltip: 'GTAW Log Studio (Активно)' },
+  fr: { show: 'Afficher GTAW Log Studio', quit: 'Quitter', tooltip: 'GTAW Log Studio (Actif)' },
+  es: { show: 'Mostrar GTAW Log Studio', quit: 'Salir', tooltip: 'GTAW Log Studio (Activo)' },
+};
+
+let currentAppLanguage = 'en';
+
+function updateTrayMenu(lang) {
+  if (lang && TRAY_TRANSLATIONS[lang]) {
+    currentAppLanguage = lang;
+  }
+  if (!tray) return;
+
+  const t = TRAY_TRANSLATIONS[currentAppLanguage] || TRAY_TRANSLATIONS.en;
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: t.show,
+      click: () => {
+        if (mainWindow) {
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      },
+    },
+    { type: 'separator' },
+    {
+      label: t.quit,
+      click: () => {
+        isQuitting = true;
+        app.quit();
+      },
+    },
+  ]);
+  tray.setToolTip(t.tooltip);
+  tray.setContextMenu(contextMenu);
+}
+
 function createTray() {
   if (tray) return;
   try {
@@ -96,27 +136,7 @@ function createTray() {
         );
 
     tray = new Tray(icon);
-    const contextMenu = Menu.buildFromTemplate([
-      {
-        label: 'GTAW Log Studio Göster',
-        click: () => {
-          if (mainWindow) {
-            mainWindow.show();
-            mainWindow.focus();
-          }
-        },
-      },
-      { type: 'separator' },
-      {
-        label: 'Çıkış',
-        click: () => {
-          isQuitting = true;
-          app.quit();
-        },
-      },
-    ]);
-    tray.setToolTip('GTAW Log Studio');
-    tray.setContextMenu(contextMenu);
+    updateTrayMenu(currentAppLanguage);
     tray.on('double-click', () => {
       if (mainWindow) {
         mainWindow.show();
@@ -154,9 +174,10 @@ ipcMain.handle('get-saved-session-files', (event, customDir) => {
 
 ipcMain.handle('select-folder-dialog', async () => {
   if (!mainWindow) return null;
+  const dialogTitle = currentAppLanguage === 'tr' ? 'Yedekleme Klasörü Seçin' : 'Select Backup Folder';
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ['openDirectory', 'createDirectory'],
-    title: 'Yedekleme Klasörü Seçin',
+    title: dialogTitle,
   });
   if (result.canceled || result.filePaths.length === 0) return null;
   return result.filePaths[0];
@@ -197,6 +218,11 @@ ipcMain.handle('set-start-with-windows', (event, enable) => {
   } catch (err) {
     return { success: false, error: err.message };
   }
+});
+
+ipcMain.handle('update-app-language', (event, lang) => {
+  updateTrayMenu(lang);
+  return { success: true };
 });
 
 ipcMain.handle('open-external-url', (event, url) => {
@@ -279,8 +305,8 @@ ipcMain.handle('open-file-dialog', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ['openFile'],
     filters: [
-      { name: 'Chatlog & Text Dosyaları', extensions: ['txt', 'log'] },
-      { name: 'Tüm Dosyalar', extensions: ['*'] },
+      { name: 'Log & Text Files (*.txt, *.log)', extensions: ['txt', 'log'] },
+      { name: 'All Files (*.*)', extensions: ['*'] },
     ],
   });
 
@@ -294,7 +320,7 @@ ipcMain.handle('save-file-dialog', async (event, { defaultName, content, filters
   if (!mainWindow) return null;
   const result = await dialog.showSaveDialog(mainWindow, {
     defaultPath: defaultName,
-    filters: filters || [{ name: 'Metin Belgesi', extensions: ['txt'] }],
+    filters: filters || [{ name: 'Text Document (*.txt)', extensions: ['txt'] }],
   });
 
   if (result.canceled || !result.filePath) return null;

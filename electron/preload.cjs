@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openExternalUrl: (url) => ipcRenderer.invoke('open-external-url', url),
   setStartWithWindows: (enable) => ipcRenderer.invoke('set-start-with-windows', enable),
   isFiveMForeground: () => ipcRenderer.invoke('is-fivem-foreground'),
+  updateAppLanguage: (lang) => ipcRenderer.invoke('update-app-language', lang),
 
   onFiveMStatus: (callback) => {
     const handler = (event, data) => callback(data);

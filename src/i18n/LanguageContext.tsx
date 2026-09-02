@@ -22,6 +22,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem('gtaw_lang_selected', 'true');
   };
 
+  useEffect(() => {
+    (window as any).electronAPI?.updateAppLanguage?.(language);
+  }, [language]);
+
   const t = (key: TranslationKey, fallback?: string): string => {
     const langDict = translations[language];
     if (langDict && langDict[key]) {
