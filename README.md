@@ -1,139 +1,155 @@
-# 🎮 GTAW Log Studio
+# GTAW Log Studio
 
 <p align="center">
-  <img src="public/icon.png" alt="GTAW Log Studio Logo" width="128" height="128" style="border-radius: 28px;" />
+  <img src="public/icon.png" alt="GTAW Log Studio Logo" width="110" height="110" style="border-radius: 24px;" />
 </p>
 
 <p align="center">
-  <img src="public/logo_text.png" alt="GTAW | LOG STUDIO" width="380" />
+  <img src="public/logo_text.png" alt="GTAW | LOG STUDIO" width="360" />
 </p>
 
 <p align="center">
-  <strong>Native FiveM Chatlog Engine, Auto-Backup System, Multi-POV Merger & Photoshop-Compatible Roleplay SS Studio</strong>
+  <strong>Native FiveM Chatlog Engine, Auto-Backup System, Multi-POV Merger & Roleplay Screenshot Studio</strong>
 </p>
 
 <p align="center">
-  <em>Developed by <strong>Altay</strong> for the GTA World and Text-Roleplay Community.</em>
+  <em>Developed by <strong>Altay</strong> for the text-roleplay community.</em>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Platform-Windows%20(x64)-blue.svg" alt="Platform" />
-  <img src="https://img.shields.io/badge/Electron-34.x-47848F.svg" alt="Electron" />
-  <img src="https://img.shields.io/badge/React-19-61DAFB.svg" alt="React" />
-  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6.svg" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Dexie.js-IndexedDB-orange.svg" alt="IndexedDB" />
-  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License" />
-  <img src="https://img.shields.io/badge/i18n-EN%20%7C%20TR%20%7C%20RU%20%7C%20FR%20%7C%20ES-purple.svg" alt="Languages" />
+  <img src="https://img.shields.io/badge/Platform-Windows-blue" alt="Platform" />
+  <img src="https://img.shields.io/badge/Electron-34.x-47848F" alt="Electron" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/IndexedDB-Dexie.js-orange" alt="IndexedDB" />
+  <img src="https://img.shields.io/badge/License-MIT-green" alt="License" />
 </p>
 
 ---
 
-## 🌐 Multi-Language Support / Çoklu Dil Desteği
+## Overview
 
-GTAW Log Studio comes with full internationalization out of the box for global GTA World communities:
+**GTAW Log Studio** is an open-source desktop application built specifically for GTA World players. It connects directly to the FiveM client process to capture in-game chatlogs in real time, organizes them into searchable sessions, and provides a built-in studio for generating roleplay screenshots (SS) with transparent Photoshop export.
 
-| Flag | Language | Scope & Terminology |
+---
+
+## Application Previews
+
+### 1. Main Chatlog Engine & Clean Roleplay Viewer
+Real-time log stream categorized into official color channels (IC, /me, /do, Radio, Phone, PM). Features speaker filtering, regex search, and Clean RP mode.
+
+<p align="center">
+  <img src="docs/screenshots/main_viewer.png" alt="Main Chatlog Viewer" width="850" />
+</p>
+
+---
+
+### 2. Roleplay Screenshot & Chatbox Studio (SS Maker)
+Interactive canvas for arranging dialogue on top of in-game screenshots. Supports transparent PNG clipboard export (`Ctrl+V` into Photoshop), custom stroke/shadow presets, and automatic scene splitting based on time gaps.
+
+<p align="center">
+  <img src="docs/screenshots/ss_studio.png" alt="Roleplay Screenshot Studio" width="850" />
+</p>
+
+---
+
+### 3. Radio, Department & Dispatch Console
+Dedicated operations console for Law Enforcement, Fire/EMS, and Government factions. Parses callsigns, 10-codes, and cross-department brackets.
+
+<p align="center">
+  <img src="docs/screenshots/radio_dispatch.png" alt="Radio and Dispatch Console" width="850" />
+</p>
+
+---
+
+### 4. Multi-POV Chronological Log Merger
+Combine logs from multiple roleplay participants. Interleaves lines chronologically by timestamp while automatically removing duplicate messages.
+
+<p align="center">
+  <img src="docs/screenshots/log_merger.png" alt="Log Merger" width="850" />
+</p>
+
+---
+
+## Key Features
+
+- **Live Memory Engine**: Automatically detects active FiveM processes and reads live chat streams with zero game performance impact.
+- **Smart Black Background Remover**: Mathematical keying algorithm removes solid black backgrounds with no outline artifacts.
+- **Direct Photoshop Integration**: Copy transparent rendered text directly to clipboard for instant pasting into image editing software.
+- **AFK Notification Chimes**: Audio alerts trigger only when you are mentioned or receive a private message while alt-tabbed.
+- **Multi-Format Export**: Export parsed logs to GTA World Forum BBCode (`[color=...]`), plain text, or JSON backup.
+- **In-App Feedback**: Submit bug reports and feature requests directly to GitHub Issues from within the application.
+
+---
+
+## Multi-Language Support (i18n)
+
+The interface is fully localized across five languages:
+
+| Flag | Language | Scope |
 | :---: | :---: | :---: |
-| 🇺🇸 | **English** | Standard GTA World Global Roleplay Terms |
-| 🇹🇷 | **Türkçe** | GTA World Türkiye & Global Türkçe |
-| 🇷🇺 | **Русский** | GTA World Русский |
-| 🇫🇷 | **Français** | GTA World France |
-| 🇪🇸 | **Español** | GTA World España |
+| 🇺🇸 | English | Standard GTA World global roleplay terminology |
+| 🇹🇷 | Türkçe | GTA World Türkiye & Turkish community |
+| 🇷🇺 | Русский | GTA World Russian community |
+| 🇫🇷 | Français | GTA World France |
+| 🇪🇸 | Español | GTA World Spain & Hispanic community |
 
 ---
 
-## ✨ Features / Özellikler
+## Keyboard Shortcuts
 
-### 1. ⚡ Live FiveM Native Memory & Chatlog Capture
-- Automatically discovers and monitors active FiveM processes without needing manual file uploads.
-- Real-time stream parsing for IC, /me, /do, PM, Radio, SMS, and Department channels with official GTAW color codes.
-- Zero lag, minimal RAM & CPU footprint (runs seamlessly in the Windows tray).
-
-### 2. 🔀 Multi-POV Chronological Log Merger
-- Combine chatlogs from your roleplay partners and other players at the scene.
-- Interleaves all lines chronologically by timestamp while automatically eliminating duplicate messages.
-
-### 3. 📸 Roleplay Screenshot & Chatbox Studio (SS Maker)
-- **Direct Photoshop Transparent PNG Copy:** One-click copy into Photoshop (`Ctrl+V`) with flawless transparency.
-- **Smart Black Background Remover:** Automatically removes solid black backgrounds with zero halo artifacts.
-- **Storyline Scene Splitter:** Intelligently splits scenes based on time gaps (e.g. 3-minute pauses).
-- **Customizable Styling:** GTAW default, SAMP/GTA classic, and cinematic HD presets with outline and drop shadows.
-
-### 4. 📻 Radio, Department & Dispatch Console
-- Dedicated console for Law Enforcement, Fire/EMS, and Government agencies.
-- Parses 10-Codes (`10-4`, `10-99`, `10-20`), callsigns, and department radio brackets (`[LSGOV -> LSSD]`).
-- One-click transfer of radio logs to SS Studio.
-
-### 5. 📱 Phone & SMS Conversation View
-- Organizes private messages and SMS into clean, modern contact chat bubbles.
-- Filter and copy conversations with specific characters.
-
-### 6. 🔔 Smart AFK Chimes & Sound Alerts (Alt-Tab Aware)
-- Stays quiet while you are in-game; chimes when someone mentions your character name or sends you a `/pm` while you are Alt-Tabbed.
-- Emergency panic alarms for `10-99`, `PANIC`, and custom keywords.
-
-### 7. 📤 Quick Forum BBCode & Multi-format Export
-- One-click export to GTA World Forum BBCode (`[color=...]`), clean plain text, or backup JSON.
-
-### 8. 💬 In-App GitHub Feedback & Issue Tracker
-- Submit bug reports 🐞, feature requests 💡, or general feedback 💬 directly from within the app to GitHub Issues.
-
----
-
-## ⌨️ Keyboard Shortcuts / Klavye Kısayolları
-
-| Shortcut | Action |
+| Shortcut | Description |
 | :--- | :--- |
-| `Ctrl + F` | Focus Search Input |
-| `Ctrl + S` | Open SS Studio |
-| `Ctrl + Shift + F` | Toggle Clean Roleplay Mode |
-| `Ctrl + Shift + C` | Copy selected lines to clipboard |
-| `Shift + Click` | Multi-select range between two log lines |
-| `Esc` | Close open modal or clear search |
-| `?` | Open Keyboard Shortcuts Guide |
+| `Ctrl + F` | Focus search filter input |
+| `Ctrl + S` | Open Screenshot Studio |
+| `Ctrl + Shift + F` | Toggle Clean RP Mode |
+| `Ctrl + Shift + C` | Copy selected log lines to clipboard |
+| `Shift + Click` | Select range of log lines |
+| `Esc` | Close active modal or clear search filter |
+| `?` | Open keyboard shortcuts help modal |
 
 ---
 
-## 🚀 Installation & Building from Source
+## Installation & Development
 
-### Prerequisites
-- Node.js (v18 or newer)
+### Requirements
+- Node.js (v18 or higher)
 - npm or yarn
+- Windows 10/11 (x64)
 
-### Development Mode
+### Development Setup
 ```bash
-# 1. Clone the repository
+# 1. Clone repository
 git clone https://github.com/create-tools/GTAW-Log-Studio.git
 cd GTAW-Log-Studio
 
 # 2. Install dependencies
 npm install
 
-# 3. Start development environment (Vite + Electron)
+# 3. Start in development mode (Vite + Electron)
 npm run dev
 ```
 
-### Production Build (Windows Installer & Portable)
+### Production Build
 ```bash
-# Build NSIS Setup and Portable .exe
+# Build installer and portable executables
 npm run dist
 
-# Build only Portable standalone executable
+# Build only portable executable
 npm run dist:portable
 ```
-Output files will be generated in the `release/` directory.
+The build output will be placed in the `release/` folder.
 
 ---
 
-## ⚖️ Disclaimer / Sorumluluk Reddi
+## Disclaimer
 
-> [!IMPORTANT]
-> **Community Project Disclaimer:**  
-> GTAW Log Studio is an independent, open-source community tool developed by **Altay**. It is **not** an official product of GTA World, Rockstar Games, or FiveM/Cfx.re. All trademarks and registered trademarks are the property of their respective owners.
+**Community Project Notice**:  
+GTAW Log Studio is an independent open-source tool developed by **Altay**. It is not affiliated with, endorsed by, or an official product of GTA World, Rockstar Games, or FiveM / Cfx.re.
 
 ---
 
-## 📄 License
+## License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.  
+Distributed under the **MIT License**. See [LICENSE](LICENSE) for more information.  
 Copyright (c) 2026 **Altay**.
