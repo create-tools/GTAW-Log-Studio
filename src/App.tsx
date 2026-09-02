@@ -458,6 +458,8 @@ export function App() {
               ...data.session,
               isLive: true,
             });
+          } else {
+            await db.sessions.update(data.session.id, { isLive: true });
           }
           setActiveSessionId(data.session.id);
         }
@@ -469,7 +471,7 @@ export function App() {
         const parsedLines = parseRawLogText(data.lines.join('\n'), data.sessionId);
         if (parsedLines.length > 0) {
           await appendLogsToSession(data.sessionId, parsedLines);
-          setActiveSessionId((prev) => prev || data.sessionId);
+          setActiveSessionId(data.sessionId);
 
           const currentSettings = appSettingsRef.current;
           // Sesli Uyarı Kontrolü (İlk açılış yüklemesinde asla ses çalmaz)

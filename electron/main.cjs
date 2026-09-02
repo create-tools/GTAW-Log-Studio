@@ -156,6 +156,29 @@ function createWindow() {
 
   mainWindow.webContents.on('did-finish-load', () => {
     captureEngine.start();
+    if (captureEngine.activeSessionId) {
+      mainWindow.webContents.send('fivem-status', {
+        state: 'capturing',
+        message: 'GTA World Canlı Kaydediliyor',
+      });
+      mainWindow.webContents.send('fivem-session-start', {
+        session: {
+          id: captureEngine.activeSessionId,
+          name: `${new Date(captureEngine.sessionStartTime).toLocaleDateString('tr-TR')} • ${new Date(captureEngine.sessionStartTime).toLocaleTimeString('tr-TR')}`,
+          createdAt: captureEngine.sessionStartTime,
+          startedAt: captureEngine.sessionStartTime,
+          totalLines: captureEngine.sessionLogLines.length,
+          characterNames: [],
+          isLive: true,
+        },
+      });
+      if (captureEngine.sessionLogLines.length > 0) {
+        mainWindow.webContents.send('fivem-new-lines', {
+          sessionId: captureEngine.activeSessionId,
+          lines: captureEngine.sessionLogLines,
+        });
+      }
+    }
   });
 
   mainWindow.on('close', (event) => {

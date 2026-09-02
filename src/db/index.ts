@@ -50,11 +50,28 @@ export async function saveSessionWithLogs(session: GameSession, logs: ParsedLogL
 export async function appendLogsToSession(sessionId: string, newLogs: ParsedLogLine[]) {
   if (newLogs.length === 0) return;
   return await db.transaction('rw', db.sessions, db.logs, async () => {
-    const session = await db.sessions.get(sessionId);
+    let session = await db.sessions.get(sessionId);
+    if (!session) {
+      const now = Date.now();
+      const dateStr = new Date(now).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
+      const timeStr = new Date(now).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+      session = {
+        id: sessionId,
+        name: `${dateStr} • ${timeStr}`,
+        createdAt: now,
+        startedAt: now,
+        totalLines: 0,
+        characterNames: [],
+        isLive: true,
+      };
+      await db.sessions.put(session);
+    }
+
     const startIndex = session ? session.totalLines : 0;
 
     const reindexedLogs = newLogs.map((log, idx) => ({
       ...log,
+      sessionId: sessionId,
       id: `${sessionId}_${startIndex + idx}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       lineIndex: startIndex + idx,
     }));
@@ -62,7 +79,8 @@ export async function appendLogsToSession(sessionId: string, newLogs: ParsedLogL
     await db.logs.bulkPut(reindexedLogs);
     if (session) {
       session.totalLines += newLogs.length;
-      const newChars = new Set(session.characterNames);
+      session.isLive = true;
+      const newChars = new Set(session.characterNames || []);
       newLogs.forEach(l => { if (l.speaker) newChars.add(l.speaker); });
       session.characterNames = Array.from(newChars);
       await db.sessions.put(session);
