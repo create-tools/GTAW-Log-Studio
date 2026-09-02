@@ -226,12 +226,15 @@ ipcMain.handle('update-app-language', (event, lang) => {
 });
 
 ipcMain.handle('open-external-url', (event, url) => {
-  if (url) shell.openExternal(url);
-  return { success: true };
+  if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
+    shell.openExternal(url);
+    return { success: true };
+  }
+  return { success: false, error: 'Invalid URL protocol' };
 });
 
 ipcMain.handle('check-for-updates', async () => {
-  const currentVer = app.getVersion() || '1.0.0';
+  const currentVer = (app.getVersion() || '1.0.0').replace(/^v+/, '');
 
   return new Promise((resolve) => {
     const options = {
@@ -246,20 +249,20 @@ ipcMain.handle('check-for-updates', async () => {
       res.on('end', () => {
         try {
           const json = JSON.parse(data);
-          const rawTag = (json.tag_name || currentVer).replace(/^v/, '');
+          const rawTag = (json.tag_name || currentVer).replace(/^v+/, '');
           const hasUpdate = rawTag !== currentVer && json.tag_name !== undefined;
 
           resolve({
-            currentVersion: currentVer.replace(/^v+/, ''),
-            latestVersion: rawTag.replace(/^v+/, ''),
+            currentVersion: currentVer,
+            latestVersion: rawTag,
             hasUpdate: hasUpdate,
             releaseNotes: json.body || '',
             url: json.html_url || 'https://github.com/create-tools/GTAW-Log-Studio/releases',
           });
         } catch (e) {
           resolve({
-            currentVersion: currentVer.replace(/^v+/, ''),
-            latestVersion: currentVer.replace(/^v+/, ''),
+            currentVersion: currentVer,
+            latestVersion: currentVer,
             hasUpdate: false,
             releaseNotes: '',
           });
@@ -269,8 +272,8 @@ ipcMain.handle('check-for-updates', async () => {
 
     req.on('error', () => {
       resolve({
-        currentVersion: currentVer.replace(/^v+/, ''),
-        latestVersion: currentVer.replace(/^v+/, ''),
+        currentVersion: currentVer,
+        latestVersion: currentVer,
         hasUpdate: false,
         releaseNotes: '',
       });
@@ -279,10 +282,10 @@ ipcMain.handle('check-for-updates', async () => {
     req.setTimeout(5000, () => {
       req.destroy();
       resolve({
-        currentVersion: `v${currentVer}`,
-        latestVersion: `v${currentVer}`,
+        currentVersion: currentVer,
+        latestVersion: currentVer,
         hasUpdate: false,
-        releaseNotes: 'Zaman aşımı.',
+        releaseNotes: '',
       });
     });
   });
