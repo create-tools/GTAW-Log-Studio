@@ -134,9 +134,7 @@ export function App() {
   const [isLogMergerOpen, setIsLogMergerOpen] = useState(false);
   const [isQuickExportOpen, setIsQuickExportOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
-  const [isInitialLangModalOpen, setIsInitialLangModalOpen] = useState(() => {
-    return localStorage.getItem('gtaw_lang_selected') !== 'true';
-  });
+  const [isInitialLangModalOpen, setIsInitialLangModalOpen] = useState(false);
   const [customSSLines, setCustomSSLines] = useState<ParsedLogLine[] | null>(null);
 
   // Otomatik Arka Plan Güncelleme Denetimi
@@ -262,18 +260,35 @@ export function App() {
 
   // Açılışta ayarları Electron'dan ve diskten yükle
   useEffect(() => {
-    const electronAPI = (window as any).electronAPI;
-    if (electronAPI?.getPersistedSettings) {
-      electronAPI.getPersistedSettings().then((data: any) => {
-        if (data?.settings) {
-          setAppSettings((prev) => ({ ...prev, ...data.settings }));
-          try {
-            localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(data.settings));
-          } catch (e) {}
-        }
-      }).catch(() => {});
-    }
+    const initStartup = async () => {
+      const electronAPI = (window as any).electronAPI;
+      let isLangSelected = localStorage.getItem('gtaw_lang_selected') === 'true';
 
+      if (electronAPI?.getPersistedSettings) {
+        try {
+          const data = await electronAPI.getPersistedSettings();
+          if (data?.language) {
+            isLangSelected = true;
+            localStorage.setItem('gtaw_lang_selected', 'true');
+            localStorage.setItem('gtaw_app_language', data.language);
+          }
+          if (data?.settings) {
+            setAppSettings((prev) => ({ ...prev, ...data.settings }));
+            try {
+              localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(data.settings));
+            } catch (e) {}
+          }
+        } catch (e) {}
+      }
+
+      if (!isLangSelected) {
+        setIsInitialLangModalOpen(true);
+      }
+    };
+
+    initStartup();
+
+    const electronAPI = (window as any).electronAPI;
     if (electronAPI?.updateCaptureSettings) {
       electronAPI.updateCaptureSettings(appSettings);
     }

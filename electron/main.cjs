@@ -23,21 +23,21 @@ function copyFolderSync(from, to) {
 }
 
 // Tüm sürümler (Portable, Setup, Güncellemeler) için kalıcı userData dizinini sabitle ve önceki verileri otomatik taşı
-const persistentUserData = path.join(app.getPath('appData'), 'gtaw-log-studio');
+const canonicalUserData = path.join(app.getPath('appData'), 'GTAW Log Studio');
 try {
-  app.setPath('userData', persistentUserData);
+  app.setPath('userData', canonicalUserData);
 
   const legacyDirs = [
-    path.join(app.getPath('appData'), 'GTAW Log Studio'),
+    path.join(app.getPath('appData'), 'gtaw-log-studio'),
     path.join(app.getPath('appData'), 'GTAW-Log-Studio'),
     path.join(app.getPath('appData'), 'fivem-chatlogparser'),
     path.join(app.getPath('appData'), 'Electron'),
   ];
 
   for (const legacy of legacyDirs) {
-    if (fs.existsSync(legacy) && legacy.toLowerCase() !== persistentUserData.toLowerCase()) {
-      copyFolderSync(path.join(legacy, 'IndexedDB'), path.join(persistentUserData, 'IndexedDB'));
-      copyFolderSync(path.join(legacy, 'Local Storage'), path.join(persistentUserData, 'Local Storage'));
+    if (fs.existsSync(legacy) && legacy.toLowerCase() !== canonicalUserData.toLowerCase()) {
+      copyFolderSync(path.join(legacy, 'IndexedDB'), path.join(canonicalUserData, 'IndexedDB'));
+      copyFolderSync(path.join(legacy, 'Local Storage'), path.join(canonicalUserData, 'Local Storage'));
     }
   }
 } catch (e) {
