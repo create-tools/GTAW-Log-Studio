@@ -3,6 +3,12 @@ const path = require('path');
 const fs = require('fs');
 const https = require('https');
 
+// Tekil örnek kilidi (Single Instance Lock) - İki uygulamanın aynı anda açık kalmasını ve kilit çakışmasını engelle
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.exit(0);
+}
+
 function copyFolderSync(from, to) {
   if (!fs.existsSync(from)) return;
   if (!fs.existsSync(to)) fs.mkdirSync(to, { recursive: true });
@@ -81,6 +87,18 @@ let captureEngine = null;
 let tray = null;
 let isQuitting = false;
 let closeToTrayEnabled = true;
+
+app.on('before-quit', () => {
+  isQuitting = true;
+});
+
+app.on('second-instance', () => {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
+    mainWindow.focus();
+  }
+});
 
 function createWindow() {
   const iconPath = path.join(__dirname, 'icon.png');
@@ -534,6 +552,17 @@ ipcMain.handle('install-update', async (event, customInstallerPath) => {
   try {
     const { spawn } = require('child_process');
 
+    isQuitting = true;
+    closeToTrayEnabled = false;
+    if (tray) {
+      try { tray.destroy(); } catch (e) {}
+      tray = null;
+    }
+    if (captureEngine) {
+      try { captureEngine.stop(); } catch (e) {}
+      captureEngine = null;
+    }
+
     if (isPortable && (portableOrigFile || portableOrigDir)) {
       // Hedef dosya yolu: kullanıcının klasöründeki güncel isimli dosya
       const targetExePath = portableOrigDir ? path.join(portableOrigDir, path.basename(downloadedPath)) : portableOrigFile;
@@ -563,7 +592,10 @@ fso.DeleteFile WScript.ScriptFullName
       child.unref();
 
       setTimeout(() => {
-        app.quit();
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          try { mainWindow.destroy(); } catch (e) {}
+        }
+        app.exit(0);
       }, 300);
 
       return { success: true };
@@ -576,7 +608,10 @@ fso.DeleteFile WScript.ScriptFullName
       child.unref();
 
       setTimeout(() => {
-        app.quit();
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          try { mainWindow.destroy(); } catch (e) {}
+        }
+        app.exit(0);
       }, 400);
 
       return { success: true };
