@@ -291,6 +291,23 @@ function downloadFileWithRedirects(url, destPath, onProgress) {
   });
 }
 
+function isPortableApp() {
+  if (process.env.PORTABLE_EXECUTABLE_FILE || process.env.PORTABLE_EXECUTABLE_DIR || process.env.PORTABLE_EXECUTABLE_APP_FILENAME) {
+    return true;
+  }
+  const exePath = app.getPath('exe') || '';
+  if (exePath.toLowerCase().includes('\\temp\\') || exePath.toLowerCase().includes('/temp/')) {
+    return true;
+  }
+  const appData = process.env.LOCALAPPDATA || '';
+  const progFiles = process.env['ProgramFiles'] || '';
+  const progFiles86 = process.env['ProgramFiles(x86)'] || '';
+  const isInstalled = (appData && exePath.toLowerCase().startsWith(appData.toLowerCase())) ||
+                      (progFiles && exePath.toLowerCase().startsWith(progFiles.toLowerCase())) ||
+                      (progFiles86 && exePath.toLowerCase().startsWith(progFiles86.toLowerCase()));
+  return !isInstalled;
+}
+
 ipcMain.handle('check-for-updates', async () => {
   const currentVer = (app.getVersion() || '1.0.0').replace(/^v+/, '');
 
@@ -311,15 +328,28 @@ ipcMain.handle('check-for-updates', async () => {
           const rawTag = (json.tag_name || currentVer).replace(/^v+/, '');
           const hasUpdate = rawTag !== currentVer && json.tag_name !== undefined;
 
-          // En uygun kurulum dosyasını seç (Setup .exe veya Taşınabilir .exe)
-          const setupAsset = json.assets?.find((a) => a.name.toLowerCase().includes('setup') && a.name.endsWith('.exe'));
-          const portableAsset = json.assets?.find((a) => a.name.endsWith('.exe'));
-          const targetAsset = setupAsset || portableAsset;
+          const isPortable = isPortableApp();
+          let targetAsset = null;
+
+          if (isPortable) {
+            // Portable kullanıcılar için setup olmayan tekil .exe dosyasını hedefle
+            targetAsset = json.assets?.find((a) => a.name.endsWith('.exe') && !a.name.toLowerCase().includes('setup'));
+            if (!targetAsset) {
+              targetAsset = json.assets?.find((a) => a.name.endsWith('.exe'));
+            }
+          } else {
+            // Kurulumlu sürüm kullananlar için Setup .exe dosyasını hedefle
+            targetAsset = json.assets?.find((a) => a.name.toLowerCase().includes('setup') && a.name.endsWith('.exe'));
+            if (!targetAsset) {
+              targetAsset = json.assets?.find((a) => a.name.endsWith('.exe'));
+            }
+          }
 
           resolve({
             currentVersion: currentVer,
             latestVersion: rawTag,
             hasUpdate: hasUpdate,
+            isPortable: isPortable,
             releaseNotes: json.body || '',
             url: json.html_url || 'https://github.com/create-tools/GTAW-Log-Studio/releases',
             assetName: targetAsset?.name,
@@ -359,12 +389,23 @@ ipcMain.handle('check-for-updates', async () => {
 });
 
 ipcMain.handle('download-update', async (event, customDownloadUrl) => {
-  const setupAsset = latestReleaseData?.assets?.find((a) => a.name.toLowerCase().includes('setup') && a.name.endsWith('.exe'));
-  const portableAsset = latestReleaseData?.assets?.find((a) => a.name.endsWith('.exe'));
-  const targetAsset = setupAsset || portableAsset;
+  const isPortable = isPortableApp();
+  let targetAsset = null;
+
+  if (isPortable) {
+    targetAsset = latestReleaseData?.assets?.find((a) => a.name.endsWith('.exe') && !a.name.toLowerCase().includes('setup'));
+    if (!targetAsset) {
+      targetAsset = latestReleaseData?.assets?.find((a) => a.name.endsWith('.exe'));
+    }
+  } else {
+    targetAsset = latestReleaseData?.assets?.find((a) => a.name.toLowerCase().includes('setup') && a.name.endsWith('.exe'));
+    if (!targetAsset) {
+      targetAsset = latestReleaseData?.assets?.find((a) => a.name.endsWith('.exe'));
+    }
+  }
 
   const downloadUrl = customDownloadUrl || targetAsset?.browser_download_url;
-  const fileName = targetAsset?.name || `GTAW_Log_Studio_Setup_${Date.now()}.exe`;
+  const fileName = targetAsset?.name || (isPortable ? `GTAW_Log_Studio_${Date.now()}.exe` : `GTAW_Log_Studio_Setup_${Date.now()}.exe`);
   const destPath = path.join(app.getPath('temp'), fileName);
 
   if (!downloadUrl) {
@@ -386,26 +427,58 @@ ipcMain.handle('download-update', async (event, customDownloadUrl) => {
   }
 });
 
-ipcMain.handle('install-update', async (event, installerPath) => {
-  const targetPath = installerPath || downloadedInstallerPath;
-  if (!targetPath || !fs.existsSync(targetPath)) {
-    return { success: false, error: 'Installer file not found' };
+ipcMain.handle('install-update', async (event, customInstallerPath) => {
+  const downloadedPath = customInstallerPath || downloadedInstallerPath;
+  if (!downloadedPath || !fs.existsSync(downloadedPath)) {
+    return { success: false, error: 'Update file not found' };
   }
+
+  const isPortable = isPortableApp();
+  const portableOrigFile = process.env.PORTABLE_EXECUTABLE_FILE;
+  const portableOrigDir = process.env.PORTABLE_EXECUTABLE_DIR;
 
   try {
     const { spawn } = require('child_process');
-    const child = spawn(targetPath, [], {
-      detached: true,
-      stdio: 'ignore',
-    });
-    child.unref();
 
-    setTimeout(() => {
-      app.quit();
-    }, 500);
+    if (isPortable && (portableOrigFile || portableOrigDir)) {
+      const targetExePath = portableOrigFile || path.join(portableOrigDir, path.basename(downloadedPath));
+      const updaterBatPath = path.join(app.getPath('temp'), `gtaw_update_${Date.now()}.bat`);
 
-    return { success: true };
+      const batScript = `@echo off
+timeout /t 2 /nobreak >nul
+copy /y "${downloadedPath}" "${targetExePath}" >nul
+start "" "${targetExePath}"
+del "%~f0"
+`;
+
+      fs.writeFileSync(updaterBatPath, batScript, 'utf8');
+
+      const child = spawn('cmd.exe', ['/c', updaterBatPath], {
+        detached: true,
+        stdio: 'ignore',
+      });
+      child.unref();
+
+      setTimeout(() => {
+        app.quit();
+      }, 400);
+
+      return { success: true };
+    } else {
+      const child = spawn(downloadedPath, [], {
+        detached: true,
+        stdio: 'ignore',
+      });
+      child.unref();
+
+      setTimeout(() => {
+        app.quit();
+      }, 500);
+
+      return { success: true };
+    }
   } catch (err) {
+    console.error('Install update failed:', err);
     return { success: false, error: err.message };
   }
 });
