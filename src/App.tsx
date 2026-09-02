@@ -46,8 +46,8 @@ const INITIAL_CHANNELS: Record<LogChannel, boolean> = {
   ooc: true,
   faction: true,
   admin: true,
-  system: false,
-  other: false,
+  system: true,
+  other: true,
 };
 
 const INITIAL_FILTERS: FilterOptions = {
