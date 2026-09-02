@@ -8,7 +8,8 @@ import {
   Info,
   AlertTriangle,
   Sparkles,
-  Check
+  Check,
+  FileText
 } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
 
@@ -16,6 +17,117 @@ interface CheckUpdatesModalProps {
   isOpen: boolean;
   onClose: () => void;
   autoStartDownload?: boolean;
+}
+
+function renderInlineFormatted(text: string): React.ReactNode {
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let key = 0;
+
+  while (remaining.length > 0) {
+    const boldMatch = remaining.match(/\*\*(.*?)\*\*/);
+    const codeMatch = remaining.match(/`(.*?)`/);
+
+    const boldIdx = boldMatch ? remaining.indexOf(boldMatch[0]) : -1;
+    const codeIdx = codeMatch ? remaining.indexOf(codeMatch[0]) : -1;
+
+    if (boldIdx === -1 && codeIdx === -1) {
+      parts.push(remaining);
+      break;
+    }
+
+    if (boldIdx !== -1 && (codeIdx === -1 || boldIdx < codeIdx)) {
+      if (boldIdx > 0) parts.push(remaining.substring(0, boldIdx));
+      parts.push(
+        <strong key={key++} className="font-bold text-zinc-100">
+          {boldMatch![1]}
+        </strong>
+      );
+      remaining = remaining.substring(boldIdx + boldMatch![0].length);
+    } else if (codeIdx !== -1) {
+      if (codeIdx > 0) parts.push(remaining.substring(0, codeIdx));
+      parts.push(
+        <code
+          key={key++}
+          className="px-1 py-0.2 rounded bg-zinc-800 font-mono text-[10px] text-purple-200 border border-zinc-700"
+        >
+          {codeMatch![1]}
+        </code>
+      );
+      remaining = remaining.substring(codeIdx + codeMatch![0].length);
+    }
+  }
+
+  return <>{parts}</>;
+}
+
+function FormattedReleaseNotes({ rawText, fallbackText }: { rawText?: string; fallbackText: string }) {
+  if (!rawText) {
+    return <div className="text-zinc-400 text-xs italic py-2">{fallbackText}</div>;
+  }
+
+  // HTML ve Ham Görsel Etiketlerini Temizle
+  const cleaned = rawText
+    .replace(/<img[^>]*>/gi, '')
+    .replace(/<p\s+[^>]*>/gi, '')
+    .replace(/<p>/gi, '')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<strong>/gi, '**')
+    .replace(/<\/strong>/gi, '**')
+    .replace(/<b>/gi, '**')
+    .replace(/<\/b>/gi, '**')
+    .replace(/<code>/gi, '`')
+    .replace(/<\/code>/gi, '`');
+
+  const lines = cleaned
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+
+  if (lines.length === 0) {
+    return <div className="text-zinc-400 text-xs italic py-2">{fallbackText}</div>;
+  }
+
+  return (
+    <div className="space-y-1.5 text-xs text-zinc-300 font-sans">
+      {lines.map((line, idx) => {
+        // Başlıklar (#, ##, ###)
+        if (line.startsWith('#')) {
+          const title = line.replace(/^#+\s*/, '');
+          return (
+            <div
+              key={idx}
+              className="font-bold text-purple-300 text-xs pt-1.5 pb-0.5 border-b border-zinc-800/80 flex items-center gap-1.5"
+            >
+              <span className="w-1 h-3 bg-purple-500 rounded-full" />
+              <span>{title}</span>
+            </div>
+          );
+        }
+
+        // Madde İşaretleri (-, *, •, 1.)
+        if (/^[-*•]\s+/.test(line) || /^\d+\.\s+/.test(line)) {
+          const itemText = line.replace(/^[-*•\d\.]+\s*/, '');
+          return (
+            <div key={idx} className="flex items-start gap-2 pl-1 py-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 shrink-0 mt-1.5 shadow-sm" />
+              <span className="flex-1 text-[11px] leading-relaxed text-zinc-200">
+                {renderInlineFormatted(itemText)}
+              </span>
+            </div>
+          );
+        }
+
+        // Normal Paragraf
+        return (
+          <p key={idx} className="text-[11px] leading-relaxed text-zinc-300">
+            {renderInlineFormatted(line)}
+          </p>
+        );
+      })}
+    </div>
+  );
 }
 
 export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
@@ -36,6 +148,7 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
     assetName?: string;
     assetSize?: number;
     downloadUrl?: string;
+    isPortable?: boolean;
   } | null>(null);
 
   // İndirme ve Yükleme Durumları
@@ -65,8 +178,8 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
     } else {
       setTimeout(() => {
         setUpdateInfo({
-          currentVersion: '1.0.0',
-          latestVersion: '1.0.0',
+          currentVersion: '1.0.1',
+          latestVersion: '1.0.1',
           hasUpdate: false,
           releaseNotes: t('updates_latest_version'),
         });
@@ -102,7 +215,6 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
   const handleStartDownload = async (customUrl?: string) => {
     const electronAPI = (window as any).electronAPI;
     if (!electronAPI?.downloadUpdate) {
-      // Electron dışındaysa tarayıcıda aç
       handleOpenReleaseUrl();
       return;
     }
@@ -149,9 +261,9 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 select-none font-sans">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Başlık */}
-        <div className="h-11 border-b border-zinc-800 px-4 flex items-center justify-between bg-zinc-950">
+        <div className="h-11 border-b border-zinc-800 px-4 flex items-center justify-between bg-zinc-950 shrink-0">
           <div className="flex items-center gap-2">
             <RefreshCw className={`w-4 h-4 text-purple-400 ${loading ? 'animate-spin' : ''}`} />
             <h2 className="text-xs font-bold text-zinc-100">
@@ -167,7 +279,7 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
         </div>
 
         {/* Modal İçerik */}
-        <div className="p-5 space-y-4 text-xs">
+        <div className="p-5 space-y-3.5 text-xs overflow-y-auto flex-1">
           {loading ? (
             <div className="text-center py-8 space-y-3">
               <RefreshCw className="w-8 h-8 mx-auto text-purple-500 animate-spin" />
@@ -175,28 +287,40 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
             </div>
           ) : updateInfo?.hasUpdate ? (
             <div className="space-y-3">
+              {/* Sürüm Kartı */}
               <div className="p-3 bg-purple-950/40 border border-purple-500/30 rounded-xl space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-purple-300 text-xs">{t('updates_available')}</span>
-                  <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-200 font-bold">
-                    v{String(updateInfo.latestVersion || '1.0.0').replace(/^v+/, '')}
+                  <span className="font-bold text-purple-300 text-xs flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                    {t('updates_available')}
+                  </span>
+                  <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-200 font-bold border border-purple-500/30">
+                    v{String(updateInfo.latestVersion || '1.0.1').replace(/^v+/, '')}
                   </span>
                 </div>
-                <p className="text-[11px] text-zinc-400">
-                  {t('updates_current')}: v{String(updateInfo.currentVersion || '1.0.0').replace(/^v+/, '')}
-                </p>
+                <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-0.5">
+                  <span>{t('updates_current')}: v{String(updateInfo.currentVersion || '1.0.0').replace(/^v+/, '')}</span>
+                  {updateInfo.isPortable && (
+                    <span className="text-[10px] text-purple-300 font-medium px-1.5 py-0.2 bg-purple-900/40 rounded border border-purple-700/40">
+                      Portable (Taşınabilir)
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {updateInfo.releaseNotes && (
-                <div className="space-y-1">
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">
-                    {t('updates_release_notes')}
-                  </span>
-                  <div className="p-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-[11px] text-zinc-300 max-h-28 overflow-y-auto whitespace-pre-wrap font-sans">
-                    {updateInfo.releaseNotes}
-                  </div>
+              {/* 📋 Şık ve Formatlı Sürüm Notları (Release Notes) */}
+              <div className="space-y-1.5">
+                <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-bold flex items-center gap-1">
+                  <FileText className="w-3 h-3 text-purple-400" />
+                  {t('updates_release_notes')}
+                </span>
+                <div className="p-3 bg-zinc-950/90 border border-zinc-800 rounded-xl max-h-40 overflow-y-auto shadow-inner leading-relaxed">
+                  <FormattedReleaseNotes
+                    rawText={updateInfo.releaseNotes}
+                    fallbackText={language === 'tr' ? 'Performans iyileştirmeleri ve hata düzeltmeleri.' : 'Performance improvements and bug fixes.'}
+                  />
                 </div>
-              )}
+              </div>
 
               {/* İndirme İlerleme Alanı */}
               {downloadStatus === 'downloading' && (
@@ -221,20 +345,20 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
 
                   <div className="flex items-center justify-between text-[10px] text-zinc-500 font-mono">
                     <span>{formatBytes(downloadProgress.downloaded)} / {formatBytes(downloadProgress.total || updateInfo.assetSize || 0)}</span>
-                    <span>{updateInfo.assetName || 'Setup.exe'}</span>
+                    <span>{updateInfo.assetName || 'GTAW Log Studio.exe'}</span>
                   </div>
                 </div>
               )}
 
               {/* İndirme Tamamlandı Bildirimi */}
               {downloadStatus === 'completed' && (
-                <div className="p-3 bg-emerald-950/40 border border-emerald-500/40 rounded-xl space-y-1.5 text-center">
+                <div className="p-3 bg-emerald-950/40 border border-emerald-500/40 rounded-xl space-y-1 text-center">
                   <div className="flex items-center justify-center gap-1.5 text-emerald-300 font-bold text-xs">
                     <Check className="w-4 h-4 text-emerald-400" />
                     <span>{t('updates_download_complete')}</span>
                   </div>
                   <p className="text-[10px] text-zinc-400">
-                    {language === 'tr' ? 'Uygulama otomatik olarak yeniden başlatılıp güncellenecektir.' : 'Application will restart and apply update.'}
+                    {language === 'tr' ? 'Uygulama arka planda doğrudan güncellenip açılacaktır.' : 'Application will restart and apply update.'}
                   </p>
                 </div>
               )}
@@ -251,7 +375,7 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
 
               {/* Aksiyon Butonları */}
               {downloadStatus === 'idle' && (
-                <div className="space-y-2 pt-1">
+                <div className="space-y-1.5 pt-1">
                   <button
                     onClick={() => handleStartDownload()}
                     className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg transition-all cursor-pointer"
@@ -262,7 +386,7 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
 
                   <button
                     onClick={handleOpenReleaseUrl}
-                    className="w-full flex items-center justify-center gap-1 text-[11px] text-zinc-400 hover:text-purple-300 transition-colors py-1"
+                    className="w-full flex items-center justify-center gap-1 text-[11px] text-zinc-400 hover:text-purple-300 transition-colors py-1 cursor-pointer"
                   >
                     <span>{t('updates_open_in_browser')}</span>
                     <ExternalLink className="w-3 h-3" />
@@ -284,13 +408,13 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
                 <div className="flex items-center gap-2 pt-1">
                   <button
                     onClick={() => handleStartDownload()}
-                    className="flex-1 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-colors"
+                    className="flex-1 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-colors cursor-pointer"
                   >
                     {t('updates_check_again')}
                   </button>
                   <button
                     onClick={handleOpenReleaseUrl}
-                    className="flex-1 py-2 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-semibold text-xs transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 py-2 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-semibold text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <span>{t('updates_open_in_browser')}</span>
                     <ExternalLink className="w-3 h-3" />
@@ -300,13 +424,13 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
             </div>
           ) : (
             <div className="text-center py-6 space-y-3">
-              <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
+              <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400 shadow-inner">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <div>
                 <h3 className="font-bold text-zinc-100 text-sm">{t('updates_up_to_date')}</h3>
-                <p className="text-[11px] text-zinc-400 mt-0.5">
-                  v{String(updateInfo?.currentVersion || '1.0.0').replace(/^v+/, '')}
+                <p className="text-[11px] text-zinc-400 mt-0.5 font-mono">
+                  v{String(updateInfo?.currentVersion || '1.0.1').replace(/^v+/, '')}
                 </p>
               </div>
             </div>
@@ -314,11 +438,11 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
         </div>
 
         {/* Modal Alt Kısım */}
-        <div className="h-11 border-t border-zinc-800 px-4 flex items-center justify-between bg-zinc-950">
+        <div className="h-11 border-t border-zinc-800 px-4 flex items-center justify-between bg-zinc-950 shrink-0">
           <button
             onClick={checkUpdates}
             disabled={loading || downloadStatus === 'downloading'}
-            className="flex items-center gap-1.5 px-3 py-1 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 text-xs transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 text-xs transition-colors disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
             <span>{t('updates_check_again')}</span>
@@ -327,7 +451,7 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
           <button
             onClick={onClose}
             disabled={downloadStatus === 'downloading'}
-            className="px-4 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-zinc-700 transition-colors disabled:opacity-50"
+            className="px-4 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-zinc-700 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {t('close')}
           </button>
