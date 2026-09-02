@@ -1,4 +1,4 @@
-﻿const http = require('http');
+const http = require('http');
 const WebSocket = require('ws');
 const fs = require('fs');
 const path = require('path');
@@ -244,18 +244,39 @@ class FiveMChatCapture {
   }
 
   locateChatFrame(frameNode) {
-    if (!frameNode || !frameNode.frame) return null;
-    const url = frameNode.frame.url || '';
-    if (url.includes('chat') || url.includes('nui://chat')) {
-      return frameNode.frame.id;
+    if (!frameNode) return null;
+    const frame = frameNode.frame || frameNode;
+    const url = (frame.url || '').toLowerCase();
+    const name = (frame.name || '').toLowerCase();
+
+    // GTA World uses 'client' (https://cfx-nui-client/web/index.html)
+    // Generic FiveM uses 'chat' (https://cfx-nui-chat/html/index.html)
+    if (
+      url.includes('client') ||
+      url.includes('chat') ||
+      url.includes('cfx-nui-client') ||
+      url.includes('cfx-nui-chat') ||
+      url.includes('gtaw') ||
+      name === 'client' ||
+      name === 'chat'
+    ) {
+      return frame.id;
     }
-    if (frameNode.childFrames) {
+
+    if (frameNode.childFrames && frameNode.childFrames.length > 0) {
       for (const child of frameNode.childFrames) {
         const found = this.locateChatFrame(child);
         if (found) return found;
       }
+      for (const child of frameNode.childFrames) {
+        const childFrame = child.frame || child;
+        const childUrl = (childFrame.url || '').toLowerCase();
+        if (childUrl && !childUrl.includes('monitor') && !childUrl.includes('root.html')) {
+          return childFrame.id;
+        }
+      }
     }
-    return null;
+    return frame.id || null;
   }
 
   async attachToChatExecutionContext(frameId) {
@@ -291,11 +312,14 @@ class FiveMChatCapture {
     const extractionScript = `
       (() => {
         try {
-          const items = document.querySelectorAll('.chat__messages > li, .chat-messages > li');
+          const items = document.querySelectorAll(
+            '.chat__messages > li, .chat-messages > li, .chat__messages > *, .chat > ul > li, .chat-message, #chat-messages > li, #messages > div'
+          );
           if (!items || items.length === 0) return [];
           const result = [];
           for (let i = 0; i < items.length; i++) {
-            result.push(items[i].innerText || items[i].textContent || '');
+            const txt = (items[i].innerText || items[i].textContent || '').trim();
+            if (txt) result.push(txt);
           }
           return result;
         } catch (e) {
@@ -304,9 +328,9 @@ class FiveMChatCapture {
       })()
     `;
 
-    this.chatInterval = setInterval(async () => {
+    const runExtraction = async () => {
       if (!this.isConnected || !this.ws) {
-        clearInterval(this.chatInterval);
+        if (this.chatInterval) clearInterval(this.chatInterval);
         return;
       }
 
@@ -321,7 +345,11 @@ class FiveMChatCapture {
           this.processChatMessages(evalRes.result.value);
         }
       } catch (err) {}
-    }, 1500);
+    };
+
+    // İlk çalıştırma anında hemen çek
+    runExtraction();
+    this.chatInterval = setInterval(runExtraction, 1000);
   }
 
   startNewSession() {
