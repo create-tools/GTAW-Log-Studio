@@ -1,8 +1,9 @@
-﻿import React from 'react';
+import React from 'react';
 import { ArrowUp, ArrowDown, Trash2, Plus, Palette } from 'lucide-react';
 import { SSLineItem } from '../../types/ssMaker';
 import { LogChannel } from '../../types/log';
 import { CHANNEL_COLORS, CHANNEL_LABELS } from '../../core/parser';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 interface LineEditorProps {
   lines: SSLineItem[];
@@ -10,6 +11,7 @@ interface LineEditorProps {
 }
 
 export const LineEditor: React.FC<LineEditorProps> = ({ lines, onUpdateLines }) => {
+  const { t, language } = useLanguage();
   const moveLine = (index: number, direction: 'up' | 'down') => {
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= lines.length) return;
@@ -52,7 +54,7 @@ export const LineEditor: React.FC<LineEditorProps> = ({ lines, onUpdateLines }) 
     <div className="flex flex-col h-full space-y-2">
       <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
         <span className="text-xs font-bold uppercase text-zinc-400 tracking-wider">
-          Chatbox Satırları ({lines.length})
+          {t('le_chatbox_lines')} ({lines.length})
         </span>
         <button
           onClick={addNewLine}
@@ -66,7 +68,7 @@ export const LineEditor: React.FC<LineEditorProps> = ({ lines, onUpdateLines }) 
       <div className="flex-1 overflow-y-auto space-y-2 pr-1">
         {lines.length === 0 ? (
           <div className="text-center py-12 text-zinc-500 text-xs">
-            Henüz seçili satır yok. Aşağıdaki butondan satır ekleyebilir veya ana ekrandan satır seçebilirsiniz.
+            {t('le_no_lines')}
           </div>
         ) : (
           lines.map((line, index) => (
@@ -80,7 +82,7 @@ export const LineEditor: React.FC<LineEditorProps> = ({ lines, onUpdateLines }) 
                   disabled={index === 0}
                   onClick={() => moveLine(index, 'up')}
                   className="p-0.5 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 disabled:opacity-30 disabled:pointer-events-none rounded"
-                  title="Yukarı Taşı"
+                  title={t('le_move_up')}
                 >
                   <ArrowUp className="w-3 h-3" />
                 </button>
@@ -88,7 +90,7 @@ export const LineEditor: React.FC<LineEditorProps> = ({ lines, onUpdateLines }) 
                   disabled={index === lines.length - 1}
                   onClick={() => moveLine(index, 'down')}
                   className="p-0.5 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 disabled:opacity-30 disabled:pointer-events-none rounded"
-                  title="Aşağı Taşı"
+                  title={t('le_move_down')}
                 >
                   <ArrowDown className="w-3 h-3" />
                 </button>
@@ -99,13 +101,13 @@ export const LineEditor: React.FC<LineEditorProps> = ({ lines, onUpdateLines }) 
                 <button
                   className="w-5 h-5 rounded-full border border-black/40 shadow-sm flex items-center justify-center cursor-pointer transition-transform hover:scale-110"
                   style={{ backgroundColor: line.color }}
-                  title="Rengi Değiştir"
+                  title={t('le_change_color')}
                 />
                 
                 {/* Hızlı Renk Paleti Açılır Penceresi */}
                 <div className="absolute left-0 top-6 hidden group-hover/color:flex flex-col gap-1 p-2 bg-zinc-950 border border-zinc-700 rounded-lg shadow-2xl z-30 min-w-[140px]">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase pb-1 border-b border-zinc-800">
-                    Kanal Renkleri
+                    {language === 'tr' ? 'Kanal Renkleri' : 'Channel Colors'}
                   </span>
                   {(Object.keys(CHANNEL_LABELS) as LogChannel[]).map((ch) => (
                     <button
@@ -117,7 +119,7 @@ export const LineEditor: React.FC<LineEditorProps> = ({ lines, onUpdateLines }) 
                         className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/30"
                         style={{ backgroundColor: CHANNEL_COLORS[ch] }}
                       />
-                      <span className="truncate">{CHANNEL_LABELS[ch].tr}</span>
+                      <span className="truncate">{CHANNEL_LABELS[ch][language] || CHANNEL_LABELS[ch].en || CHANNEL_LABELS[ch].tr}</span>
                     </button>
                   ))}
                 </div>
@@ -136,7 +138,7 @@ export const LineEditor: React.FC<LineEditorProps> = ({ lines, onUpdateLines }) 
               <button
                 onClick={() => removeLine(index)}
                 className="p-1 hover:bg-red-950/80 text-zinc-500 hover:text-red-300 rounded transition-colors"
-                title="Satırı Kaldır"
+                title={t('le_remove_line')}
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>

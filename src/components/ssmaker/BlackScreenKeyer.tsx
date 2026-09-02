@@ -219,7 +219,7 @@ export const BlackScreenKeyer: React.FC<BlackScreenKeyerProps> = ({
             <button
               onClick={handleCopyProcessed}
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-sm transition-colors"
-              title="Şeffaf chat katmanını panoya kopyalar (Photoshop / Discord Ctrl+V)"
+              title={t('bsk_copy_tooltip')}
             >
               {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copied ? t('bsk_copied') : t('bsk_copy_transparent')}</span>
@@ -344,7 +344,7 @@ export const BlackScreenKeyer: React.FC<BlackScreenKeyerProps> = ({
             <div className="relative inline-block max-w-full max-h-full shadow-2xl rounded overflow-hidden">
               <img
                 src={processedDataUrl || sourceImage}
-                alt="Ayıklanmış Chatlog"
+                alt="Keyed Chatlog"
                 className="max-w-full max-h-[640px] object-contain block rounded select-none"
               />
             </div>

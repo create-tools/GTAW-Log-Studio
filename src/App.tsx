@@ -34,6 +34,7 @@ import { QuickExportModal } from './components/modals/QuickExportModal';
 import { KeyboardShortcutsModal } from './components/modals/KeyboardShortcutsModal';
 import { InitialLanguageModal } from './components/modals/InitialLanguageModal';
 import { FeedbackModal } from './components/modals/FeedbackModal';
+import { useLanguage } from './i18n/LanguageContext';
 
 const INITIAL_CHANNELS: Record<LogChannel, boolean> = {
   ic: true,
@@ -45,8 +46,8 @@ const INITIAL_CHANNELS: Record<LogChannel, boolean> = {
   ooc: true,
   faction: true,
   admin: true,
-  system: true,
-  other: true,
+  system: false,
+  other: false,
 };
 
 const INITIAL_FILTERS: FilterOptions = {
@@ -62,6 +63,7 @@ const INITIAL_FILTERS: FilterOptions = {
 const SETTINGS_STORAGE_KEY = 'gtaw_app_settings_v5';
 
 export function App() {
+  const { t, language } = useLanguage();
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>(INITIAL_FILTERS);
   const [autoScroll, setAutoScroll] = useState(true);
@@ -713,17 +715,17 @@ export function App() {
       if (impSessions && impLogs) {
         await db.sessions.bulkPut(impSessions);
         await db.logs.bulkPut(impLogs);
-        alert('Yedek başarıyla geri yüklendi!');
+        alert(t('backup_restored_success'));
       }
     } catch (err) {
       console.error('Yedek yükleme hatası:', err);
-      alert('Yedek dosyası geçersiz veya bozuk!');
+      alert(t('backup_invalid_error'));
     }
   };
 
   const handleClearSession = async () => {
     if (activeSessionId) {
-      if (confirm('Bu oturumu ve kayıtlı loglarını silmek istediğinize emin misiniz?')) {
+      if (confirm(t('confirm_delete_session'))) {
         await deleteSessionAndLogs(activeSessionId);
         setActiveSessionId(null);
       }

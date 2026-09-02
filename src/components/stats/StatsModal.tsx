@@ -31,7 +31,7 @@ export const StatsModal: React.FC<StatsModalProps> = ({
   const totalLines = lines.length || 1;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div lang={language} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-2xl flex flex-col shadow-2xl overflow-hidden font-sans">
         <div className="h-12 border-b border-zinc-800 px-4 flex items-center justify-between bg-zinc-950 select-none">
           <div className="flex items-center gap-2">
@@ -60,7 +60,7 @@ export const StatsModal: React.FC<StatsModalProps> = ({
             </div>
 
             <div className="bg-zinc-950 border border-zinc-800 p-3 rounded-lg">
-              <div className="text-[11px] text-zinc-500 font-medium">Toplam Kelime</div>
+              <div className="text-[11px] text-zinc-500 font-medium">{t('stats_total_words')}</div>
               <div className="text-xl font-bold text-zinc-100 font-mono mt-0.5">
                 {totalWords.toLocaleString()}
               </div>
@@ -91,7 +91,7 @@ export const StatsModal: React.FC<StatsModalProps> = ({
                     <div className="flex justify-between text-xs">
                       <span className="flex items-center gap-1.5 text-zinc-300">
                         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-                        {CHANNEL_LABELS[ch].tr}
+                        {CHANNEL_LABELS[ch][language] || CHANNEL_LABELS[ch].en || CHANNEL_LABELS[ch].tr}
                       </span>
                       <span className="font-mono text-zinc-500 text-[11px]">
                         {count} ({percentage}%)
@@ -110,7 +110,7 @@ export const StatsModal: React.FC<StatsModalProps> = ({
           <div className="space-y-2 pt-2 border-t border-zinc-800">
             <h3 className="text-[11px] font-bold uppercase text-zinc-400 tracking-wider flex items-center gap-1.5">
               <Users className="w-3 h-3 text-emerald-400" />
-              En Aktif Karakterler
+              {t('stats_top_characters')}
             </h3>
             <div className="grid grid-cols-2 gap-1.5">
               {topSpeakers.slice(0, 6).map((spk, idx) => (

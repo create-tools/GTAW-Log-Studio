@@ -146,25 +146,25 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
           <div className="flex flex-wrap items-center gap-1 pt-1">
             <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mr-1">{t('pe_add_label')}:</span>
             <button
-              onClick={() => handleInsertQuickTemplate('* Karakter_Adı bir eylem gerçekleştirir.')}
+              onClick={() => handleInsertQuickTemplate('* John Doe performs an action.')}
               className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-purple-300 text-[11px] font-medium border border-purple-500/30"
             >
               + /me {t('pe_action_label')}
             </button>
             <button
-              onClick={() => handleInsertQuickTemplate('* Çevre durumu veya soru? (( Karakter_Adı ))')}
+              onClick={() => handleInsertQuickTemplate('* Environmental details or scene context. (( John Doe ))')}
               className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-sky-300 text-[11px] font-medium border border-sky-500/30"
             >
               + /do {t('pe_environment_label')}
             </button>
             <button
-              onClick={() => handleInsertQuickTemplate('Karakter_Adı says: Konuşma metni.')}
+              onClick={() => handleInsertQuickTemplate('John Doe says: Spoken dialogue.')}
               className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[11px] font-medium border border-zinc-700"
             >
               + IC {t('pe_speech_label')}
             </button>
             <button
-              onClick={() => handleInsertQuickTemplate('[R: 91.1] Karakter_Adı: Telsiz anonsu.')}
+              onClick={() => handleInsertQuickTemplate('[R: 91.1] John Doe: Radio transmission.')}
               className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-emerald-300 text-[11px] font-medium border border-emerald-500/30"
             >
               + {t('pe_radio_label')}

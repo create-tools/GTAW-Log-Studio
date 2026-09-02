@@ -29,7 +29,7 @@ export class LiveLogWatcher {
   public async startWithPicker(): Promise<boolean> {
     try {
       if (!('showOpenFilePicker' in window)) {
-        alert('Tarayıcınız File System Access API desteklemiyor. Chrome, Edge veya Opera kullanmanız önerilir.');
+        alert('File System Access API is not supported in this browser. Please use the Desktop app or Chrome/Edge.');
         return false;
       }
 

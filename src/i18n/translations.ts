@@ -25,6 +25,7 @@ export const translations = {
 
 
 
+
     // Titlebar
     app_title: 'GTAW Log Studio',
     check_updates: 'Check for Updates',
@@ -412,8 +413,27 @@ export const translations = {
     copied: "Copied",
     updates_release_notes: "Release Notes",
     updates_check_again: "Check Again",
+    stats_title: "Chatlog Statistics",
+    stats_total_lines: "Total Lines",
+    stats_total_words: "Total Words",
+    stats_characters: "Active Characters",
+    stats_channel_dist: "Channel Distribution",
+    stats_top_characters: "Top Active Characters",
+    le_chatbox_lines: "Chatbox Lines",
+    le_add_line: "Add Line",
+    le_no_lines: "No lines selected yet. Add lines below or select from main screen.",
+    le_move_up: "Move Up",
+    le_move_down: "Move Down",
+    le_change_color: "Change Color",
+    le_remove_line: "Remove Line",
+    bsk_transparent: "Transparent",
+    bsk_copy_tooltip: "Copy transparent chat layer to clipboard (Photoshop / Discord Ctrl+V)",
+    backup_restored_success: "Backup successfully restored!",
+    backup_invalid_error: "Backup file is invalid or corrupted!",
+    confirm_delete_session: "Are you sure you want to delete this session and its logs?",
   },
   tr: {
+
 
 
 
@@ -808,8 +828,27 @@ export const translations = {
     copied: "Kopyalandı",
     updates_release_notes: "Sürüm Notları",
     updates_check_again: "Yeniden Kontrol Et",
+    stats_title: "Sohbet Günlüğü İstatistikleri",
+    stats_total_lines: "Toplam Satır",
+    stats_total_words: "Toplam Kelime",
+    stats_characters: "Aktif Karakter",
+    stats_channel_dist: "Kanal Dağılımı",
+    stats_top_characters: "En Aktif Karakterler",
+    le_chatbox_lines: "Chatbox Satırları",
+    le_add_line: "Satır Ekle",
+    le_no_lines: "Henüz seçili satır yok. Aşağıdaki butondan satır ekleyebilir veya ana ekrandan satır seçebilirsiniz.",
+    le_move_up: "Yukarı Taşı",
+    le_move_down: "Aşağı Taşı",
+    le_change_color: "Rengi Değiştir",
+    le_remove_line: "Satırı Kaldır",
+    bsk_transparent: "Şeffaf",
+    bsk_copy_tooltip: "Şeffaf chat katmanını panoya kopyalar (Photoshop / Discord Ctrl+V)",
+    backup_restored_success: "Yedek başarıyla geri yüklendi!",
+    backup_invalid_error: "Yedek dosyası geçersiz veya bozuk!",
+    confirm_delete_session: "Bu oturumu ve kayıtlı loglarını silmek istediğinize emin misiniz?",
   },
   ru: {
+
 
 
 
@@ -1204,8 +1243,27 @@ export const translations = {
     copied: "Скопировано",
     updates_release_notes: "Примечания к выпуску",
     updates_check_again: "Проверить снова",
+    stats_title: "Статистика чатлога",
+    stats_total_lines: "Всего строк",
+    stats_total_words: "Всего слов",
+    stats_characters: "Активных персонажей",
+    stats_channel_dist: "Распределение по каналам",
+    stats_top_characters: "Самые активные персонажи",
+    le_chatbox_lines: "Строки чатбокса",
+    le_add_line: "Добавить строку",
+    le_no_lines: "Строки не выбраны. Добавьте строки ниже или выберите на главном экране.",
+    le_move_up: "Переместить вверх",
+    le_move_down: "Переместить вниз",
+    le_change_color: "Изменить цвет",
+    le_remove_line: "Удалить строку",
+    bsk_transparent: "Прозрачный",
+    bsk_copy_tooltip: "Скопировать прозрачный слой в буфер обмена (Photoshop / Discord Ctrl+V)",
+    backup_restored_success: "Резервная копия успешно восстановлена!",
+    backup_invalid_error: "Файл резервной копии недействителен или поврежден!",
+    confirm_delete_session: "Вы уверены, что хотите удалить эту сессию и ее логи?",
   },
   fr: {
+
 
 
 
@@ -1600,6 +1658,24 @@ export const translations = {
     copied: "Copié",
     updates_release_notes: "Notes de version",
     updates_check_again: "Vérifier à nouveau",
+    stats_title: "Statistiques du Chatlog",
+    stats_total_lines: "Lignes totales",
+    stats_total_words: "Mots totaux",
+    stats_characters: "Personnages actifs",
+    stats_channel_dist: "Distribution par canal",
+    stats_top_characters: "Personnages les plus actifs",
+    le_chatbox_lines: "Lignes de chatbox",
+    le_add_line: "Ajouter une ligne",
+    le_no_lines: "Aucune ligne sélectionnée. Ajoutez des lignes ci-dessous ou sélectionnez-en sur l'écran principal.",
+    le_move_up: "Déplacer vers le haut",
+    le_move_down: "Déplacer vers le bas",
+    le_change_color: "Changer la couleur",
+    le_remove_line: "Supprimer la ligne",
+    bsk_transparent: "Transparent",
+    bsk_copy_tooltip: "Copier le calque de chat transparent dans le presse-papiers (Photoshop / Discord Ctrl+V)",
+    backup_restored_success: "Sauvegarde restaurée avec succès !",
+    backup_invalid_error: "Le fichier de sauvegarde est invalide ou corrompu !",
+    confirm_delete_session: "Êtes-vous sûr de vouloir supprimer cette session et ses logs ?",
   },
   es: {
     // Titlebar
