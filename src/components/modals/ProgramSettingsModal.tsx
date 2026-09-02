@@ -19,6 +19,7 @@ interface ProgramSettingsModalProps {
   onClose: () => void;
   settings: AppSettings;
   onSaveSettings: (settings: AppSettings) => void;
+  onOpenLanguageModal?: () => void;
 }
 
 export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
@@ -26,6 +27,7 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
   onClose,
   settings,
   onSaveSettings,
+  onOpenLanguageModal,
 }) => {
   if (!isOpen) return null;
 
@@ -216,6 +218,20 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
                 </button>
               ))}
             </div>
+
+            {onOpenLanguageModal && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenLanguageModal();
+                }}
+                className="w-full flex items-center justify-center gap-1.5 py-1 px-2 text-[11px] font-medium text-purple-400 hover:text-purple-300 hover:bg-purple-950/30 border border-purple-500/20 rounded-lg transition-colors"
+              >
+                <Globe className="w-3 h-3" />
+                <span>{language === 'tr' ? 'Detaylı Dil Seçim Kartlarını Aç' : 'Open Visual Language Selection Modal'}</span>
+              </button>
+            )}
 
             <span className="font-semibold text-zinc-300 text-[11px] block border-b border-zinc-800 pb-1 pt-2">
               {language === 'tr' ? 'Hızlı Bağlantılar' : 'Quick Navbar Links'}

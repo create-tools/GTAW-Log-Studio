@@ -1,5 +1,5 @@
-﻿import React, { useState } from 'react';
-import { Globe, Check, Sparkles, ArrowRight } from 'lucide-react';
+﻿import React, { useState, useEffect } from 'react';
+import { Globe, Check, Sparkles, ArrowRight, X } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import appLogo from '../../assets/icon.png';
 import type { Language } from '../../i18n/translations';
@@ -14,10 +14,16 @@ export const InitialLanguageModal: React.FC<InitialLanguageModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  if (!isOpen) return null;
-
   const { language, setLanguage, t } = useLanguage();
   const [selectedLang, setSelectedLang] = useState<Language>(language || 'en');
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedLang(language || 'en');
+    }
+  }, [isOpen, language]);
+
+  if (!isOpen) return null;
 
   const handleConfirm = () => {
     setLanguage(selectedLang);
@@ -26,7 +32,15 @@ export const InitialLanguageModal: React.FC<InitialLanguageModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 select-none font-sans animate-in fade-in duration-200">
-      <div className="bg-zinc-900 border border-zinc-700/80 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden">
+      <div className="bg-zinc-900 border border-zinc-700/80 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden relative">
+        {/* Kapat Butonu */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-1 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors z-10"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
         {/* Üst Karşılama Kartı */}
         <div className="p-5 text-center space-y-2.5 bg-gradient-to-b from-purple-950/40 to-transparent border-b border-zinc-800">
           <img 
@@ -37,10 +51,10 @@ export const InitialLanguageModal: React.FC<InitialLanguageModalProps> = ({
           <div>
             <h1 className="text-base font-bold text-zinc-100 flex items-center justify-center gap-2">
               <Sparkles className="w-4 h-4 text-purple-400" />
-              <span>Welcome to GTAW Log Studio</span>
+              <span>{t('welcome_title')}</span>
             </h1>
             <p className="text-xs text-zinc-400 mt-1">
-              Please select your preferred interface language / Lütfen dilinizi seçin.
+              {t('welcome_subtitle')}
             </p>
           </div>
         </div>

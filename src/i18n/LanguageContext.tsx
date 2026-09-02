@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { translations, Language, TranslationKey } from './translations';
 
 interface LanguageContextType {
@@ -12,7 +12,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
     const saved = localStorage.getItem('gtaw_app_language');
-    if (saved === 'tr' || saved === 'en') return saved;
+    if (saved && ['en', 'tr', 'ru', 'fr', 'es'].includes(saved)) return saved as Language;
     return 'en'; // Varsayılan olarak İngilizce
   });
 

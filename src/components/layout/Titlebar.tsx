@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Minus, 
   Square, 
@@ -28,6 +28,7 @@ interface TitlebarProps {
   onOpenCheckUpdates: () => void;
   onOpenAbout: () => void;
   onOpenFeedback: () => void;
+  onOpenLanguageModal?: () => void;
 }
 
 export const Titlebar: React.FC<TitlebarProps> = ({
@@ -39,6 +40,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
   onOpenCheckUpdates,
   onOpenAbout,
   onOpenFeedback,
+  onOpenLanguageModal,
 }) => {
   const { language, setLanguage, t } = useLanguage();
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
@@ -231,6 +233,21 @@ export const Titlebar: React.FC<TitlebarProps> = ({
                   </button>
                 );
               })}
+
+              {onOpenLanguageModal && (
+                <div className="border-t border-zinc-800 pt-1 mt-1 px-1">
+                  <button
+                    onClick={() => {
+                      setIsLangMenuOpen(false);
+                      onOpenLanguageModal();
+                    }}
+                    className="w-full flex items-center gap-1.5 px-2 py-1 text-[11px] font-semibold text-purple-400 hover:text-purple-300 hover:bg-zinc-800/80 rounded-lg transition-colors"
+                  >
+                    <Globe className="w-3 h-3" />
+                    <span>{language === 'tr' ? 'Dil Seçim Penceresi...' : 'Visual Language Modal...'}</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

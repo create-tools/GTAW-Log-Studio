@@ -748,6 +748,7 @@ export function App() {
         onOpenCheckUpdates={() => setIsCheckUpdatesOpen(true)}
         onOpenAbout={() => setIsAboutOpen(true)}
         onOpenFeedback={() => setIsFeedbackOpen(true)}
+        onOpenLanguageModal={() => setIsInitialLangModalOpen(true)}
       />
 
       {/* Üst Toolbar */}
@@ -910,6 +911,7 @@ export function App() {
         onClose={() => setIsProgramSettingsOpen(false)}
         settings={appSettings}
         onSaveSettings={handleSaveSettings}
+        onOpenLanguageModal={() => setIsInitialLangModalOpen(true)}
       />
 
       {/* Güncellemeleri Denetle Modalı */}
