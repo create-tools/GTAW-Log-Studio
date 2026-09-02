@@ -334,6 +334,9 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
 
   const handleInstallAndRestart = async () => {
     setIsInstalling(true);
+    // Kullanıcının hazırlık ve bilgilendirme ekranını net görebilmesi için kısa bir geçiş payı ver
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
     const electronAPI = (window as any).electronAPI;
     if (electronAPI?.installUpdate) {
       try {

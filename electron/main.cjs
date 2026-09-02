@@ -529,22 +529,26 @@ ipcMain.handle('install-update', async (event, customInstallerPath) => {
 
   const isPortable = isPortableApp();
   const portableOrigFile = process.env.PORTABLE_EXECUTABLE_FILE;
-  const portableOrigDir = process.env.PORTABLE_EXECUTABLE_DIR;
+  const portableOrigDir = process.env.PORTABLE_EXECUTABLE_DIR || (portableOrigFile ? path.dirname(portableOrigFile) : null);
 
   try {
     const { spawn } = require('child_process');
 
     if (isPortable && (portableOrigFile || portableOrigDir)) {
-      const targetExePath = portableOrigFile || path.join(portableOrigDir, path.basename(downloadedPath));
+      // Hedef dosya yolu: kullanıcının klasöründeki güncel isimli dosya
+      const targetExePath = portableOrigDir ? path.join(portableOrigDir, path.basename(downloadedPath)) : portableOrigFile;
       const vbsPath = path.join(app.getPath('temp'), `gtaw_update_${Date.now()}.vbs`);
 
       // 100% sessiz, siyah CMD penceresi çıkarmayan Windows Script Host (wscript) köprüsü
+      // Eski sürüm dosyasını yeni sürümle değiştirir veya temizler ve yeni sürümü başlatır
+      const oldExe = (portableOrigFile && portableOrigFile.toLowerCase() !== targetExePath.toLowerCase()) ? portableOrigFile.replace(/\\/g, '\\\\') : '';
       const vbsContent = `
 Set WshShell = CreateObject("WScript.Shell")
 WScript.Sleep 1500
 Set fso = CreateObject("Scripting.FileSystemObject")
 On Error Resume Next
 fso.CopyFile "${downloadedPath.replace(/\\/g, '\\\\')}", "${targetExePath.replace(/\\/g, '\\\\')}", True
+${oldExe ? `fso.DeleteFile "${oldExe}", True` : ''}
 WshShell.Run Chr(34) & "${targetExePath.replace(/\\/g, '\\\\')}" & Chr(34), 1, False
 fso.DeleteFile WScript.ScriptFullName
 `;
