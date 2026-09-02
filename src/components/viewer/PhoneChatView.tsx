@@ -159,7 +159,7 @@ export const PhoneChatView: React.FC<PhoneChatViewProps> = ({
                         {activeConv.contactName}
                       </h3>
                       <span className="text-[10px] text-zinc-500 font-mono">
-                        {activeConv.messages.length} {language === 'tr' ? 'Mesaj' : 'Messages'}
+                        {activeConv.messages.length} {t('pc_messages_count')}
                       </span>
                     </div>
                   </div>
@@ -168,7 +168,7 @@ export const PhoneChatView: React.FC<PhoneChatViewProps> = ({
                     <button
                       onClick={handleCopyConversation}
                       className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium transition-colors"
-                      title={language === 'tr' ? 'Tüm sohbeti kopyala' : 'Copy entire conversation'}
+                      title={t('pc_copy_all_tip')}
                     >
                       {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{copied ? (language === 'tr' ? 'Kopyalandı' : 'Copied') : t('nav_copy')}</span>
@@ -181,7 +181,7 @@ export const PhoneChatView: React.FC<PhoneChatViewProps> = ({
                         title={t('pc_send_to_ss')}
                       >
                         <Camera className="w-3.5 h-3.5" />
-                        <span>{language === 'tr' ? "SS Maker'a Aktar" : 'Send to SS Studio'}</span>
+                        <span>{t('rd_send_to_ss')}</span>
                       </button>
                     )}
                   </div>

@@ -108,7 +108,7 @@ export const StorylineManager: React.FC<StorylineManagerProps> = ({
           <button
             onClick={() => setShowSplitMenu((p) => !p)}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-900 hover:bg-zinc-800 text-amber-300 text-xs font-medium border border-zinc-800 transition-colors"
-            title={language === 'tr' ? 'Logları sessizlik ve zaman boşluklarına göre otomatik sahne kartlarına böler' : 'Automatically splits logs into scene cards based on silence/time gaps'}
+            title={t('ss_auto_split_tip')}
           >
             <Scissors className="w-3.5 h-3.5 text-amber-400" />
             <span>{t('ss_auto_split_scenes')}</span>
@@ -118,7 +118,7 @@ export const StorylineManager: React.FC<StorylineManagerProps> = ({
           {showSplitMenu && (
             <div className="absolute right-0 top-9 z-30 bg-zinc-900 border border-zinc-700 rounded-xl p-2 shadow-2xl w-56 space-y-1">
               <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-2 py-1 block">
-                {language === 'tr' ? 'Sessizlik Eşiği Belirle:' : 'Silence Gap Threshold:'}
+                {t('ss_silence_gap_threshold')}
               </span>
               <button
                 onClick={() => {
@@ -128,7 +128,7 @@ export const StorylineManager: React.FC<StorylineManagerProps> = ({
                 className="w-full text-left px-2 py-1.5 rounded text-xs text-zinc-200 hover:bg-zinc-800 flex items-center justify-between"
               >
                 <span>{t('ss_split_2min')}</span>
-                <span className="text-[10px] text-zinc-500 font-mono">{language === 'tr' ? 'Hızlı Akış' : 'Fast Flow'}</span>
+                <span className="text-[10px] text-zinc-500 font-mono">{t('ss_flow_fast')}</span>
               </button>
               <button
                 onClick={() => {
@@ -138,7 +138,7 @@ export const StorylineManager: React.FC<StorylineManagerProps> = ({
                 className="w-full text-left px-2 py-1.5 rounded text-xs text-amber-300 font-bold hover:bg-zinc-800 flex items-center justify-between"
               >
                 <span>{t('ss_split_3min')}</span>
-                <span className="text-[10px] text-amber-500/80 font-mono">{language === 'tr' ? 'Dengeli' : 'Balanced'}</span>
+                <span className="text-[10px] text-amber-500/80 font-mono">{t('ss_flow_balanced')}</span>
               </button>
               <button
                 onClick={() => {
@@ -148,7 +148,7 @@ export const StorylineManager: React.FC<StorylineManagerProps> = ({
                 className="w-full text-left px-2 py-1.5 rounded text-xs text-zinc-200 hover:bg-zinc-800 flex items-center justify-between"
               >
                 <span>{t('ss_split_5min')}</span>
-                <span className="text-[10px] text-zinc-500 font-mono">{language === 'tr' ? 'Geniş Sahneler' : 'Wide Scenes'}</span>
+                <span className="text-[10px] text-zinc-500 font-mono">{t('ss_flow_wide')}</span>
               </button>
             </div>
           )}
@@ -159,7 +159,7 @@ export const StorylineManager: React.FC<StorylineManagerProps> = ({
           disabled={isExportingZip}
           onClick={onBatchExportZip}
           className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-bold shadow-sm transition-colors"
-          title={language === 'tr' ? 'Tüm sahneleri otomatik işleyip ZIP arşivi olarak indirin' : 'Process all scenes and download as a ZIP archive'}
+          title={t('ss_batch_zip_tip')}
         >
           <FolderArchive className="w-3.5 h-3.5" />
           <span>{isExportingZip ? (language === 'tr' ? 'Paketleniyor...' : 'Exporting...') : t('ss_export_zip')}</span>

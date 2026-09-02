@@ -174,7 +174,7 @@ export const PhoneChatMockup: React.FC<PhoneChatMockupProps> = ({ lines }) => {
           <div className="flex-1 p-3.5 overflow-y-auto space-y-2.5 bg-zinc-950 text-xs">
             {messages.length === 0 ? (
               <div className="text-center text-zinc-600 text-xs py-12">
-                Mesaj bulunamadı.
+                {t('lw_msg_not_found')}
               </div>
             ) : (
               messages.map((msg, index) => (

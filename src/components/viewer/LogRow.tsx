@@ -150,10 +150,10 @@ export const LogRow: React.FC<LogRowProps> = ({
                 ? 'bg-purple-900/60 hover:bg-purple-800 border border-purple-500/40 text-purple-200 shadow-sm'
                 : 'hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200'
             }`}
-            title={language === 'tr' ? "Bu mesajın tüm log içindeki konumuna git" : "Jump to this line's context in full log"}
+            title={t('row_jump_context')}
           >
             <LocateFixed className="w-3.5 h-3.5 text-purple-400" />
-            <span>{language === 'tr' ? 'Konuma Git' : 'Context'}</span>
+            <span>{t('row_context_btn')}</span>
           </button>
         )}
 

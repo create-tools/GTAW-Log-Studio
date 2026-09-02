@@ -484,7 +484,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
 
                     <div className="space-y-1 pt-1 border-t border-zinc-800/80">
                       <div className="flex justify-between text-[10px]">
-                        <span className="text-zinc-400">{language === 'tr' ? 'Nostaljik Renk Sıkıştırması' : 'Retro Color Crunch'}</span>
+                        <span className="text-zinc-400">{t('ss_retro_color_crunch')}</span>
                         <span className="text-zinc-300 font-mono font-bold">%{config.retroCrunch || 0}</span>
                       </div>
                       <input
@@ -504,7 +504,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                   <div className="space-y-2 bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-lg">
                     <span className="font-semibold text-zinc-300 text-[11px] flex items-center gap-1.5">
                       <Type className="w-3 h-3 text-sky-400" />
-                      {language === 'tr' ? 'Chatbox Yazı Ayarları' : 'Chatbox Typography'}
+                      {t('ss_chatbox_typography')}
                     </span>
 
                     <div className="space-y-1">

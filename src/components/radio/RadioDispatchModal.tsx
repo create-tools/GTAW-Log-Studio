@@ -124,9 +124,9 @@ export const RadioDispatchModal: React.FC<RadioDispatchModalProps> = ({
             </div>
             <div>
               <h2 className="text-xs font-bold text-zinc-100 flex items-center gap-2">
-                {language === 'tr' ? 'Telsiz, Departman & Dispatch Konsolu' : 'Radio, Department & Dispatch Console'}
+                {t('rd_title')}
                 <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px]">
-                  {allRadioItems.length} {language === 'tr' ? 'Anons' : 'Transmissions'}
+                  {allRadioItems.length} {t('rd_transmissions_count')}
                 </span>
               </h2>
             </div>
@@ -148,7 +148,7 @@ export const RadioDispatchModal: React.FC<RadioDispatchModalProps> = ({
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-sm transition-colors"
                 >
                   <Camera className="w-3.5 h-3.5" />
-                  <span>{selectedIds.size > 0 ? `${language === 'tr' ? 'Seçilenleri' : 'Send'} (${selectedIds.size}) ${language === 'tr' ? "SS Stüdyosu'na Aktar" : 'to SS Studio'}` : (language === 'tr' ? "SS Stüdyosu'na Aktar" : 'Send to SS Studio')}</span>
+                  <span>{selectedIds.size > 0 ? `${t('rd_selected')} (${selectedIds.size}) ${t('rd_send_to_ss')}` : t('rd_send_to_ss')}</span>
                 </button>
               </>
             )}
@@ -174,7 +174,7 @@ export const RadioDispatchModal: React.FC<RadioDispatchModalProps> = ({
                   : 'bg-zinc-800/80 text-zinc-400 hover:text-zinc-200'
               }`}
             >
-              {language === 'tr' ? 'Tüm Frekanslar' : 'All Frequencies'} ({allRadioItems.length})
+              {t('rd_all_frequencies')} ({allRadioItems.length})
             </button>
 
             {channelsList.slice(0, 5).map((ch) => {
@@ -202,7 +202,7 @@ export const RadioDispatchModal: React.FC<RadioDispatchModalProps> = ({
                   : 'bg-zinc-900 border border-zinc-800 text-orange-400 hover:bg-zinc-800'
               }`}
             >
-              {language === 'tr' ? 'Departman Telsizi' : 'Department'}
+              {t('rd_department_radio')}
             </button>
 
             <button
@@ -234,7 +234,7 @@ export const RadioDispatchModal: React.FC<RadioDispatchModalProps> = ({
               <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder={language === 'tr' ? 'Telsiz mesajı, kod ara...' : 'Search transmissions, codes...'}
+                placeholder={t('rd_search_placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-md pl-8 pr-3 py-1 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-amber-500"
@@ -257,7 +257,7 @@ export const RadioDispatchModal: React.FC<RadioDispatchModalProps> = ({
           {filteredItems.length === 0 ? (
             <div className="text-center py-20 text-zinc-500 space-y-2">
               <Radio className="w-8 h-8 mx-auto text-zinc-600" />
-              <p className="text-xs">{language === 'tr' ? 'Seçili kriterde telsiz kaydı bulunamadı.' : 'No transmissions found matching criteria.'}</p>
+              <p className="text-xs">{t('rd_no_transmissions')}</p>
             </div>
           ) : (
             filteredItems.map((item) => {

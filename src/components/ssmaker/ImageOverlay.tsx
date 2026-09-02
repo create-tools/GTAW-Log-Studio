@@ -399,13 +399,13 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
               }`}
             >
               <Move className="w-3.5 h-3.5" />
-              <span>{language === 'tr' ? 'Görseli Kadrajla' : 'Frame Image'}</span>
+              <span>{t('ss_frame_image')}</span>
             </button>
           </div>
 
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 bg-zinc-950 border border-zinc-800 rounded px-2 py-0.5">
-              <span className="text-zinc-500 text-[10px]">{language === 'tr' ? 'Yakınlaştırma:' : 'Zoom:'}</span>
+              <span className="text-zinc-500 text-[10px]">{t('ss_zoom_label')}</span>
               <button
                 onClick={() => onUpdateScene({ imgZoom: Math.max(0.6, imgZoom - 0.1) })}
                 className="p-0.5 hover:text-purple-300 text-zinc-400"
@@ -426,7 +426,7 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
             <button
               onClick={() => onUpdateScene({ imgZoom: 1, imgPanX: 0, imgPanY: 0 })}
               className="p-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200"
-              title="{language === 'tr' ? 'Kadrajı Sıfırla' : 'Reset Framing'}"
+              title={t('ss_reset_frame')}
             >
               <RotateCcw className="w-3 h-3" />
             </button>
@@ -450,13 +450,13 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
               <Upload className="w-6 h-6" />
             </div>
             <h3 className="text-xs font-bold text-zinc-200 mb-1">
-              {language === 'tr' ? 'Oyun İçi Ekran Görüntüsü Yükleyin' : 'Upload In-Game Screenshot'}
+              {t('ss_upload_screenshot')}
             </h3>
             <p className="text-[11px] text-zinc-500 leading-relaxed mb-3">
-              {language === 'tr' ? 'Görseli seçin veya doğrudan' : 'Select an image or paste with'} <kbd className="px-1 py-0.5 rounded bg-zinc-800 text-zinc-300 font-mono">Ctrl+V</kbd> {language === 'tr' ? 'ile yapıştırın.' : 'directly.'}
+              {t('ss_upload_hint_1')} <kbd className="px-1 py-0.5 rounded bg-zinc-800 text-zinc-300 font-mono">Ctrl+V</kbd> {t('ss_upload_hint_2')}
             </p>
             <span className="px-3 py-1 rounded bg-zinc-800 text-zinc-300 text-xs font-semibold border border-zinc-700">
-              {language === 'tr' ? 'Görsel Dosyası Seç' : 'Choose Image File'}
+              {t('ss_choose_file_btn')}
             </span>
           </div>
         ) : (

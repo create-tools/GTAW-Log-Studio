@@ -170,7 +170,7 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
                       className="flex items-center gap-1 px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[10px] font-semibold border border-zinc-700"
                     >
                       <Play className="w-2.5 h-2.5 text-purple-400" />
-                      <span>{language === 'tr' ? 'Bildirim Tonu Test' : 'Test Notification'}</span>
+                      <span>{t('ps_test_notification')}</span>
                     </button>
 
                     <button
@@ -179,7 +179,7 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
                       className="flex items-center gap-1 px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[10px] font-semibold border border-zinc-700"
                     >
                       <Play className="w-2.5 h-2.5 text-amber-400" />
-                      <span>{language === 'tr' ? 'Acil Alarm Test' : 'Test Urgent Alert'}</span>
+                      <span>{t('ps_test_urgent')}</span>
                     </button>
                   </div>
                 </div>
@@ -229,12 +229,12 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
                 className="w-full flex items-center justify-center gap-1.5 py-1 px-2 text-[11px] font-medium text-purple-400 hover:text-purple-300 hover:bg-purple-950/30 border border-purple-500/20 rounded-lg transition-colors"
               >
                 <Globe className="w-3 h-3" />
-                <span>{language === 'tr' ? 'Detaylı Dil Seçim Kartlarını Aç' : 'Open Visual Language Selection Modal'}</span>
+                <span>{t('ps_open_visual_grid')}</span>
               </button>
             )}
 
             <span className="font-semibold text-zinc-300 text-[11px] block border-b border-zinc-800 pb-1 pt-2">
-              {language === 'tr' ? 'Hızlı Bağlantılar' : 'Quick Navbar Links'}
+              {t('ps_quick_links')}
             </span>
 
             <div className="space-y-2">
@@ -245,7 +245,7 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
                   onChange={(e) => setForm({ ...form, showForumsIcon: e.target.checked })}
                   className="w-4 h-4 rounded border-zinc-700 bg-zinc-950 accent-purple-600"
                 />
-                <span className="text-[11px]">{language === 'tr' ? 'GTA World Forum bağlantısını göster' : 'Show GTA World Forum link'}</span>
+                <span className="text-[11px]">{t('ps_show_forum')}</span>
               </label>
 
               <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
@@ -255,7 +255,7 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
                   onChange={(e) => setForm({ ...form, showFacebrowserIcon: e.target.checked })}
                   className="w-4 h-4 rounded border-zinc-700 bg-zinc-950 accent-purple-600"
                 />
-                <span className="text-[11px]">{language === 'tr' ? 'Facebrowser bağlantısını göster' : 'Show Facebrowser link'}</span>
+                <span className="text-[11px]">{t('ps_show_facebrowser')}</span>
               </label>
 
               <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
@@ -265,7 +265,7 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
                   onChange={(e) => setForm({ ...form, showUcpIcon: e.target.checked })}
                   className="w-4 h-4 rounded border-zinc-700 bg-zinc-950 accent-purple-600"
                 />
-                <span className="text-[11px]">{language === 'tr' ? 'UCP Kontrol Paneli bağlantısını göster' : 'Show UCP Panel link'}</span>
+                <span className="text-[11px]">{t('ps_show_ucp')}</span>
               </label>
             </div>
           </div>
@@ -278,7 +278,7 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 text-xs transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>{language === 'tr' ? 'Varsayılana Sıfırla' : 'Reset to Defaults'}</span>
+            <span>{t('ps_reset_settings')}</span>
           </button>
 
           <div className="flex items-center gap-2">

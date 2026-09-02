@@ -24,14 +24,14 @@ export const QuickExportModal: React.FC<QuickExportModalProps> = ({
   onClose,
   lines,
 }) => {
+  const { t, language } = useLanguage();
   if (!isOpen) return null;
 
-  const { language, t } = useLanguage();
   const [format, setFormat] = useState<'timestamped' | 'notimestamp' | 'bbcode_code' | 'bbcode_colored'>('timestamped');
   const [copied, setCopied] = useState(false);
 
   const generateOutput = (): string => {
-    if (lines.length === 0) return language === 'tr' ? 'Dışa aktarmak için satır bulunamadı.' : 'No lines found to export.';
+    if (lines.length === 0) return t('qe_no_lines');
 
     switch (format) {
       case 'notimestamp':
@@ -105,8 +105,8 @@ export const QuickExportModal: React.FC<QuickExportModalProps> = ({
               }`}
             >
               <Clock className="w-4 h-4 text-purple-400" />
-              <span className="text-[11px] font-bold">{language === 'tr' ? 'Saat Damgalı' : 'With Timestamp'}</span>
-              <span className="text-[10px] text-zinc-500 leading-tight">{language === 'tr' ? '[14:30:15] Formatında' : '[14:30:15] standard'}</span>
+              <span className="text-[11px] font-bold">{t('qe_with_timestamp')}</span>
+              <span className="text-[10px] text-zinc-500 leading-tight">{t('qe_with_timestamp_desc')}</span>
             </button>
 
             <button
@@ -118,8 +118,8 @@ export const QuickExportModal: React.FC<QuickExportModalProps> = ({
               }`}
             >
               <FileText className="w-4 h-4 text-indigo-400" />
-              <span className="text-[11px] font-bold">{language === 'tr' ? 'Damgasız Temiz' : 'Plain Text'}</span>
-              <span className="text-[10px] text-zinc-500 leading-tight">{language === 'tr' ? 'Sadece diyaloglar' : 'Only dialogue text'}</span>
+              <span className="text-[11px] font-bold">{t('qe_plain_text')}</span>
+              <span className="text-[10px] text-zinc-500 leading-tight">{t('qe_plain_text_desc')}</span>
             </button>
 
             <button
@@ -132,7 +132,7 @@ export const QuickExportModal: React.FC<QuickExportModalProps> = ({
             >
               <Code2 className="w-4 h-4 text-emerald-400" />
               <span className="text-[11px] font-bold">BBCode [code]</span>
-              <span className="text-[10px] text-zinc-500 leading-tight">{language === 'tr' ? 'Forum kod bloğu' : 'Forum code block'}</span>
+              <span className="text-[10px] text-zinc-500 leading-tight">{t('qe_bbcode_desc')}</span>
             </button>
 
             <button
@@ -144,8 +144,8 @@ export const QuickExportModal: React.FC<QuickExportModalProps> = ({
               }`}
             >
               <Palette className="w-4 h-4 text-pink-400" />
-              <span className="text-[11px] font-bold">{language === 'tr' ? 'Renkli BBCode' : 'Colored BBCode'}</span>
-              <span className="text-[10px] text-zinc-500 leading-tight">{language === 'tr' ? '[color=...] etiketli' : '[color=...] tags'}</span>
+              <span className="text-[11px] font-bold">{t('qe_colored_bbcode')}</span>
+              <span className="text-[10px] text-zinc-500 leading-tight">{t('qe_colored_bbcode_desc')}</span>
             </button>
           </div>
 
@@ -166,7 +166,7 @@ export const QuickExportModal: React.FC<QuickExportModalProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-semibold transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>{language === 'tr' ? '.txt İndir' : 'Download .txt'}</span>
+            <span>{t('qe_download_txt')}</span>
           </button>
 
           <button
@@ -174,7 +174,7 @@ export const QuickExportModal: React.FC<QuickExportModalProps> = ({
             className="flex items-center gap-2 px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-lg shadow-purple-950/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             {copied ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4" />}
-            <span>{copied ? (language === 'tr' ? 'Panoya Kopyalandı!' : 'Copied to Clipboard!') : (language === 'tr' ? 'Çıktıyı Kopyala' : 'Copy Output')}</span>
+            <span>{copied ? t('qe_copied') : t('qe_copy_output')}</span>
           </button>
         </div>
       </div>
