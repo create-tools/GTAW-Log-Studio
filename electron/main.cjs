@@ -1,0 +1,339 @@
+const { app, BrowserWindow, ipcMain, clipboard, nativeImage, dialog, shell, Tray, Menu } = require('electron');
+const path = require('path');
+const fs = require('fs');
+const https = require('https');
+const { FiveMChatCapture, DEFAULT_SESSIONS_DIR } = require('./fivemCapture.cjs');
+
+let mainWindow = null;
+let captureEngine = null;
+let tray = null;
+let isQuitting = false;
+let closeToTrayEnabled = true;
+
+function createWindow() {
+  const iconPath = path.join(__dirname, 'icon.png');
+
+  mainWindow = new BrowserWindow({
+    width: 1560,
+    height: 960,
+    minWidth: 1080,
+    minHeight: 680,
+    resizable: true,
+    frame: false,
+    icon: iconPath,
+    backgroundColor: '#09090b',
+    show: false,
+    title: 'GTAW Log Studio',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.cjs'),
+      nodeIntegration: false,
+      contextIsolation: true,
+      webSecurity: false,
+    },
+  });
+
+  const devUrl = 'http://127.0.0.1:5173';
+  const distPath = path.join(__dirname, '../dist/index.html');
+
+  const isDev = process.env.NODE_ENV === 'development';
+
+  if (isDev) {
+    mainWindow.loadURL(devUrl).catch(() => {
+      if (fs.existsSync(distPath)) {
+        mainWindow.loadFile(distPath);
+      }
+    });
+  } else {
+    mainWindow.loadFile(distPath);
+  }
+
+  mainWindow.webContents.on('did-fail-load', () => {
+    if (fs.existsSync(distPath)) {
+      mainWindow.loadFile(distPath);
+    }
+  });
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+  });
+
+  // FiveM Canlı Yakalama Motorunu Başlat
+  captureEngine = new FiveMChatCapture((type, payload) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(`fivem-${type}`, payload);
+    }
+  });
+
+  mainWindow.webContents.on('did-finish-load', () => {
+    captureEngine.start();
+  });
+
+  mainWindow.on('close', (event) => {
+    if (!isQuitting && closeToTrayEnabled) {
+      event.preventDefault();
+      mainWindow.hide();
+      return false;
+    }
+    if (captureEngine) {
+      captureEngine.stop();
+      captureEngine = null;
+    }
+    mainWindow = null;
+  });
+}
+
+function createTray() {
+  if (tray) return;
+  try {
+    const iconPath = path.join(__dirname, 'icon.png');
+    const icon = fs.existsSync(iconPath)
+      ? nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 })
+      : nativeImage.createFromBuffer(
+          Buffer.from(
+            'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA7SURBVDhPY/wPBAwUACYoTVMDCgxgGtUAfBrBgQEN4NMIDmCGUf8PRjQ1oHg4N4BPIzgwaGEAxAAAqJgLCnO1WycAAAAASUVORK5CYII=',
+            'base64'
+          )
+        );
+
+    tray = new Tray(icon);
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'GTAW Log Studio Göster',
+        click: () => {
+          if (mainWindow) {
+            mainWindow.show();
+            mainWindow.focus();
+          }
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'Çıkış',
+        click: () => {
+          isQuitting = true;
+          app.quit();
+        },
+      },
+    ]);
+    tray.setToolTip('GTAW Log Studio');
+    tray.setContextMenu(contextMenu);
+    tray.on('double-click', () => {
+      if (mainWindow) {
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    });
+  } catch (err) {
+    console.error('Tray creation error:', err);
+  }
+}
+
+// IPC İşleyicileri
+ipcMain.handle('get-saved-session-files', (event, customDir) => {
+  try {
+    const targetDir = customDir || DEFAULT_SESSIONS_DIR;
+    if (!fs.existsSync(targetDir)) return [];
+    const files = fs.readdirSync(targetDir).filter((f) => f.endsWith('.txt'));
+    return files.map((f) => {
+      const fullPath = path.join(targetDir, f);
+      const stat = fs.statSync(fullPath);
+      const content = fs.readFileSync(fullPath, 'utf8');
+      return {
+        fileName: f,
+        filePath: fullPath,
+        content: content,
+        modifiedAt: stat.mtimeMs,
+        size: stat.size,
+      };
+    });
+  } catch (err) {
+    console.error('Saved sessions read error:', err);
+    return [];
+  }
+});
+
+ipcMain.handle('select-folder-dialog', async () => {
+  if (!mainWindow) return null;
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory', 'createDirectory'],
+    title: 'Yedekleme Klasörü Seçin',
+  });
+  if (result.canceled || result.filePaths.length === 0) return null;
+  return result.filePaths[0];
+});
+
+ipcMain.handle('get-default-backup-path', () => {
+  return DEFAULT_SESSIONS_DIR;
+});
+
+ipcMain.handle('update-capture-settings', (event, newSettings) => {
+  if (captureEngine) {
+    captureEngine.updateSettings(newSettings);
+  }
+  if (typeof newSettings?.closeToTray === 'boolean') {
+    closeToTrayEnabled = newSettings.closeToTray;
+  }
+  return { success: true };
+});
+
+ipcMain.handle('is-fivem-foreground', () => {
+  return new Promise((resolve) => {
+    const scriptPath = path.join(__dirname, 'getActiveProcess.ps1');
+    require('child_process').exec(`powershell -NoProfile -ExecutionPolicy Bypass -File "${scriptPath}"`, (err, stdout) => {
+      if (err) return resolve(false);
+      const name = (stdout || '').trim().toLowerCase();
+      resolve(name.includes('fivem') || name.includes('gta5'));
+    });
+  });
+});
+
+ipcMain.handle('set-start-with-windows', (event, enable) => {
+  try {
+    app.setLoginItemSettings({
+      openAtLogin: enable,
+      args: ['--minimized'],
+    });
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('open-external-url', (event, url) => {
+  if (url) shell.openExternal(url);
+  return { success: true };
+});
+
+ipcMain.handle('check-for-updates', async () => {
+  const currentVer = app.getVersion() || '1.0.0';
+
+  return new Promise((resolve) => {
+    const options = {
+      hostname: 'api.github.com',
+      path: '/repos/create-tools/GTAW-Log-Studio/releases/latest',
+      headers: { 'User-Agent': 'GTAW-Log-Studio' },
+    };
+
+    const req = https.get(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => (data += chunk));
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          const rawTag = (json.tag_name || currentVer).replace(/^v/, '');
+          const hasUpdate = rawTag !== currentVer && json.tag_name !== undefined;
+
+          resolve({
+            currentVersion: `v${currentVer}`,
+            latestVersion: `v${rawTag}`,
+            hasUpdate: hasUpdate,
+            releaseNotes: json.body || 'En güncel sürümü kullanıyorsunuz.',
+            url: json.html_url || 'https://github.com/create-tools/GTAW-Log-Studio/releases',
+          });
+        } catch (e) {
+          resolve({
+            currentVersion: `v${currentVer}`,
+            latestVersion: `v${currentVer}`,
+            hasUpdate: false,
+            releaseNotes: 'En güncel sürümü kullanıyorsunuz.',
+          });
+        }
+      });
+    });
+
+    req.on('error', () => {
+      resolve({
+        currentVersion: `v${currentVer}`,
+        latestVersion: `v${currentVer}`,
+        hasUpdate: false,
+        releaseNotes: 'İnternet bağlantısı kurulamadı veya GitHub API yanıt vermedi.',
+      });
+    });
+
+    req.setTimeout(5000, () => {
+      req.destroy();
+      resolve({
+        currentVersion: `v${currentVer}`,
+        latestVersion: `v${currentVer}`,
+        hasUpdate: false,
+        releaseNotes: 'Zaman aşımı.',
+      });
+    });
+  });
+});
+
+ipcMain.handle('copy-image-to-clipboard', (event, base64Data) => {
+  try {
+    const { clipboard, nativeImage } = require('electron');
+    const image = nativeImage.createFromDataURL(base64Data);
+    clipboard.writeImage(image);
+    return { success: true };
+  } catch (err) {
+    console.error('Clipboard copy error:', err);
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('open-file-dialog', async () => {
+  if (!mainWindow) return null;
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openFile'],
+    filters: [
+      { name: 'Chatlog & Text Dosyaları', extensions: ['txt', 'log'] },
+      { name: 'Tüm Dosyalar', extensions: ['*'] },
+    ],
+  });
+
+  if (result.canceled || result.filePaths.length === 0) return null;
+  const filePath = result.filePaths[0];
+  const content = fs.readFileSync(filePath, 'utf8');
+  return { filePath, content, fileName: path.basename(filePath) };
+});
+
+ipcMain.handle('save-file-dialog', async (event, { defaultName, content, filters }) => {
+  if (!mainWindow) return null;
+  const result = await dialog.showSaveDialog(mainWindow, {
+    defaultPath: defaultName,
+    filters: filters || [{ name: 'Metin Belgesi', extensions: ['txt'] }],
+  });
+
+  if (result.canceled || !result.filePath) return null;
+  fs.writeFileSync(result.filePath, content, 'utf8');
+  return { success: true, filePath: result.filePath };
+});
+
+// Pencere Kontrolleri
+ipcMain.on('window-minimize', () => {
+  if (mainWindow) mainWindow.minimize();
+});
+
+ipcMain.on('window-maximize', () => {
+  if (mainWindow) {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow.maximize();
+    }
+  }
+});
+
+ipcMain.on('window-close', () => {
+  if (closeToTrayEnabled && mainWindow) {
+    mainWindow.hide();
+  } else if (mainWindow) {
+    mainWindow.close();
+  }
+});
+
+app.whenReady().then(() => {
+  createWindow();
+  createTray();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin' && !closeToTrayEnabled) app.quit();
+});

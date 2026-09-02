@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --gtaw-ic: #ffffff;
+    --gtaw-me: #c2a2da;
+    --gtaw-do: #4a90e2;
+    --gtaw-radio: #8ae234;
+    --gtaw-phone: #fce94f;
+    --gtaw-pm: #e9b96e;
+    --gtaw-ooc: #ad7fa8;
+    --gtaw-admin: #ef2929;
+    --gtaw-system: #729fcf;
+    --gtaw-whisper: #a4b0be;
+    --gtaw-shout: #ffbe76;
+    --gtaw-faction: #68d391;
+  }
+
+  body {
+    @apply bg-zinc-950 text-zinc-100 min-h-screen antialiased selection:bg-purple-500/30 selection:text-purple-200 overflow-x-hidden;
+    font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* GTAW SS Canvas Font Presets */
+.gtaw-chat-font {
+  font-family: 'Segoe UI', Arial, Tahoma, sans-serif;
+  font-weight: 600;
+  text-shadow: 
+    -1px -1px 0 #000,
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000,
+     0px  1px 0 #000,
+     0px -1px 0 #000,
+     1px  0px 0 #000,
+    -1px  0px 0 #000;
+}
+
