@@ -9,7 +9,8 @@ import {
   AlertTriangle,
   Sparkles,
   Check,
-  FileText
+  FileText,
+  Loader2
 } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
 
@@ -139,6 +140,7 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
 
   const { language, t } = useLanguage();
   const [loading, setLoading] = useState(true);
+  const [isInstalling, setIsInstalling] = useState(false);
   const [updateInfo, setUpdateInfo] = useState<{
     currentVersion: string;
     latestVersion: string;
@@ -162,6 +164,7 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
 
   const checkUpdates = async () => {
     setLoading(true);
+    setIsInstalling(false);
     setDownloadStatus('idle');
     setDownloadError(null);
     setDownloadProgress({ percent: 0, downloaded: 0, total: 0 });
@@ -238,9 +241,21 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
   };
 
   const handleInstallAndRestart = async () => {
+    setIsInstalling(true);
     const electronAPI = (window as any).electronAPI;
     if (electronAPI?.installUpdate) {
-      await electronAPI.installUpdate();
+      try {
+        const res = await electronAPI.installUpdate();
+        if (res && !res.success) {
+          setIsInstalling(false);
+          setDownloadStatus('error');
+          setDownloadError(res.error || t('updates_download_failed'));
+        }
+      } catch (e: any) {
+        setIsInstalling(false);
+        setDownloadStatus('error');
+        setDownloadError(e?.message || t('updates_download_failed'));
+      }
     }
   };
 
@@ -261,7 +276,7 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 select-none font-sans">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative">
         {/* Modal Başlık */}
         <div className="h-11 border-b border-zinc-800 px-4 flex items-center justify-between bg-zinc-950 shrink-0">
           <div className="flex items-center gap-2">
@@ -272,7 +287,8 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
+            disabled={isInstalling}
+            className="p-1 rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors disabled:opacity-30 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -280,7 +296,31 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
 
         {/* Modal İçerik */}
         <div className="p-5 space-y-3.5 text-xs overflow-y-auto flex-1">
-          {loading ? (
+          {/* 🚀 Yeniden Başlatılıyor & Güncelleme Uygulanıyor Hazırlık Ekranı */}
+          {isInstalling ? (
+            <div className="text-center py-10 space-y-4">
+              <div className="relative w-16 h-16 mx-auto flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full bg-purple-600/20 animate-ping" />
+                <div className="w-14 h-14 rounded-full bg-purple-600/30 border border-purple-500/50 flex items-center justify-center shadow-lg">
+                  <RefreshCw className="w-7 h-7 text-purple-300 animate-spin" />
+                </div>
+              </div>
+
+              <div className="space-y-1.5 px-2">
+                <h3 className="text-sm font-bold text-zinc-100 flex items-center justify-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-400" />
+                  {t('updates_installing_title')}
+                </h3>
+                <p className="text-xs text-zinc-400 leading-relaxed max-w-xs mx-auto">
+                  {t('updates_installing_desc')}
+                </p>
+              </div>
+
+              <div className="w-48 mx-auto bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                <div className="bg-gradient-to-r from-purple-500 to-indigo-500 h-full rounded-full w-full animate-pulse" />
+              </div>
+            </div>
+          ) : loading ? (
             <div className="text-center py-8 space-y-3">
               <RefreshCw className="w-8 h-8 mx-auto text-purple-500 animate-spin" />
               <p className="text-zinc-400">{t('updates_checking')}</p>
@@ -399,7 +439,7 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
                   onClick={handleInstallAndRestart}
                   className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg transition-all cursor-pointer"
                 >
-                  <RefreshCw className="w-4 h-4 animate-spin-slow" />
+                  <RefreshCw className="w-4 h-4" />
                   <span>{t('updates_install_restart')}</span>
                 </button>
               )}
@@ -438,24 +478,26 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
         </div>
 
         {/* Modal Alt Kısım */}
-        <div className="h-11 border-t border-zinc-800 px-4 flex items-center justify-between bg-zinc-950 shrink-0">
-          <button
-            onClick={checkUpdates}
-            disabled={loading || downloadStatus === 'downloading'}
-            className="flex items-center gap-1.5 px-3 py-1 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 text-xs transition-colors disabled:opacity-50 cursor-pointer"
-          >
-            <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-            <span>{t('updates_check_again')}</span>
-          </button>
+        {!isInstalling && (
+          <div className="h-11 border-t border-zinc-800 px-4 flex items-center justify-between bg-zinc-950 shrink-0">
+            <button
+              onClick={checkUpdates}
+              disabled={loading || downloadStatus === 'downloading'}
+              className="flex items-center gap-1.5 px-3 py-1 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 text-xs transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+              <span>{t('updates_check_again')}</span>
+            </button>
 
-          <button
-            onClick={onClose}
-            disabled={downloadStatus === 'downloading'}
-            className="px-4 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-zinc-700 transition-colors disabled:opacity-50 cursor-pointer"
-          >
-            {t('close')}
-          </button>
-        </div>
+            <button
+              onClick={onClose}
+              disabled={downloadStatus === 'downloading'}
+              className="px-4 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-zinc-700 transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {t('close')}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
