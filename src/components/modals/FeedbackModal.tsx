@@ -37,18 +37,28 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
 
   // GitHub Issue Markdown Şablonu
   const generateIssueMarkdown = () => {
-    const typeLabel = feedbackType === 'bug' ? 'Bug Report / Hata Bildirimi' : feedbackType === 'feature' ? 'Feature Request / Özellik Önerisi' : 'General Feedback / Görüş';
-    
-    return `### 📌 Type: ${typeLabel}
+    const typeLabel =
+      feedbackType === 'bug'
+        ? t('feedback_type_bug')
+        : feedbackType === 'feature'
+        ? t('feedback_type_feature')
+        : t('feedback_type_general');
 
-**Summary / Özet:**
+    const summaryHeading = language === 'tr' ? 'Özet' : 'Summary';
+    const detailsHeading = language === 'tr' ? 'Açıklama & Detaylar' : 'Description & Details';
+    const envHeading = language === 'tr' ? 'Sistem & Çevre Bilgileri' : 'Environment & System Specs';
+    const typeHeading = language === 'tr' ? 'Bildirim Türü' : 'Type';
+
+    return `### ${typeHeading}: ${typeLabel}
+
+**${summaryHeading}:**
 ${title || 'No title provided'}
 
-**Description & Details / Açıklama:**
+**${detailsHeading}:**
 ${description || 'No description provided'}
 
 ---
-### 🖥️ Environment / Sistem Bilgileri
+### ${envHeading}
 - **App Version:** v${appVersion}
 - **Environment:** ${envInfo}
 - **OS / Platform:** ${osInfo}

@@ -138,36 +138,36 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
           <textarea
             value={rawParagraphText}
             onChange={(e) => handleParagraphChange(e.target.value)}
-            placeholder="Örnek:&#10;* Daniel Rivas emniyet kemerini bağlar.&#10;Daniel Rivas says: Hazırız, gidelim.&#10;* Aracın motoru homurdanarak çalışır mı? (( Daniel Rivas ))"
+            placeholder={t('pe_sample_dialogue')}
             className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-200 font-mono leading-relaxed placeholder-zinc-600 focus:outline-none focus:border-purple-500 transition-colors resize-none select-text"
           />
 
           {/* Hızlı Şablon Butonları */}
           <div className="flex flex-wrap items-center gap-1 pt-1">
-            <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mr-1">Ekle:</span>
+            <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mr-1">{t('pe_add_label')}:</span>
             <button
               onClick={() => handleInsertQuickTemplate('* Karakter_Adı bir eylem gerçekleştirir.')}
               className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-purple-300 text-[11px] font-medium border border-purple-500/30"
             >
-              + /me Eylemi
+              + /me {t('pe_action_label')}
             </button>
             <button
               onClick={() => handleInsertQuickTemplate('* Çevre durumu veya soru? (( Karakter_Adı ))')}
               className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-sky-300 text-[11px] font-medium border border-sky-500/30"
             >
-              + /do Durumu
+              + /do {t('pe_environment_label')}
             </button>
             <button
               onClick={() => handleInsertQuickTemplate('Karakter_Adı says: Konuşma metni.')}
               className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[11px] font-medium border border-zinc-700"
             >
-              + IC Konuşma
+              + IC {t('pe_speech_label')}
             </button>
             <button
               onClick={() => handleInsertQuickTemplate('[R: 91.1] Karakter_Adı: Telsiz anonsu.')}
               className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-emerald-300 text-[11px] font-medium border border-emerald-500/30"
             >
-              + Telsiz
+              + {t('pe_radio_label')}
             </button>
           </div>
         </div>

@@ -450,7 +450,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                     {config.exportFormat === 'jpeg' && (
                       <div className="space-y-1 pt-1">
                         <div className="flex justify-between text-[10px]">
-                          <span className="text-zinc-400">JPEG Kalitesi (Sıkıştırma)</span>
+                          <span className="text-zinc-400">{t('ss_quality_label')}</span>
                           <span className="text-zinc-300 font-mono font-bold">%{config.compressionQuality}</span>
                         </div>
                         <input
@@ -508,7 +508,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                     </span>
 
                     <div className="space-y-1">
-                      <label className="text-zinc-400 text-[10px]">Font Ailesi</label>
+                      <label className="text-zinc-400 text-[10px]">{t('ss_font_family')}</label>
                       <select
                         value={config.fontFamily}
                         onChange={(e) =>
@@ -543,7 +543,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
 
                     <div className="space-y-1">
                       <div className="flex justify-between text-[10px]">
-                        <span className="text-zinc-400">Siyah Kontur (Stroke)</span>
+                        <span className="text-zinc-400">{t('ss_stroke')}</span>
                         <span className="text-zinc-300 font-mono">{config.strokeWidth}px</span>
                       </div>
                       <input
@@ -578,7 +578,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                     </div>
                   </div>
 
-                  {/* 🌗 Atmosfer & Okunabilirlik Sürgüleri */}
+                  {/* 🌗 {t('ss_atmosphere_readability')} Sürgüleri */}
                   <div className="space-y-2 bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-lg">
                     <span className="font-semibold text-zinc-300 text-[11px] flex items-center gap-1.5">
                       <SunMedium className="w-3 h-3 text-amber-400" />
@@ -604,7 +604,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
 
                     <div className="space-y-1">
                       <div className="flex justify-between text-[10px]">
-                        <span className="text-zinc-400">Analog Film Greni</span>
+                        <span className="text-zinc-400">{t('ss_grain_amount')}</span>
                         <span className="text-zinc-300 font-mono">%{config.grainAmount}</span>
                       </div>
                       <input

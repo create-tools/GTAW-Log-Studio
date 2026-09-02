@@ -93,10 +93,10 @@ export const LiveWatcherModal: React.FC<LiveWatcherModalProps> = ({
               <div className="pt-3 border-t border-zinc-800">
                 <div className="flex items-center gap-2 text-zinc-400 text-xs font-semibold mb-1">
                   <Terminal className="w-3.5 h-3.5 text-indigo-400" />
-                  {language === 'tr' ? 'Masaüstü Otomatik Bulucu (Alternatif Python Aracı)' : 'Desktop Auto Detector (Python Helper)'}
+                  {t('lw_helper_title')}
                 </div>
                 <p className="text-[11px] text-zinc-500 leading-relaxed">
-                  {language === 'tr' ? 'İsterseniz python server/watcher.py komutu ile FiveM dizinini arka planda tam otomatik olarak da izletebilirsiniz.' : 'You can also automatically monitor FiveM directory in background via python server/watcher.py.'}
+                  {t('lw_helper_desc')}
                 </p>
               </div>
             </div>

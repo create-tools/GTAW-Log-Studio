@@ -88,7 +88,7 @@ export const PhoneChatMockup: React.FC<PhoneChatMockupProps> = ({ lines }) => {
           <span className="text-xs font-bold text-zinc-200">Telefon Ekranı Mockup</span>
 
           <div className="flex items-center gap-1 ml-3 bg-zinc-950 border border-zinc-800 rounded px-2 py-0.5 text-xs">
-            <span className="text-zinc-500 text-[10px]">Kişi:</span>
+            <span className="text-zinc-500 text-[10px]">{t('pcm_contact')}:</span>
             <input
               type="text"
               value={contactName}
@@ -115,7 +115,7 @@ export const PhoneChatMockup: React.FC<PhoneChatMockupProps> = ({ lines }) => {
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-sm transition-colors"
           >
             {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copied ? 'Panoya Kopyalandı!' : 'Telefon SS Kopyala'}</span>
+            <span>{copied ? t('pcm_copied') : t('pcm_copy_ss')}</span>
           </button>
 
           <button
@@ -124,7 +124,7 @@ export const PhoneChatMockup: React.FC<PhoneChatMockupProps> = ({ lines }) => {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-zinc-700 transition-colors"
           >
             <Download className="w-3.5 h-3.5 text-emerald-400" />
-            <span>PNG İndir</span>
+            <span>{t('pcm_export')}</span>
           </button>
         </div>
       </div>
@@ -160,7 +160,7 @@ export const PhoneChatMockup: React.FC<PhoneChatMockupProps> = ({ lines }) => {
               </div>
               <div>
                 <h4 className="font-bold text-xs text-zinc-100 leading-none">{contactName}</h4>
-                <span className="text-[10px] text-emerald-400">Çevrimiçi</span>
+                <span className="text-[10px] text-emerald-400">{t('online')}</span>
               </div>
             </div>
 

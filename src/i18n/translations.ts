@@ -19,6 +19,8 @@ export const SUPPORTED_LANGUAGES: LanguageInfo[] = [
 export const translations = {
   en: {
 
+
+
     // Titlebar
     app_title: 'GTAW Log Studio',
     check_updates: 'Check for Updates',
@@ -352,8 +354,20 @@ export const translations = {
     lw_alert_cant_copy: "Failed to copy image to clipboard.",
     zoom_in: "Zoom In",
     zoom_out: "Zoom Out",
+    ss_atmosphere_readability: "Atmosphere & Readability",
+    pe_add_label: "Insert",
+    pe_action_label: "Action",
+    pe_environment_label: "Environment",
+    pe_speech_label: "Dialogue",
+    pe_radio_label: "Radio",
+    pe_sample_dialogue: "* Detective Hayes adjusts his ballistic vest.\\nDetective Hayes says: Area is secure, let\\'s move.\\n* Does the vehicle engine start with a low rumble? (( Detective Hayes ))",
+    pcm_copied: "Copied to clipboard!",
+    pcm_copy_ss: "Copy Phone Screenshot",
+    online: "Online",
   },
   tr: {
+
+
 
     // Titlebar
     app_title: 'GTAW Log Studio',
@@ -688,8 +702,20 @@ export const translations = {
     lw_alert_cant_copy: "Görsel panoya kopyalanamadı.",
     zoom_in: "Büyüt",
     zoom_out: "Küçült",
+    ss_atmosphere_readability: "Atmosfer & Okunabilirlik",
+    pe_add_label: "Ekle",
+    pe_action_label: "Eylemi",
+    pe_environment_label: "Durumu",
+    pe_speech_label: "Konuşma",
+    pe_radio_label: "Telsiz",
+    pe_sample_dialogue: "* Daniel Rivas emniyet kemerini bağlar.\\nDaniel Rivas says: Hazırız, gidelim.\\n* Aracın motoru homurdanarak çalışır mı? (( Daniel Rivas ))",
+    pcm_copied: "Panoya kopyalandı!",
+    pcm_copy_ss: "Telefon SS Kopyala",
+    online: "Çevrimiçi",
   },
   ru: {
+
+
 
     // Titlebar
     app_title: 'GTAW Log Studio',
@@ -1024,8 +1050,20 @@ export const translations = {
     lw_alert_cant_copy: "Не удалось скопировать изображение в буфер обмена.",
     zoom_in: "Увеличить",
     zoom_out: "Уменьшить",
+    ss_atmosphere_readability: "Атмосфера и читаемость",
+    pe_add_label: "Вставить",
+    pe_action_label: "Действие",
+    pe_environment_label: "Окружение",
+    pe_speech_label: "Диалог",
+    pe_radio_label: "Рация",
+    pe_sample_dialogue: "* Detective Hayes поправляет бронежилет.\\nDetective Hayes says: Периметр чист, выдвигаемся.\\n* Двигатель заводится с глухим рычанием? (( Detective Hayes ))",
+    pcm_copied: "Скопировано в буфер!",
+    pcm_copy_ss: "Копировать скриншот телефона",
+    online: "В сети",
   },
   fr: {
+
+
 
     // Titlebar
     app_title: 'GTAW Log Studio',
@@ -1360,6 +1398,16 @@ export const translations = {
     lw_alert_cant_copy: "Impossible de copier l'image dans le presse-papiers.",
     zoom_in: "Agrandir",
     zoom_out: "Réduire",
+    ss_atmosphere_readability: "Atmosphère et lisibilité",
+    pe_add_label: "Insérer",
+    pe_action_label: "Action",
+    pe_environment_label: "Environnement",
+    pe_speech_label: "Dialogue",
+    pe_radio_label: "Radio",
+    pe_sample_dialogue: "* Detective Hayes ajuste son gilet pare-balles.\\nDetective Hayes says: Le périmètre est sécurisé, on y va.\\n* Le moteur démarre-t-il avec un grondement sourd ? (( Detective Hayes ))",
+    pcm_copied: "Copié dans le presse-papiers !",
+    pcm_copy_ss: "Copier la capture du téléphone",
+    online: "En ligne",
   },
   es: {
     // Titlebar
