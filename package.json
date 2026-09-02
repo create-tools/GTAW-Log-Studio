@@ -48,7 +48,10 @@
             "x64"
           ]
         }
-      ]
+      ],
+      "portable": {
+        "useApplicationDataDirectory": true
+      }
     },
     "nsis": {
       "oneClick": false,
@@ -56,9 +59,6 @@
       "shortcutName": "GTAW Log Studio",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
-    },
-    "portable": {
-      "useApplicationDataDirectory": true
     }
   },
   "dependencies": {
