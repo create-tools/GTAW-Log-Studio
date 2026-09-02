@@ -461,6 +461,11 @@ export const translations = {
     sg_range_select: "Select Range of Lines",
     sg_close_modals: "Close Active Windows",
     sg_shortcuts_guide: "Show Keyboard Shortcuts Guide",
+    updates_downloading: "Downloading Update...",
+    updates_download_complete: "Download Complete! Ready to install.",
+    updates_install_restart: "Install & Restart",
+    updates_download_failed: "Download failed. You can open GitHub directly.",
+    updates_open_in_browser: "Open in Browser",
   },
   tr: {
     app_title: "GTAW Log Studio",
@@ -906,6 +911,11 @@ export const translations = {
     sg_range_select: "Çoklu Satır Aralığı Seç",
     sg_close_modals: "Açık Pencereleri Kapat",
     sg_shortcuts_guide: "Klavye Kısayolları Kılavuzunu Göster",
+    updates_downloading: "Güncelleme İndiriliyor...",
+    updates_download_complete: "İndirme Tamamlandı! Yüklemeye hazır.",
+    updates_install_restart: "Yükle ve Yeniden Başlat",
+    updates_download_failed: "İndirme başarısız oldu. GitHub sayfasından indirebilirsiniz.",
+    updates_open_in_browser: "Tarayıcıda Aç",
   },
   ru: {
     app_title: "GTAW Log Studio",
@@ -1351,6 +1361,11 @@ export const translations = {
     sg_range_select: "Выбрать диапазон строк",
     sg_close_modals: "Закрыть активные окна",
     sg_shortcuts_guide: "Показать руководство по горячим клавишам",
+    updates_downloading: "Загрузка обновления...",
+    updates_download_complete: "Загрузка завершена! Готово к установке.",
+    updates_install_restart: "Установить и перезапустить",
+    updates_download_failed: "Ошибка загрузки. Вы можете скачать с GitHub.",
+    updates_open_in_browser: "Открыть в браузере",
   },
   fr: {
     app_title: "GTAW Log Studio",
@@ -1796,6 +1811,11 @@ export const translations = {
     sg_range_select: "Sélectionner une plage de lignes",
     sg_close_modals: "Fermer les fenêtres actives",
     sg_shortcuts_guide: "Afficher le guide des raccourcis clavier",
+    updates_downloading: "Téléchargement de la mise à jour...",
+    updates_download_complete: "Téléchargement terminé ! Prêt à installer.",
+    updates_install_restart: "Installer et redémarrer",
+    updates_download_failed: "Échec du téléchargement. Vous pouvez télécharger depuis GitHub.",
+    updates_open_in_browser: "Ouvrir dans le navigateur",
   },
   es: {
     app_title: "GTAW Log Studio",
@@ -2241,6 +2261,11 @@ export const translations = {
     sg_range_select: "Seleccionar rango de líneas",
     sg_close_modals: "Cerrar ventanas activas",
     sg_shortcuts_guide: "Mostrar guía de atajos de teclado",
+    updates_downloading: "Descargando actualización...",
+    updates_download_complete: "¡Descarga completa! Listo para instalar.",
+    updates_install_restart: "Instalar y reiniciar",
+    updates_download_failed: "Error de descarga. Puedes descargar desde GitHub.",
+    updates_open_in_browser: "Abrir en el navegador",
   }
 };
 

@@ -35,6 +35,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   copyImageToClipboard: (base64Data) => ipcRenderer.invoke('copy-image-to-clipboard', base64Data),
   openFileDialog: () => ipcRenderer.invoke('open-file-dialog'),
   saveFileDialog: (options) => ipcRenderer.invoke('save-file-dialog', options),
+  downloadUpdate: (url) => ipcRenderer.invoke('download-update', url),
+  installUpdate: (filePath) => ipcRenderer.invoke('install-update', filePath),
+  onUpdateDownloadProgress: (callback) => {
+    const handler = (event, data) => callback(data);
+    ipcRenderer.on('update-download-progress', handler);
+    return () => ipcRenderer.removeListener('update-download-progress', handler);
+  },
   minimizeWindow: () => ipcRenderer.send('window-minimize'),
   maximizeWindow: () => ipcRenderer.send('window-maximize'),
   closeWindow: () => ipcRenderer.send('window-close'),

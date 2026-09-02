@@ -233,6 +233,64 @@ ipcMain.handle('open-external-url', (event, url) => {
   return { success: false, error: 'Invalid URL protocol' };
 });
 
+let latestReleaseData = null;
+let downloadedInstallerPath = null;
+
+function downloadFileWithRedirects(url, destPath, onProgress) {
+  return new Promise((resolve, reject) => {
+    function get(currentUrl, redirectCount = 0) {
+      if (redirectCount > 6) return reject(new Error('Too many redirects'));
+
+      try {
+        const parsedUrl = new URL(currentUrl);
+        const req = https.get(parsedUrl, { headers: { 'User-Agent': 'GTAW-Log-Studio' } }, (res) => {
+          if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+            return get(res.headers.location, redirectCount + 1);
+          }
+          if (res.statusCode !== 200) {
+            return reject(new Error(`Download failed with HTTP ${res.statusCode}`));
+          }
+
+          const totalBytes = parseInt(res.headers['content-length'] || '0', 10);
+          let downloadedBytes = 0;
+          const fileStream = fs.createWriteStream(destPath);
+
+          res.on('data', (chunk) => {
+            downloadedBytes += chunk.length;
+            if (onProgress) {
+              onProgress({
+                downloaded: downloadedBytes,
+                total: totalBytes,
+                percent: totalBytes > 0 ? Math.round((downloadedBytes / totalBytes) * 100) : 0,
+              });
+            }
+          });
+
+          res.pipe(fileStream);
+
+          fileStream.on('finish', () => {
+            fileStream.close(() => resolve(destPath));
+          });
+
+          fileStream.on('error', (err) => {
+            fs.unlink(destPath, () => {});
+            reject(err);
+          });
+        });
+
+        req.on('error', (err) => {
+          fs.unlink(destPath, () => {});
+          reject(err);
+        });
+      } catch (err) {
+        reject(err);
+      }
+    }
+
+    get(url);
+  });
+}
+
 ipcMain.handle('check-for-updates', async () => {
   const currentVer = (app.getVersion() || '1.0.0').replace(/^v+/, '');
 
@@ -249,8 +307,14 @@ ipcMain.handle('check-for-updates', async () => {
       res.on('end', () => {
         try {
           const json = JSON.parse(data);
+          latestReleaseData = json;
           const rawTag = (json.tag_name || currentVer).replace(/^v+/, '');
           const hasUpdate = rawTag !== currentVer && json.tag_name !== undefined;
+
+          // En uygun kurulum dosyasını seç (Setup .exe veya Taşınabilir .exe)
+          const setupAsset = json.assets?.find((a) => a.name.toLowerCase().includes('setup') && a.name.endsWith('.exe'));
+          const portableAsset = json.assets?.find((a) => a.name.endsWith('.exe'));
+          const targetAsset = setupAsset || portableAsset;
 
           resolve({
             currentVersion: currentVer,
@@ -258,6 +322,9 @@ ipcMain.handle('check-for-updates', async () => {
             hasUpdate: hasUpdate,
             releaseNotes: json.body || '',
             url: json.html_url || 'https://github.com/create-tools/GTAW-Log-Studio/releases',
+            assetName: targetAsset?.name,
+            assetSize: targetAsset?.size,
+            downloadUrl: targetAsset?.browser_download_url,
           });
         } catch (e) {
           resolve({
@@ -279,7 +346,7 @@ ipcMain.handle('check-for-updates', async () => {
       });
     });
 
-    req.setTimeout(5000, () => {
+    req.setTimeout(6000, () => {
       req.destroy();
       resolve({
         currentVersion: currentVer,
@@ -289,6 +356,58 @@ ipcMain.handle('check-for-updates', async () => {
       });
     });
   });
+});
+
+ipcMain.handle('download-update', async (event, customDownloadUrl) => {
+  const setupAsset = latestReleaseData?.assets?.find((a) => a.name.toLowerCase().includes('setup') && a.name.endsWith('.exe'));
+  const portableAsset = latestReleaseData?.assets?.find((a) => a.name.endsWith('.exe'));
+  const targetAsset = setupAsset || portableAsset;
+
+  const downloadUrl = customDownloadUrl || targetAsset?.browser_download_url;
+  const fileName = targetAsset?.name || `GTAW_Log_Studio_Setup_${Date.now()}.exe`;
+  const destPath = path.join(app.getPath('temp'), fileName);
+
+  if (!downloadUrl) {
+    return { success: false, error: 'No download asset found in release' };
+  }
+
+  try {
+    await downloadFileWithRedirects(downloadUrl, destPath, (progress) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('update-download-progress', progress);
+      }
+    });
+
+    downloadedInstallerPath = destPath;
+    return { success: true, filePath: destPath };
+  } catch (err) {
+    console.error('Download update error:', err);
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('install-update', async (event, installerPath) => {
+  const targetPath = installerPath || downloadedInstallerPath;
+  if (!targetPath || !fs.existsSync(targetPath)) {
+    return { success: false, error: 'Installer file not found' };
+  }
+
+  try {
+    const { spawn } = require('child_process');
+    const child = spawn(targetPath, [], {
+      detached: true,
+      stdio: 'ignore',
+    });
+    child.unref();
+
+    setTimeout(() => {
+      app.quit();
+    }, 500);
+
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 });
 
 ipcMain.handle('copy-image-to-clipboard', (event, base64Data) => {

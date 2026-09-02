@@ -127,6 +127,7 @@ export function App() {
   const [isBackupSettingsOpen, setIsBackupSettingsOpen] = useState(false);
   const [isProgramSettingsOpen, setIsProgramSettingsOpen] = useState(false);
   const [isCheckUpdatesOpen, setIsCheckUpdatesOpen] = useState(false);
+  const [autoStartUpdateDownload, setAutoStartUpdateDownload] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isRadioDispatchOpen, setIsRadioDispatchOpen] = useState(false);
@@ -786,7 +787,10 @@ export function App() {
         hasUpdateBadge={!!availableUpdate}
         onOpenBackupSettings={() => setIsBackupSettingsOpen(true)}
         onOpenProgramSettings={() => setIsProgramSettingsOpen(true)}
-        onOpenCheckUpdates={() => setIsCheckUpdatesOpen(true)}
+        onOpenCheckUpdates={() => {
+          setAutoStartUpdateDownload(false);
+          setIsCheckUpdatesOpen(true);
+        }}
         onOpenAbout={() => setIsAboutOpen(true)}
         onOpenFeedback={() => setIsFeedbackOpen(true)}
         onOpenLanguageModal={() => setIsInitialLangModalOpen(true)}
@@ -958,7 +962,11 @@ export function App() {
       {/* Güncellemeleri Denetle Modalı */}
       <CheckUpdatesModal
         isOpen={isCheckUpdatesOpen}
-        onClose={() => setIsCheckUpdatesOpen(false)}
+        autoStartDownload={autoStartUpdateDownload}
+        onClose={() => {
+          setIsCheckUpdatesOpen(false);
+          setAutoStartUpdateDownload(false);
+        }}
       />
 
       {/* Hakkında Modalı */}
@@ -1016,10 +1024,11 @@ export function App() {
             <div className="flex items-center gap-2 pt-2">
               <button
                 onClick={() => {
+                  setAutoStartUpdateDownload(true);
                   setIsCheckUpdatesOpen(true);
                   setIsUpdateBannerDismissed(true);
                 }}
-                className="px-3 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md"
+                className="px-3 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
               >
                 <Download className="w-3 h-3" />
                 <span>{t('updates_download_button')}</span>
@@ -1027,7 +1036,7 @@ export function App() {
 
               <button
                 onClick={() => setIsUpdateBannerDismissed(true)}
-                className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs transition-colors"
+                className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs transition-colors cursor-pointer"
               >
                 {t('updates_remind_later')}
               </button>
