@@ -10,6 +10,14 @@
   <strong>Official Initial Release v1.0.0 — Native FiveM Chatlog Engine, Roleplay SS Studio, Black Background Keyer & Multi-POV Merger</strong>
 </p>
 
+<p align="center">
+  <a href="#english">English</a> •
+  <a href="#türkçe-sürüm-notları">Türkçe</a> •
+  <a href="#русский">Русский</a> •
+  <a href="#français">Français</a> •
+  <a href="#español">Español</a>
+</p>
+
 ---
 
 ### Visual Overview & Modules
@@ -76,6 +84,63 @@ Chronologically interleaves chatlogs from multiple players present at a scene, a
 | :--- | :--- | :--- | :--- |
 | **Windows Installer** | `GTAW Log Studio Setup 1.0.0.exe` | NSIS Setup | Recommended for standard desktop installation with start menu shortcuts. |
 | **Portable Standalone** | `GTAW Log Studio 1.0.0.exe` | Portable Executable | Single standalone executable requiring no installation. |
+
+---
+
+### Additional Languages (Release Notes)
+
+<details>
+<summary><b id="türkçe-sürüm-notları">Türkçe Sürüm Notları (Turkish)</b></summary>
+
+### Öne Çıkanlar (v1.0.0)
+- **Canlı Bellek Motoru:** FiveM sürecine doğrudan bağlanarak sohbet loglarını sıfır FPS kaybıyla anlık olarak yakalar ve renklendirir.
+- **SS Editörü (SS Maker):** Özelleştirilebilir fontlar, kontur, gölge ve Photoshop için tek tıkla şeffaf PNG kopyalama.
+- **Siyah Arkaplan Temizleyici (Keyer):** /blind ile çekilen siyah chatboxları şeffaf metin katmanına dönüştürür.
+- **Telsiz Konsolu:** 10-Kodlarını ve anonsları filtreleyen operasyonel görünüm.
+- **Çoklu POV Birleştirici:** Farklı oyunculardan alınan logları zaman damgasına göre tek sahnede birleştirir ve tekrarları siler.
+- **Akıllı Alt-Tab Bildirimi:** Yalnızca oyundan çıktığınızda adınız geçtiğinde sesli uyarı verir.
+- **5 Dil Desteği:** Türkçe, İngilizce, Rusça, Fransızca ve İspanyolca tam arayüz.
+
+</details>
+
+<details>
+<summary><b id="русский">Русский (Russian Release Notes)</b></summary>
+
+### Главное (v1.0.0)
+- **Парсинг памяти в реальном времени:** Мгновенное разделение каналов IC, /me, /do, PM, рации и SMS.
+- **Студия скриншотов (SS Maker):** Настраиваемая типографика, обводка, тени и копирование прозрачного PNG для Photoshop в один клик.
+- **Удаление черного фона (Keyer):** Очистка скриншотов чатбокса /blind в прозрачный слой текста.
+- **Консоль диспетчера и рации:** Выделенный терминал с фильтрацией 10-кодов и позывных.
+- **Объединение логов Multi-POV:** Хронологическое объединение логов нескольких игроков с удалением дубликатов.
+- **Уведомления при Alt-Tab:** Звуковой сигнал срабатывает только при упоминании имени или получении PM, когда игра свернута.
+
+</details>
+
+<details>
+<summary><b id="français">Français (French Release Notes)</b></summary>
+
+### Points forts (v1.0.0)
+- **Moteur de mémoire en direct:** Détection instantanée des canaux IC, /me, /do, PM, Radio et SMS.
+- **Studio de captures d'écran (SS Maker):** Typographie personnalisable, contours, ombres et export PNG transparent vers Photoshop en un clic.
+- **Suppression du fond noir (Keyer):** Nettoie les captures d'écran de boîte de discussion noire /blind en calques transparents.
+- **Console Radio & Dispatch:** Terminal dédié avec filtrage des codes 10 et des indicatifs.
+- **Fusion Multi-POV:** Combine les journaux de plusieurs joueurs en une seule chronologie et élimine les doublons.
+- **Alertes intelligentes Alt-Tab:** Notification sonore uniquement en cas de mention ou de PM lorsque le jeu n'est pas au premier plan.
+
+</details>
+
+<details>
+<summary><b id="español">Español (Spanish Release Notes)</b></summary>
+
+### Destacados (v1.0.0)
+- **Motor de memoria en vivo:** Detección en tiempo real de canales IC, /me, /do, PM, Radio y SMS.
+- **Estudio de capturas de pantalla (SS Maker):** Tipografía personalizable, trazo, sombra y copia de PNG transparente para Photoshop en un clic.
+- **Removedor de fondo negro (Keyer):** Limpia las capturas de chatbox negro /blind en capas transparentes de texto.
+- **Consola de radio y despacho:** Terminal dedicada para filtrar códigos 10 y llamadas de unidades.
+- **Fusión Multi-POV:** Combina registros de varios jugadores cronológicamente y elimina líneas duplicadas.
+- **Alertas inteligentes Alt-Tab:** Avisos de audio cuando se menciona tu nombre o llega un PM mientras estás en Alt-Tab.
+
+</details>
 
 ---
 

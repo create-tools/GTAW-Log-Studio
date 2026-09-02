@@ -18,11 +18,19 @@
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
 </p>
 
+<p align="center">
+  <a href="#overview">English</a> •
+  <a href="#türkçe-tanıtım">Türkçe</a> •
+  <a href="#русский-обзор">Русский</a> •
+  <a href="#présentation-en-français">Français</a> •
+  <a href="#descripción-en-español">Español</a>
+</p>
+
 ---
 
 ## Overview
 
-**GTAW Log Studio** is an open-source suite designed for GTA World text-roleplay players, faction members, screenshot storytellers, and law enforcement agencies. It hooks directly into the FiveM client process to parse, colorize, and archive in-game dialogue in real time without causing any frame drops.
+**GTAW Log Studio** is an open-source desktop suite designed for GTA World players. It hooks directly into the FiveM client process to parse, colorize, and archive in-game dialogue in real time without causing any frame drops.
 
 ---
 
@@ -85,55 +93,96 @@ Chronologically interleaves chatlogs from multiple players present at a scene, a
 
 ---
 
-## Supported Languages
-
-| Code | Language | Native Name |
-| :---: | :---: | :---: |
-| EN | English | English |
-| TR | Turkish | Türkçe |
-| RU | Russian | Русский |
-| FR | French | Français |
-| ES | Spanish | Español |
-
----
-
 ## Installation & Downloads
 
-Executable builds are provided on the [GitHub Releases](https://github.com/create-tools/GTAW-Log-Studio/releases) page:
+Download the latest official release from the [GitHub Releases](https://github.com/create-tools/GTAW-Log-Studio/releases) page:
 
-| Package | Filename | Description |
-| :--- | :--- | :--- |
-| **Windows Installer** | `GTAW Log Studio Setup 1.0.0.exe` | Standard Windows installer with shortcuts. |
-| **Portable Standalone** | `GTAW Log Studio 1.0.0.exe` | Standalone binary requiring no installation. |
+- **Installer:** `GTAW Log Studio Setup 1.0.0.exe` (Standard Windows NSIS Setup)
+- **Portable:** `GTAW Log Studio 1.0.0.exe` (Standalone single executable, no installation required)
 
 ---
 
-## Development & Build Instructions
+## Other Languages
 
-### Prerequisites
-- Node.js (v18 or higher)
-- npm or yarn
+<details>
+<summary><b id="türkçe-tanıtım">Türkçe Tanıtım (Turkish)</b></summary>
 
-### Setup
-```bash
-# Clone the repository
-git clone https://github.com/create-tools/GTAW-Log-Studio.git
-cd GTAW-Log-Studio
+### Genel Bakış
+GTAW Log Studio, FiveM sürecine doğrudan bağlanarak oyun içi sohbet satırlarını sıfır performans kaybıyla anlık olarak yakalayan, renklendiren ve yerel olarak arşivleyen açık kaynaklı bir masaüstü uygulamasıdır.
 
-# Install dependencies
-npm install
+### Temel Özellikler
+- **Canlı Bellek Motoru:** IC konuşmalar, /me, /do, PM, telsiz ve SMS kanallarını otomatik filtreler.
+- **SS Editörü (SS Maker):** Özelleştirilebilir tipografi, kontur ve Photoshop için tek tıkla şeffaf PNG kopyalama.
+- **Siyah Arkaplan Temizleyici (Keyer):** /blind ile alınan siyah chatbox ekran görüntülerini şeffaf metin katmanına dönüştürür.
+- **Telsiz & Dispatch Konsolu:** 10-Kodlarını ve anonsları filtreleyen operasyonel görünüm.
+- **Çoklu POV Birleştirici:** Farklı oyunculardan alınan logları zaman damgasına göre tek sahnede birleştirir ve tekrarları siler.
+- **Akıllı Alt-Tab Bildirimi:** Yalnızca oyundan çıktığınızda adınız geçtiğinde veya PM geldiğinde sesli uyarı verir.
+- **5 Dil Desteği:** Türkçe, İngilizce, Rusça, Fransızca ve İspanyolca.
 
-# Run development mode
-npm start
+### İndirme
+[GitHub Releases Sayfası](https://github.com/create-tools/GTAW-Log-Studio/releases) üzerinden Setup veya Portable sürümü indirebilirsiniz.
 
-# Build production binaries (Setup & Portable)
-npm run dist
-```
+</details>
+
+<details>
+<summary><b id="русский-обзор">Русский Обзор (Russian)</b></summary>
+
+### Обзор
+GTAW Log Studio — это настольное приложение с открытым исходным кодом, предназначенное для игроков GTA World. Оно напрямую подключается к процессу FiveM для парсинга, цветовой разметки и локального архивирования игровых логов в реальном времени без потери FPS.
+
+### Основные возможности
+- **Парсинг памяти в реальном времени:** Мгновенное разделение каналов IC, /me, /do, PM, рации и SMS.
+- **Студия скриншотов (SS Maker):** Настраиваемая типографика, обводка, тени и копирование прозрачного PNG для Photoshop в один клик.
+- **Удаление черного фона (Keyer):** Очистка скриншотов чатбокса /blind в прозрачный слой текста.
+- **Консоль диспетчера и рации:** Выделенный терминал с фильтрацией 10-кодов и позывных.
+- **Объединение логов Multi-POV:** Хронологическое объединение логов нескольких игроков с удалением дубликатов.
+- **Уведомления при Alt-Tab:** Звуковой сигнал срабатывает только при упоминании имени или получении PM, когда игра свернута.
+
+### Скачивание
+Скачайте установщик или портативную версию на странице [GitHub Releases](https://github.com/create-tools/GTAW-Log-Studio/releases).
+
+</details>
+
+<details>
+<summary><b id="présentation-en-français">Présentation en Français (French)</b></summary>
+
+### Aperçu
+GTAW Log Studio est une application de bureau open source conçue pour les joueurs de GTA World. Elle se connecte directement au processus FiveM pour analyser, colorer et archiver les journaux de discussion en temps réel sans baisse de FPS.
+
+### Fonctionnalités principales
+- **Moteur de mémoire en direct:** Détection instantanée des canaux IC, /me, /do, PM, Radio et SMS.
+- **Studio de captures d'écran (SS Maker):** Typographie personnalisable, contours, ombres et export PNG transparent vers Photoshop en un clic.
+- **Suppression du fond noir (Keyer):** Nettoie les captures d'écran de boîte de discussion noire /blind en calques transparents.
+- **Console Radio & Dispatch:** Terminal dédié avec filtrage des codes 10 et des indicatifs.
+- **Fusion Multi-POV:** Combine les journaux de plusieurs joueurs en une seule chronologie et élimine les doublons.
+- **Alertes intelligentes Alt-Tab:** Notification sonore uniquement en cas de mention ou de PM lorsque le jeu n'est pas au premier plan.
+
+### Téléchargement
+Téléchargez l'installateur ou la version portable sur la page [GitHub Releases](https://github.com/create-tools/GTAW-Log-Studio/releases).
+
+</details>
+
+<details>
+<summary><b id="descripción-en-español">Descripción en Español (Spanish)</b></summary>
+
+### Resumen
+GTAW Log Studio es una aplicación de escritorio de código abierto diseñada para jugadores de GTA World. Se conecta directamente al proceso de FiveM para analizar, colorear y archivar los registros de chat en tiempo real sin pérdida de rendimiento.
+
+### Características clave
+- **Motor de memoria en vivo:** Detección en tiempo real de canales IC, /me, /do, PM, Radio y SMS.
+- **Estudio de capturas de pantalla (SS Maker):** Tipografía personalizable, trazo, sombra y copia de PNG transparente para Photoshop en un clic.
+- **Removedor de fondo negro (Keyer):** Limpia las capturas de chatbox negro /blind en capas transparentes de texto.
+- **Consola de radio y despacho:** Terminal dedicada para filtrar códigos 10 y llamadas de unidades.
+- **Fusión Multi-POV:** Combina registros de varios jugadores cronológicamente y elimina líneas duplicadas.
+- **Alertas inteligentes Alt-Tab:** Avisos de audio cuando se menciona tu nombre o llega un PM mientras estás en Alt-Tab.
+
+### Descargas
+Descargue el instalador o la versión portátil en la página de [GitHub Releases](https://github.com/create-tools/GTAW-Log-Studio/releases).
+
+</details>
 
 ---
 
 ## License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
-*Disclaimer: GTAW Log Studio is an independent community tool developed by Altay and is not affiliated with Rockstar Games, GTA World, or FiveM / Cfx.re.*
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
