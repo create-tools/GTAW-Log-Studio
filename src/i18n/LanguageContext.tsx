@@ -20,7 +20,25 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setLanguageState(lang);
     localStorage.setItem('gtaw_app_language', lang);
     localStorage.setItem('gtaw_lang_selected', 'true');
+    const electronAPI = (window as any).electronAPI;
+    if (electronAPI?.savePersistedSettings) {
+      electronAPI.savePersistedSettings({ language: lang });
+    }
   };
+
+  // Açılışta diskten kalıcı dil tercihini yükle
+  useEffect(() => {
+    const electronAPI = (window as any).electronAPI;
+    if (electronAPI?.getPersistedSettings) {
+      electronAPI.getPersistedSettings().then((data: any) => {
+        if (data?.language && ['en', 'tr', 'ru', 'fr', 'es'].includes(data.language)) {
+          setLanguageState(data.language as Language);
+          localStorage.setItem('gtaw_app_language', data.language);
+          localStorage.setItem('gtaw_lang_selected', 'true');
+        }
+      }).catch(() => {});
+    }
+  }, []);
 
   useEffect(() => {
     (window as any).electronAPI?.updateAppLanguage?.(language);

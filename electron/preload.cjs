@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setStartWithWindows: (enable) => ipcRenderer.invoke('set-start-with-windows', enable),
   isFiveMForeground: () => ipcRenderer.invoke('is-fivem-foreground'),
   updateAppLanguage: (lang) => ipcRenderer.invoke('update-app-language', lang),
+  getPersistedSettings: () => ipcRenderer.invoke('get-persisted-settings'),
+  savePersistedSettings: (data) => ipcRenderer.invoke('save-persisted-settings', data),
 
   onFiveMStatus: (callback) => {
     const handler = (event, data) => callback(data);

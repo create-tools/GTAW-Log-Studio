@@ -249,14 +249,31 @@ export function App() {
       if (electronAPI?.setStartWithWindows) {
         electronAPI.setStartWithWindows(newSettings.startWithWindows);
       }
+      if (electronAPI?.savePersistedSettings) {
+        electronAPI.savePersistedSettings({
+          settings: newSettings,
+          language: localStorage.getItem('gtaw_app_language') || 'tr',
+        });
+      }
     } catch (e) {
       console.error('Settings save error:', e);
     }
   };
 
-  // Açılışta ayarları Electron'a ilet
+  // Açılışta ayarları Electron'dan ve diskten yükle
   useEffect(() => {
     const electronAPI = (window as any).electronAPI;
+    if (electronAPI?.getPersistedSettings) {
+      electronAPI.getPersistedSettings().then((data: any) => {
+        if (data?.settings) {
+          setAppSettings((prev) => ({ ...prev, ...data.settings }));
+          try {
+            localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(data.settings));
+          } catch (e) {}
+        }
+      }).catch(() => {});
+    }
+
     if (electronAPI?.updateCaptureSettings) {
       electronAPI.updateCaptureSettings(appSettings);
     }
@@ -352,7 +369,9 @@ export function App() {
           const allSessions = await db.sessions.toArray();
 
           if (Array.isArray(savedFiles) && savedFiles.length > 0) {
-            let latestId = '';
+            const newestBaseName = savedFiles[0].fileName.replace(/\.txt$/i, '');
+            const newestSessId = `sess_${newestBaseName}`;
+
             for (const file of savedFiles) {
               const baseName = file.fileName.replace(/\.txt$/i, '');
               const sessId = `sess_${baseName}`;
@@ -386,13 +405,11 @@ export function App() {
                   isLive: false,
                 };
                 await saveSessionWithLogs(sess, parsed);
-                latestId = sessId;
-              } else {
-                latestId = existingSess.id;
               }
             }
-            if (latestId && !activeSessionId) {
-              setActiveSessionId(latestId);
+
+            if (!activeSessionId) {
+              setActiveSessionId(newestSessId);
             }
           }
         }

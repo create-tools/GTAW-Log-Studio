@@ -3,15 +3,78 @@ const path = require('path');
 const fs = require('fs');
 const https = require('https');
 
-// Tüm sürümler (Portable, Setup, Güncellemeler) için kalıcı userData dizinini sabitle
+function copyFolderSync(from, to) {
+  if (!fs.existsSync(from)) return;
+  if (!fs.existsSync(to)) fs.mkdirSync(to, { recursive: true });
+  for (const item of fs.readdirSync(from)) {
+    const src = path.join(from, item);
+    const dest = path.join(to, item);
+    try {
+      const stat = fs.statSync(src);
+      if (stat.isDirectory()) {
+        copyFolderSync(src, dest);
+      } else {
+        if (!fs.existsSync(dest)) {
+          fs.copyFileSync(src, dest);
+        }
+      }
+    } catch (e) {}
+  }
+}
+
+// Tüm sürümler (Portable, Setup, Güncellemeler) için kalıcı userData dizinini sabitle ve önceki verileri otomatik taşı
 const persistentUserData = path.join(app.getPath('appData'), 'gtaw-log-studio');
 try {
   app.setPath('userData', persistentUserData);
+
+  const legacyDirs = [
+    path.join(app.getPath('appData'), 'GTAW Log Studio'),
+    path.join(app.getPath('appData'), 'GTAW-Log-Studio'),
+    path.join(app.getPath('appData'), 'fivem-chatlogparser'),
+    path.join(app.getPath('appData'), 'Electron'),
+  ];
+
+  for (const legacy of legacyDirs) {
+    if (fs.existsSync(legacy) && legacy.toLowerCase() !== persistentUserData.toLowerCase()) {
+      copyFolderSync(path.join(legacy, 'IndexedDB'), path.join(persistentUserData, 'IndexedDB'));
+      copyFolderSync(path.join(legacy, 'Local Storage'), path.join(persistentUserData, 'Local Storage'));
+    }
+  }
 } catch (e) {
   console.error('Set userData error:', e);
 }
 
 const { FiveMChatCapture, DEFAULT_SESSIONS_DIR } = require('./fivemCapture.cjs');
+
+const PERSISTED_SETTINGS_FILE = path.join(
+  process.env.LOCALAPPDATA || path.join(process.env.USERPROFILE || '', 'AppData', 'Local'),
+  'GTAW-Log-Parser-FiveM',
+  'app_settings.json'
+);
+
+ipcMain.handle('get-persisted-settings', () => {
+  try {
+    if (fs.existsSync(PERSISTED_SETTINGS_FILE)) {
+      const data = fs.readFileSync(PERSISTED_SETTINGS_FILE, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.error('Read persisted settings error:', err);
+  }
+  return null;
+});
+
+ipcMain.handle('save-persisted-settings', (event, data) => {
+  try {
+    const dir = path.dirname(PERSISTED_SETTINGS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(PERSISTED_SETTINGS_FILE, JSON.stringify(data, null, 2), 'utf8');
+    return { success: true };
+  } catch (err) {
+    console.error('Save persisted settings error:', err);
+    return { success: false, error: err.message };
+  }
+});
 
 let mainWindow = null;
 let captureEngine = null;
