@@ -354,6 +354,9 @@ export function App() {
     loadSavedSessions();
   }, [appSettings.backupPath]);
 
+  const appSettingsRef = useRef(appSettings);
+  appSettingsRef.current = appSettings;
+
   // FiveM Canlı Yakalama Olaylarını Dinle & Sesli Uyarıları Tetikle
   useEffect(() => {
     try {
@@ -373,8 +376,8 @@ export function App() {
               ...data.session,
               isLive: true,
             });
-            setActiveSessionId(data.session.id);
           }
+          setActiveSessionId(data.session.id);
         }
       });
 
@@ -384,14 +387,13 @@ export function App() {
         const parsedLines = parseRawLogText(data.lines.join('\n'), data.sessionId);
         if (parsedLines.length > 0) {
           await appendLogsToSession(data.sessionId, parsedLines);
-          if (!activeSessionId) {
-            setActiveSessionId(data.sessionId);
-          }
+          setActiveSessionId((prev) => prev || data.sessionId);
 
+          const currentSettings = appSettingsRef.current;
           // Sesli Uyarı Kontrolü (İlk açılış yüklemesinde asla ses çalmaz)
-          if (!isInitialLoadRef.current && appSettings.soundAlertsEnabled) {
+          if (!isInitialLoadRef.current && currentSettings.soundAlertsEnabled) {
             // Eğer "Sadece Alt-Tab'dayken uyar" açıksa ve kullanıcı FiveM'de aktifse ses çalma!
-            if (appSettings.onlyAlertWhenAltTabbed && electronAPI?.isFiveMForeground) {
+            if (currentSettings.onlyAlertWhenAltTabbed && electronAPI?.isFiveMForeground) {
               try {
                 const isFiveMActive = await electronAPI.isFiveMForeground();
                 if (isFiveMActive) {
@@ -400,8 +402,8 @@ export function App() {
               } catch (e) {}
             }
 
-            const keywords = appSettings.alertCustomKeywords
-              ? appSettings.alertCustomKeywords.split(',').map((k) => k.trim().toLowerCase()).filter(Boolean)
+            const keywords = currentSettings.alertCustomKeywords
+              ? currentSettings.alertCustomKeywords.split(',').map((k) => k.trim().toLowerCase()).filter(Boolean)
               : [];
 
             for (const line of parsedLines) {
@@ -414,19 +416,19 @@ export function App() {
               }
 
               // Karakter adı
-              if (appSettings.alertCharacterName && contentLower.includes(appSettings.alertCharacterName.toLowerCase())) {
+              if (currentSettings.alertCharacterName && contentLower.includes(currentSettings.alertCharacterName.toLowerCase())) {
                 soundAlerts.playNotificationChime();
                 break;
               }
 
               // PM uyarısı
-              if (appSettings.alertOnPM && (contentLower.includes('(( pm to') || contentLower.includes('(( pm from'))) {
+              if (currentSettings.alertOnPM && (contentLower.includes('(( pm to') || contentLower.includes('(( pm from'))) {
                 soundAlerts.playNotificationChime();
                 break;
               }
 
               // SMS uyarısı
-              if (appSettings.alertOnSMS && contentLower.includes('[sms]')) {
+              if (currentSettings.alertOnSMS && contentLower.includes('[sms]')) {
                 soundAlerts.playNotificationChime();
                 break;
               }
@@ -454,7 +456,7 @@ export function App() {
     } catch (err) {
       console.error('Electron listener setup error:', err);
     }
-  }, [activeSessionId, appSettings]);
+  }, []);
 
   // İlk oturum seçimi
   useEffect(() => {

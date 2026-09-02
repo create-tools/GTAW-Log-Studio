@@ -272,13 +272,13 @@ class FiveMChatCapture {
     }
   }
 
-  locateChatFrame(frameNode) {
+    locateChatFrame(frameNode) {
     if (!frameNode) return null;
     const frame = frameNode.frame || frameNode;
     const url = (frame.url || '').toLowerCase();
     const name = (frame.name || '').toLowerCase();
 
-    // Prioritize GTA World client UI or standard chat
+    // 1. Check if this frame matches GTA World client UI or generic chat
     if (
       url.includes('client') ||
       url.includes('chat') ||
@@ -291,20 +291,15 @@ class FiveMChatCapture {
       return frame.id;
     }
 
+    // 2. Search child frames recursively
     if (frameNode.childFrames && frameNode.childFrames.length > 0) {
       for (const child of frameNode.childFrames) {
         const found = this.locateChatFrame(child);
         if (found) return found;
       }
-      for (const child of frameNode.childFrames) {
-        const childFrame = child.frame || child;
-        const childUrl = (childFrame.url || '').toLowerCase();
-        if (childUrl && !childUrl.includes('monitor') && !childUrl.includes('root.html')) {
-          return childFrame.id;
-        }
-      }
     }
-    return frame.id || null;
+
+    return null;
   }
 
   async attachToChatExecutionContext(frameId) {
