@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n/LanguageContext';
 ﻿import React from 'react';
 import { X, Play, FolderOpen, AlertCircle, Sparkles, Terminal, CheckCircle2 } from 'lucide-react';
 
@@ -16,6 +17,7 @@ export const LiveWatcherModal: React.FC<LiveWatcherModalProps> = ({
   isLiveWatching,
   liveFileName,
 }) => {
+  const { t, language } = useLanguage();
   if (!isOpen) return null;
 
   return (
@@ -28,10 +30,10 @@ export const LiveWatcherModal: React.FC<LiveWatcherModalProps> = ({
             </div>
             <div>
               <h2 className="text-sm font-bold text-zinc-100">
-                FiveM Canlı Log İzleyici (Auto-Watcher)
+                {t('lw_title')}
               </h2>
               <p className="text-[11px] text-zinc-400">
-                Oyundaki yeni diyalogları anlık yakalar ve veritabanına otomatik kaydeder
+                {t('lw_subtitle')}
               </p>
             </div>
           </div>
@@ -50,10 +52,10 @@ export const LiveWatcherModal: React.FC<LiveWatcherModalProps> = ({
               <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
               <div>
                 <strong className="block font-semibold text-emerald-200">
-                  Canlı Takip Aktif Durumda!
+                  {t('lw_active_status')}
                 </strong>
                 <span>
-                  İzlenen Dosya: <code className="bg-emerald-900/40 px-1 py-0.5 rounded font-mono">{liveFileName || 'CitizenFX.log'}</code>
+                  {t('lw_monitored_file')} <code className="bg-emerald-900/40 px-1 py-0.5 rounded font-mono">{liveFileName || 'CitizenFX.log'}</code>
                 </span>
               </div>
             </div>
@@ -62,10 +64,10 @@ export const LiveWatcherModal: React.FC<LiveWatcherModalProps> = ({
               <div className="p-3.5 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2 text-xs text-zinc-300">
                 <span className="font-semibold text-purple-300 flex items-center gap-1.5">
                   <FolderOpen className="w-3.5 h-3.5" />
-                  FiveM Log Dosyası Nerede Bulunur?
+                  {t('lw_location_title')}
                 </span>
                 <p className="text-zinc-400 leading-relaxed text-[11px]">
-                  FiveM loglarınızı genellikle şu dizinde tutar:
+                  {t('lw_location_desc')}
                 </p>
                 <div className="p-2 rounded bg-zinc-900 border border-zinc-800 font-mono text-[11px] text-zinc-200 select-all">
                   %localappdata%\CitizenFX\CitizenFX.log
@@ -84,17 +86,17 @@ export const LiveWatcherModal: React.FC<LiveWatcherModalProps> = ({
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/20 transition-all"
                 >
                   <FolderOpen className="w-4 h-4" />
-                  <span>CitizenFX.log Dosyasını Seç ve Canlı İzlemeyi Başlat</span>
+                  <span>{t('lw_select_citizenfx')}</span>
                 </button>
               </div>
 
               <div className="pt-3 border-t border-zinc-800">
                 <div className="flex items-center gap-2 text-zinc-400 text-xs font-semibold mb-1">
                   <Terminal className="w-3.5 h-3.5 text-indigo-400" />
-                  Masaüstü Otomatik Bulucu (Alternatif Python Aracı)
+                  {language === 'tr' ? 'Masaüstü Otomatik Bulucu (Alternatif Python Aracı)' : 'Desktop Auto Detector (Python Helper)'}
                 </div>
                 <p className="text-[11px] text-zinc-500 leading-relaxed">
-                  İsterseniz <code className="text-indigo-300 bg-zinc-950 px-1 py-0.5 rounded">python server/watcher.py</code> komutu ile FiveM dizinini arka planda tam otomatik olarak da izletebilirsiniz.
+                  {language === 'tr' ? 'İsterseniz python server/watcher.py komutu ile FiveM dizinini arka planda tam otomatik olarak da izletebilirsiniz.' : 'You can also automatically monitor FiveM directory in background via python server/watcher.py.'}
                 </p>
               </div>
             </div>

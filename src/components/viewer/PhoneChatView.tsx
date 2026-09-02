@@ -72,10 +72,10 @@ export const PhoneChatView: React.FC<PhoneChatViewProps> = ({
           <div className="flex items-center gap-2">
             <Smartphone className="w-4 h-4 text-purple-400" />
             <h2 className="text-xs font-bold text-zinc-100">
-              {language === 'tr' ? 'Telefon & SMS Mesajlaşma Görünümü' : 'Phone & SMS Conversations View'}
+              {t('pc_title')}
             </h2>
             <span className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-400 font-mono">
-              {conversations.length} {language === 'tr' ? 'Kişi' : 'Contacts'}
+              {conversations.length} {t('pc_contacts_count')}
             </span>
           </div>
 
@@ -97,7 +97,7 @@ export const PhoneChatView: React.FC<PhoneChatViewProps> = ({
                 <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder={language === 'tr' ? 'Kişi ara...' : 'Search contact...'}
+                  placeholder={t('pc_search_contact')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-8 pr-3 py-1 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-zinc-700"
@@ -109,7 +109,7 @@ export const PhoneChatView: React.FC<PhoneChatViewProps> = ({
             <div className="flex-1 overflow-y-auto divide-y divide-zinc-900/60 p-1">
               {filteredConversations.length === 0 ? (
                 <div className="p-6 text-center text-zinc-500 text-xs">
-                  {language === 'tr' ? 'SMS veya telefon kaydı bulunamadı.' : 'No SMS or phone conversations found.'}
+                  {t('pc_no_contacts')}
                 </div>
               ) : (
                 filteredConversations.map((conv) => (
@@ -178,7 +178,7 @@ export const PhoneChatView: React.FC<PhoneChatViewProps> = ({
                       <button
                         onClick={handleSendToSS}
                         className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-sm transition-colors"
-                        title={language === 'tr' ? "Bu SMS diyaloğunu SS Maker'a aktar" : "Send conversation to SS Studio"}
+                        title={t('pc_send_to_ss')}
                       >
                         <Camera className="w-3.5 h-3.5" />
                         <span>{language === 'tr' ? "SS Maker'a Aktar" : 'Send to SS Studio'}</span>
@@ -220,7 +220,7 @@ export const PhoneChatView: React.FC<PhoneChatViewProps> = ({
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 space-y-2">
                 <MessageSquare className="w-10 h-10 text-zinc-600" />
-                <p className="text-xs">{language === 'tr' ? 'Görüntülemek için soldan bir kişi seçin.' : 'Select a conversation from the left to view messages.'}</p>
+                <p className="text-xs">{t('pc_select_hint')}</p>
               </div>
             )}
           </div>

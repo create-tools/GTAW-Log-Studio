@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n/LanguageContext';
 import React, { useState } from 'react';
 import { 
   Plus, 
@@ -34,6 +35,7 @@ export const StorylineManager: React.FC<StorylineManagerProps> = ({
   onBatchExportZip,
   isExportingZip,
 }) => {
+  const { t, language } = useLanguage();
   const [showSplitMenu, setShowSplitMenu] = useState(false);
 
   return (
@@ -42,7 +44,7 @@ export const StorylineManager: React.FC<StorylineManagerProps> = ({
       <div className="flex items-center gap-1.5 overflow-x-auto py-1">
         <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mr-1 flex items-center gap-1">
           <Layers className="w-3.5 h-3.5 text-purple-400" />
-          Sahneler ({scenes.length}):
+          {t('ss_scene_count')} ({scenes.length}):
         </span>
 
         {scenes.map((scene, index) => {
@@ -66,7 +68,7 @@ export const StorylineManager: React.FC<StorylineManagerProps> = ({
                   onDuplicateScene(scene.id);
                 }}
                 className="p-0.5 rounded hover:bg-zinc-700/60 text-zinc-400 hover:text-zinc-200"
-                title="Sahneyi Kopyala / Çoğalt"
+                title={t('ss_duplicate_scene')}
               >
                 <Copy className="w-2.5 h-2.5" />
               </button>
@@ -79,7 +81,7 @@ export const StorylineManager: React.FC<StorylineManagerProps> = ({
                     onDeleteScene(scene.id);
                   }}
                   className="p-0.5 rounded hover:bg-red-950/80 hover:text-red-300 text-zinc-500"
-                  title="Sahneyi Sil"
+                  title={t('ss_delete_scene')}
                 >
                   <Trash2 className="w-2.5 h-2.5" />
                 </button>
@@ -92,10 +94,10 @@ export const StorylineManager: React.FC<StorylineManagerProps> = ({
         <button
           onClick={onAddScene}
           className="flex items-center gap-1 px-2 py-1 rounded-md bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-purple-400 hover:text-purple-300 text-xs font-semibold transition-colors"
-          title="Yeni Boş Sahne Ekle"
+          title={t('ss_add_scene')}
         >
           <Plus className="w-3 h-3" />
-          <span>Sahne Ekle</span>
+          <span>{t('ss_add_scene')}</span>
         </button>
       </div>
 
@@ -106,17 +108,17 @@ export const StorylineManager: React.FC<StorylineManagerProps> = ({
           <button
             onClick={() => setShowSplitMenu((p) => !p)}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-900 hover:bg-zinc-800 text-amber-300 text-xs font-medium border border-zinc-800 transition-colors"
-            title="Logları sessizlik / zaman boşluklarına göre otomatik sahne kartlarına böler"
+            title={language === 'tr' ? 'Logları sessizlik ve zaman boşluklarına göre otomatik sahne kartlarına böler' : 'Automatically splits logs into scene cards based on silence/time gaps'}
           >
             <Scissors className="w-3.5 h-3.5 text-amber-400" />
-            <span>Otomatik Sahnelere Böl</span>
+            <span>{t('ss_auto_split_scenes')}</span>
             <ChevronDown className="w-3 h-3 text-zinc-400" />
           </button>
 
           {showSplitMenu && (
             <div className="absolute right-0 top-9 z-30 bg-zinc-900 border border-zinc-700 rounded-xl p-2 shadow-2xl w-56 space-y-1">
               <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-2 py-1 block">
-                Sessizlik Eşiği Belirle:
+                {language === 'tr' ? 'Sessizlik Eşiği Belirle:' : 'Silence Gap Threshold:'}
               </span>
               <button
                 onClick={() => {
@@ -125,8 +127,8 @@ export const StorylineManager: React.FC<StorylineManagerProps> = ({
                 }}
                 className="w-full text-left px-2 py-1.5 rounded text-xs text-zinc-200 hover:bg-zinc-800 flex items-center justify-between"
               >
-                <span>2 Dakika Boşluk</span>
-                <span className="text-[10px] text-zinc-500 font-mono">Hızlı Akış</span>
+                <span>{t('ss_split_2min')}</span>
+                <span className="text-[10px] text-zinc-500 font-mono">{language === 'tr' ? 'Hızlı Akış' : 'Fast Flow'}</span>
               </button>
               <button
                 onClick={() => {
@@ -135,8 +137,8 @@ export const StorylineManager: React.FC<StorylineManagerProps> = ({
                 }}
                 className="w-full text-left px-2 py-1.5 rounded text-xs text-amber-300 font-bold hover:bg-zinc-800 flex items-center justify-between"
               >
-                <span>3 Dakika Boşluk (Önerilen)</span>
-                <span className="text-[10px] text-amber-500/80 font-mono">Dengeli</span>
+                <span>{t('ss_split_3min')}</span>
+                <span className="text-[10px] text-amber-500/80 font-mono">{language === 'tr' ? 'Dengeli' : 'Balanced'}</span>
               </button>
               <button
                 onClick={() => {
@@ -145,8 +147,8 @@ export const StorylineManager: React.FC<StorylineManagerProps> = ({
                 }}
                 className="w-full text-left px-2 py-1.5 rounded text-xs text-zinc-200 hover:bg-zinc-800 flex items-center justify-between"
               >
-                <span>5 Dakika Boşluk</span>
-                <span className="text-[10px] text-zinc-500 font-mono">Geniş Sahneler</span>
+                <span>{t('ss_split_5min')}</span>
+                <span className="text-[10px] text-zinc-500 font-mono">{language === 'tr' ? 'Geniş Sahneler' : 'Wide Scenes'}</span>
               </button>
             </div>
           )}
@@ -157,10 +159,10 @@ export const StorylineManager: React.FC<StorylineManagerProps> = ({
           disabled={isExportingZip}
           onClick={onBatchExportZip}
           className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-bold shadow-sm transition-colors"
-          title="Tüm sahneleri otomatik işleyip ZIP arşivi olarak indirin"
+          title={language === 'tr' ? 'Tüm sahneleri otomatik işleyip ZIP arşivi olarak indirin' : 'Process all scenes and download as a ZIP archive'}
         >
           <FolderArchive className="w-3.5 h-3.5" />
-          <span>{isExportingZip ? 'Paketleniyor...' : 'Tüm Seriyi ZIP İndir'}</span>
+          <span>{isExportingZip ? (language === 'tr' ? 'Paketleniyor...' : 'Exporting...') : t('ss_export_zip')}</span>
         </button>
       </div>
     </div>

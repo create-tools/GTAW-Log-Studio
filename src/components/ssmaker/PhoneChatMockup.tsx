@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n/LanguageContext';
 ﻿import React, { useRef, useState, useMemo } from 'react';
 import { toPng, toJpeg } from 'html-to-image';
 import { 
@@ -20,6 +21,7 @@ interface PhoneChatMockupProps {
 }
 
 export const PhoneChatMockup: React.FC<PhoneChatMockupProps> = ({ lines }) => {
+  const { t, language } = useLanguage();
   const [contactName, setContactName] = useState('Alex Miller');
   const [currentTime, setCurrentTime] = useState('19:30');
   const [copied, setCopied] = useState(false);

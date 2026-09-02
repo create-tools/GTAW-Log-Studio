@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n/LanguageContext';
 import React, { useState } from 'react';
 import JSZip from 'jszip';
 import { 
@@ -68,6 +69,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
   onClose,
   selectedLines,
 }) => {
+  const { t, language } = useLanguage();
   if (!isOpen) return null;
 
   const [activeTab, setActiveTab] = useState<'overlay' | 'canvas' | 'keyer' | 'phone'>('overlay');
@@ -79,7 +81,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
   const [scenes, setScenes] = useState<SSSceneItem[]>([
     {
       id: 'scene_1',
-      title: 'Sahne 1',
+      title: `${t('ss_scene')} 1`,
       bgImage: null,
       lines: selectedLines.map((l) => ({
         id: l.id,
@@ -111,7 +113,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
     const newId = `scene_${Date.now()}`;
     const newScene: SSSceneItem = {
       id: newId,
-      title: `Sahne ${scenes.length + 1}`,
+      title: `${t('ss_scene')} ${scenes.length + 1}`,
       bgImage: null,
       lines: activeScene.lines.slice(0, 10),
       chatX: 25,
@@ -131,7 +133,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
     const duplicated: SSSceneItem = {
       ...target,
       id: newId,
-      title: `${target.title} (Kopya)`,
+      title: `${target.title} ${t('ss_scene_copy')}`,
     };
     setScenes((prev) => [...prev, duplicated]);
     setActiveSceneId(newId);
@@ -255,7 +257,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
           <div className="flex items-center gap-2">
             <Camera className="w-4 h-4 text-purple-400" />
             <h2 className="text-xs font-bold text-zinc-100">
-              Roleplay SS Stüdyosu
+              {t('ss_studio_title')}
             </h2>
           </div>
 
@@ -271,7 +273,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                 }`}
               >
                 <ImageIcon className="w-3.5 h-3.5" />
-                <span>Görsel Kadrajlama & Chatbox</span>
+                <span>{t('ss_tab_overlay')}</span>
               </button>
 
               <button
@@ -283,7 +285,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
-                <span>Transparan Chatbox (PNG)</span>
+                <span>{t('ss_tab_canvas')}</span>
               </button>
 
               <button
@@ -293,10 +295,10 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                     ? 'bg-purple-600 text-white shadow-sm'
                     : 'text-zinc-400 hover:text-zinc-200'
                 }`}
-                title="Siyah arkaplanlı chat görüntüsünden siyahı ayıklayıp şeffaf yapın"
+                title={t('bsk_desc')}
               >
                 <Wand2 className="w-3.5 h-3.5 text-purple-300" />
-                <span>Siyah Arkaplan Ayıklayıcı</span>
+                <span>{t('ss_tab_keyer')}</span>
               </button>
 
               <button
@@ -306,10 +308,10 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                     ? 'bg-purple-600 text-white shadow-sm'
                     : 'text-zinc-400 hover:text-zinc-200'
                 }`}
-                title="SMS ve telefon konuşmalarını akıllı telefon ekranı olarak görselleştirin"
+                title={t('pcm_title')}
               >
                 <Smartphone className="w-3.5 h-3.5 text-sky-400" />
-                <span>Telefon Ekranı Mockup</span>
+                <span>{t('ss_tab_phone')}</span>
               </button>
             </div>
 
@@ -325,7 +327,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                       ? 'bg-zinc-800 border-zinc-700 text-zinc-200'
                       : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
                   }`}
-                  title={showLeftPanel ? 'Metin Panelini Gizle' : 'Metin Panelini Göster'}
+                  title={showLeftPanel ? t('ss_left_panel_hide') : t('ss_left_panel_show')}
                 >
                   <Type className="w-3.5 h-3.5" />
                 </button>
@@ -337,7 +339,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                       ? 'bg-zinc-800 border-zinc-700 text-zinc-200'
                       : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
                   }`}
-                  title={showRightPanel ? 'Ayar Panelini Gizle' : 'Ayar Panelini Göster'}
+                  title={showRightPanel ? t('ss_right_panel_hide') : t('ss_right_panel_show')}
                 >
                   <SlidersHorizontal className="w-3.5 h-3.5" />
                 </button>
@@ -412,12 +414,12 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                   <div className="flex items-center justify-between pb-1 border-b border-zinc-800">
                     <span className="font-bold uppercase text-[10px] text-zinc-400 tracking-wider flex items-center gap-1">
                       <Sliders className="w-3 h-3" />
-                      Stil & Kalite Ayarları
+                      {t('ss_style_quality_title')}
                     </span>
                     <button
                       onClick={() => setConfig(DEFAULT_STYLE_CONFIG)}
                       className="p-0.5 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded"
-                      title="Varsayılanlara Sıfırla"
+                      title={t('ss_reset_defaults')}
                     >
                       <RotateCcw className="w-3 h-3" />
                     </button>
@@ -427,7 +429,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                   <div className="space-y-2 bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-lg">
                     <span className="font-semibold text-zinc-300 text-[11px] flex items-center gap-1.5">
                       <HardDrive className="w-3 h-3 text-emerald-400" />
-                      Görsel Kalitesi & Sıkıştırma
+                      {t('ss_image_quality_title')}
                     </span>
 
                     <div className="grid grid-cols-2 gap-1 pt-0.5">
@@ -435,13 +437,13 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                         onClick={() => setConfig({ ...config, exportFormat: 'png', compressionQuality: 100 })}
                         className={`py-1 px-2 rounded text-[10px] font-semibold transition-colors ${config.exportFormat === 'png' ? 'bg-purple-600 text-white shadow-sm' : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'}`}
                       >
-                        PNG (HD Kayıpsız)
+                        {t('ss_format_png_hd')}
                       </button>
                       <button
                         onClick={() => setConfig({ ...config, exportFormat: 'jpeg', compressionQuality: 75 })}
                         className={`py-1 px-2 rounded text-[10px] font-semibold transition-colors ${config.exportFormat === 'jpeg' ? 'bg-purple-600 text-white shadow-sm' : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'}`}
                       >
-                        JPEG (Forum Formatı)
+                        {t('ss_format_jpeg_forum')}
                       </button>
                     </div>
 
@@ -482,7 +484,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
 
                     <div className="space-y-1 pt-1 border-t border-zinc-800/80">
                       <div className="flex justify-between text-[10px]">
-                        <span className="text-zinc-400">Nostaljik Renk Sıkıştırması</span>
+                        <span className="text-zinc-400">{language === 'tr' ? 'Nostaljik Renk Sıkıştırması' : 'Retro Color Crunch'}</span>
                         <span className="text-zinc-300 font-mono font-bold">%{config.retroCrunch || 0}</span>
                       </div>
                       <input
@@ -502,7 +504,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                   <div className="space-y-2 bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-lg">
                     <span className="font-semibold text-zinc-300 text-[11px] flex items-center gap-1.5">
                       <Type className="w-3 h-3 text-sky-400" />
-                      Chatbox Yazı Ayarları
+                      {language === 'tr' ? 'Chatbox Yazı Ayarları' : 'Chatbox Typography'}
                     </span>
 
                     <div className="space-y-1">
@@ -523,7 +525,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
 
                     <div className="space-y-1">
                       <div className="flex justify-between text-[10px]">
-                        <span className="text-zinc-400">Yazı Boyutu</span>
+                        <span className="text-zinc-400">{t('ss_font_size')}</span>
                         <span className="text-zinc-300 font-mono font-bold">{config.fontSize}px</span>
                       </div>
                       <div className="grid grid-cols-6 gap-1">
@@ -559,7 +561,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
 
                     <div className="space-y-1">
                       <div className="flex justify-between text-[10px]">
-                        <span className="text-zinc-400">Kutu Genişliği</span>
+                        <span className="text-zinc-400">{t('ss_box_width')}</span>
                         <span className="text-zinc-300 font-mono">{config.boxWidth}px</span>
                       </div>
                       <input
@@ -585,7 +587,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
 
                     <div className="space-y-1">
                       <div className="flex justify-between text-[10px]">
-                        <span className="text-zinc-400">Yazı Arkası Karartma Gradyanı</span>
+                        <span className="text-zinc-400">{t('ss_darken_overlay')}</span>
                         <span className="text-zinc-300 font-mono">%{config.darkenOverlay}</span>
                       </div>
                       <input
@@ -618,7 +620,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                     </div>
 
                     <div className="flex items-center justify-between pt-1 border-t border-zinc-800/80">
-                      <span className="text-zinc-300 text-[11px]">Köşe Gölgesi (Vinyet)</span>
+                      <span className="text-zinc-300 text-[11px]">{t('ss_vignette')}</span>
                       <input
                         type="checkbox"
                         checked={config.vignette}

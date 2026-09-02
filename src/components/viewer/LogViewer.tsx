@@ -79,7 +79,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
             onClick={onNativeOpenFile}
             className="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 text-xs font-medium transition-colors"
           >
-            {language === 'tr' ? 'Chatlog Dosyası Seç' : 'Open Chatlog File'}
+            {t('viewer_select_file')}
           </button>
         </div>
       ) : (
@@ -110,10 +110,10 @@ export const LogViewer: React.FC<LogViewerProps> = ({
               ? 'bg-emerald-950/80 border-emerald-500/50 text-emerald-300'
               : 'bg-zinc-900/90 border-zinc-800 text-zinc-400 hover:text-zinc-200'
           }`}
-          title={language === 'tr' ? 'Yeni log geldikçe alta kaydır' : 'Auto scroll to newest logs'}
+          title={t('viewer_auto_scroll_tip')}
         >
           <ArrowDown className={`w-3 h-3 ${autoScroll ? 'animate-bounce' : ''}`} />
-          <span>{language === 'tr' ? `Oto-Kaydır: ${autoScroll ? 'Açık' : 'Kapalı'}` : `Auto-Scroll: ${autoScroll ? 'ON' : 'OFF'}`}</span>
+          <span>`${t('viewer_auto_scroll')}: ${autoScroll ? t('on') : t('off')}`</span>
         </button>
       </div>
     </div>

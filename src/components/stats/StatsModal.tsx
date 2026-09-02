@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n/LanguageContext';
 ﻿import React from 'react';
 import { X, BarChart3, Users, MessageSquare } from 'lucide-react';
 import type { ParsedLogLine, LogChannel } from '../../types/log';
@@ -16,6 +17,7 @@ export const StatsModal: React.FC<StatsModalProps> = ({
   lines,
   topSpeakers,
 }) => {
+  const { t, language } = useLanguage();
   if (!isOpen) return null;
 
   const channelCounts: Record<LogChannel, number> = {} as any;
@@ -35,7 +37,7 @@ export const StatsModal: React.FC<StatsModalProps> = ({
           <div className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-sky-400" />
             <h2 className="text-xs font-bold text-zinc-100">
-              Oturum İstatistikleri
+              {t('stats_title')}
             </h2>
           </div>
 
@@ -51,7 +53,7 @@ export const StatsModal: React.FC<StatsModalProps> = ({
           {/* Özet Kartları */}
           <div className="grid grid-cols-3 gap-2">
             <div className="bg-zinc-950 border border-zinc-800 p-3 rounded-lg">
-              <div className="text-[11px] text-zinc-500 font-medium">Toplam Satır</div>
+              <div className="text-[11px] text-zinc-500 font-medium">{t('stats_total_lines')}</div>
               <div className="text-xl font-bold text-zinc-100 font-mono mt-0.5">
                 {lines.length.toLocaleString()}
               </div>
@@ -65,17 +67,17 @@ export const StatsModal: React.FC<StatsModalProps> = ({
             </div>
 
             <div className="bg-zinc-950 border border-zinc-800 p-3 rounded-lg">
-              <div className="text-[11px] text-zinc-500 font-medium">Karakter Sayısı</div>
+              <div className="text-[11px] text-zinc-500 font-medium">{t('stats_characters')}</div>
               <div className="text-xl font-bold text-zinc-100 font-mono mt-0.5">
                 {topSpeakers.length}
               </div>
             </div>
           </div>
 
-          {/* Kanal Dağılımı */}
+          {/* {t('stats_channel_dist')} */}
           <div className="space-y-2 pt-2 border-t border-zinc-800">
             <h3 className="text-[11px] font-bold uppercase text-zinc-400 tracking-wider">
-              Kanal Dağılımı
+              {t('stats_channel_dist')}
             </h3>
             <div className="space-y-1.5">
               {(Object.keys(CHANNEL_LABELS) as LogChannel[]).map((ch) => {

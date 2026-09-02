@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n/LanguageContext';
 ﻿import React, { useRef, useState } from 'react';
 import { toPng, toBlob } from 'html-to-image';
 import { Download, Copy, Check, ZoomIn, ZoomOut } from 'lucide-react';
@@ -10,6 +11,7 @@ interface CanvasPreviewProps {
 }
 
 export const CanvasPreview: React.FC<CanvasPreviewProps> = ({ lines, config, previewRef }) => {
+  const { t, language } = useLanguage();
   const localRef = useRef<HTMLDivElement>(null);
   const targetRef = previewRef || localRef;
 
@@ -37,7 +39,7 @@ export const CanvasPreview: React.FC<CanvasPreviewProps> = ({ lines, config, pre
       }
     } catch (err) {
       console.error('Panoya kopyalama hatası:', err);
-      alert('Görsel panoya kopyalanamadı. Lütfen PNG İndir seçeneğini kullanın.');
+      alert(language === 'tr' ? 'Görsel panoya kopyalanamadı.' : 'Failed to copy image to clipboard.');
     }
   };
 
@@ -90,13 +92,13 @@ export const CanvasPreview: React.FC<CanvasPreviewProps> = ({ lines, config, pre
       <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold uppercase text-zinc-400 tracking-wider">
-            Transparan Chatbox Önizleme
+            {t('ss_tab_canvas')}
           </span>
           <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded px-1 py-0.5">
             <button
               onClick={() => setZoom(Math.max(0.7, zoom - 0.1))}
               className="p-1 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded"
-              title="Küçült"
+              title={language === 'tr' ? 'Küçült' : 'Zoom Out'}
             >
               <ZoomOut className="w-3 h-3" />
             </button>
@@ -106,7 +108,7 @@ export const CanvasPreview: React.FC<CanvasPreviewProps> = ({ lines, config, pre
             <button
               onClick={() => setZoom(Math.min(1.8, zoom + 0.1))}
               className="p-1 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded"
-              title="Büyüt"
+              title={language === 'tr' ? 'Büyüt' : 'Zoom In'}
             >
               <ZoomIn className="w-3 h-3" />
             </button>
@@ -117,20 +119,20 @@ export const CanvasPreview: React.FC<CanvasPreviewProps> = ({ lines, config, pre
           <button
             onClick={handleCopyToClipboard}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-sm transition-all"
-            title="Photoshop veya Discord'a yapıştırmak için doğrudan panoya kopyalar"
+            title={t('io_copy_png_photoshop')}
           >
             {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copied ? 'Panoya Kopyalandı!' : 'Panoya Kopyala'}</span>
+            <span>{copied ? t('io_copied') : t('io_copy_png_photoshop')}</span>
           </button>
 
           <button
             disabled={downloading}
             onClick={handleDownloadPng}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 text-xs font-medium transition-colors"
-            title="Transparan PNG olarak bilgisayarınıza indirin"
+            title={t('io_export_image')}
           >
             <Download className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{downloading ? 'İndiriliyor...' : 'PNG İndir'}</span>
+            <span>{downloading ? (language === 'tr' ? 'İndiriliyor...' : 'Downloading...') : t('io_export_image')}</span>
           </button>
         </div>
       </div>
@@ -139,7 +141,7 @@ export const CanvasPreview: React.FC<CanvasPreviewProps> = ({ lines, config, pre
       <div className="flex-1 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:16px_16px] bg-zinc-950/80 border border-zinc-800 rounded-lg p-4 overflow-auto flex items-center justify-center relative min-h-[300px]">
         {lines.length === 0 ? (
           <div className="text-center text-zinc-500 text-xs">
-            Görüntülenecek satır bulunamadı.
+            {t('pe_no_lines')}
           </div>
         ) : (
           <div

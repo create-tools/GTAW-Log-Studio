@@ -4,7 +4,7 @@ import { translations, Language, TranslationKey } from './translations';
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: TranslationKey, fallback?: string) => string;
+  t: (key: TranslationKey | string, fallback?: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -26,14 +26,15 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     (window as any).electronAPI?.updateAppLanguage?.(language);
   }, [language]);
 
-  const t = (key: TranslationKey, fallback?: string): string => {
-    const langDict = translations[language];
+  const t = (key: TranslationKey | string, fallback?: string): string => {
+    const allTranslations = translations as Record<string, Record<string, string>>;
+    const langDict = allTranslations[language];
     if (langDict && langDict[key]) {
       return langDict[key];
     }
     // Fallback to English dictionary
-    if (translations.en && translations.en[key]) {
-      return translations.en[key];
+    if (allTranslations.en && allTranslations.en[key]) {
+      return allTranslations.en[key];
     }
     return fallback || key;
   };

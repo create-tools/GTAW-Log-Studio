@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n/LanguageContext';
 import React, { useState } from 'react';
 import { 
   Type, 
@@ -23,6 +24,7 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
   lines,
   onUpdateLines,
 }) => {
+  const { t, language } = useLanguage();
   const [editorMode, setEditorMode] = useState<'paragraph' | 'lines'>('paragraph');
   const [rawParagraphText, setRawParagraphText] = useState(() =>
     lines.map((l) => l.text).join('\n')
@@ -109,7 +111,7 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
             }`}
           >
             <AlignLeft className="w-3.5 h-3.5" />
-            <span>Toplu Paragraf Metni</span>
+            <span>{t('pe_bulk_mode')}</span>
           </button>
 
           <button
@@ -121,7 +123,7 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
             }`}
           >
             <ListOrdered className="w-3.5 h-3.5" />
-            <span>Satır Satır Düzenle ({lines.length})</span>
+            <span>{t('pe_line_mode')} ({lines.length})</span>
           </button>
         </div>
       </div>
@@ -130,7 +132,7 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
       {editorMode === 'paragraph' && (
         <div className="flex-1 flex flex-col space-y-2">
           <div className="text-[11px] text-zinc-400">
-            Diyalog ve emote'ları buraya serbestçe yazabilir veya yapıştırabilirsiniz. Otomatik renklendirilir:
+            {t('pe_subtitle')}:
           </div>
 
           <textarea
@@ -176,7 +178,7 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
         <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
           {lines.length === 0 ? (
             <div className="text-center py-12 text-xs text-zinc-500">
-              Henüz satır eklenmedi.
+              {t('pe_no_lines')}
             </div>
           ) : (
             lines.map((line, idx) => (
@@ -202,7 +204,7 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
                     value={line.color}
                     onChange={(e) => updateSingleLineColor(idx, e.target.value)}
                     className="w-6 h-6 rounded border-0 bg-transparent cursor-pointer shrink-0"
-                    title="Satır Rengini Değiştir"
+                    title={t('pe_line_color')}
                   />
 
                   {/* Taşıma & Silme */}
@@ -210,7 +212,7 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
                     disabled={idx === 0}
                     onClick={() => moveLine(idx, idx - 1)}
                     className="p-1 text-zinc-500 hover:text-zinc-200 disabled:opacity-30"
-                    title="Yukarı Taşı"
+                    title={t('pe_move_up')}
                   >
                     <ArrowUp className="w-3.5 h-3.5" />
                   </button>
@@ -219,7 +221,7 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
                     disabled={idx === lines.length - 1}
                     onClick={() => moveLine(idx, idx + 1)}
                     className="p-1 text-zinc-500 hover:text-zinc-200 disabled:opacity-30"
-                    title="Aşağı Taşı"
+                    title={t('pe_move_down')}
                   >
                     <ArrowDown className="w-3.5 h-3.5" />
                   </button>
@@ -227,7 +229,7 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
                   <button
                     onClick={() => deleteLine(idx)}
                     className="p-1 text-zinc-500 hover:text-red-400"
-                    title="Satırı Sil"
+                    title={t('pe_delete_line')}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

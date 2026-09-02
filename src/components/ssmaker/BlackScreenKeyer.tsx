@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n/LanguageContext';
 ﻿import React, { useRef, useState, useEffect } from 'react';
 import { 
   Upload, 
@@ -20,6 +21,7 @@ interface BlackScreenKeyerProps {
 export const BlackScreenKeyer: React.FC<BlackScreenKeyerProps> = ({
   onApplyKeyedImageToOverlay,
 }) => {
+  const { t, language } = useLanguage();
   const [sourceImage, setSourceImage] = useState<string | null>(null);
   const [processedDataUrl, setProcessedDataUrl] = useState<string | null>(null);
 
@@ -228,7 +230,7 @@ export const BlackScreenKeyer: React.FC<BlackScreenKeyerProps> = ({
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-zinc-700 transition-colors"
             >
               <Download className="w-3.5 h-3.5 text-emerald-400" />
-              <span>PNG İndir</span>
+              <span>{t('bsk_download_transparent')}</span>
             </button>
           </div>
         )}

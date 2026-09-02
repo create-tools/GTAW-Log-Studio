@@ -280,7 +280,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
             <span className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-amber-400" />
-              {language === 'tr' ? 'Sahne Zaman Aralığı Belirle' : 'Set Scene Time Window'}
+              {t('fb_time_window_title')}
             </span>
             <button
               onClick={() => setShowTimeRangeModal(false)}
@@ -292,7 +292,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="space-y-1">
-              <label className="text-[10px] text-zinc-400">{language === 'tr' ? 'Başlangıç Saati:' : 'Start Time:'}</label>
+              <label className="text-[10px] text-zinc-400">{t('fb_start_time')}</label>
               <input
                 type="text"
                 placeholder="21:15:00"
@@ -303,7 +303,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] text-zinc-400">{language === 'tr' ? 'Bitiş Saati:' : 'End Time:'}</label>
+              <label className="text-[10px] text-zinc-400">{t('fb_end_time')}</label>
               <input
                 type="text"
                 placeholder="21:45:00"
@@ -319,7 +319,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               onClick={handleClearTimeRange}
               className="text-[11px] text-zinc-400 hover:text-zinc-200"
             >
-              {language === 'tr' ? 'Sıfırla' : 'Reset'}
+              {t('fb_reset')}
             </button>
 
             <button
