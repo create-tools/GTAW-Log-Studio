@@ -2,6 +2,15 @@ const { app, BrowserWindow, ipcMain, clipboard, nativeImage, dialog, shell, Tray
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
+
+// Tüm sürümler (Portable, Setup, Güncellemeler) için kalıcı userData dizinini sabitle
+const persistentUserData = path.join(app.getPath('appData'), 'gtaw-log-studio');
+try {
+  app.setPath('userData', persistentUserData);
+} catch (e) {
+  console.error('Set userData error:', e);
+}
+
 const { FiveMChatCapture, DEFAULT_SESSIONS_DIR } = require('./fivemCapture.cjs');
 
 let mainWindow = null;
@@ -151,21 +160,43 @@ function createTray() {
 // IPC İşleyicileri
 ipcMain.handle('get-saved-session-files', (event, customDir) => {
   try {
-    const targetDir = customDir || DEFAULT_SESSIONS_DIR;
-    if (!fs.existsSync(targetDir)) return [];
-    const files = fs.readdirSync(targetDir).filter((f) => f.endsWith('.txt'));
-    return files.map((f) => {
-      const fullPath = path.join(targetDir, f);
-      const stat = fs.statSync(fullPath);
-      const content = fs.readFileSync(fullPath, 'utf8');
-      return {
-        fileName: f,
-        filePath: fullPath,
-        content: content,
-        modifiedAt: stat.mtimeMs,
-        size: stat.size,
-      };
-    });
+    const localAppData = process.env.LOCALAPPDATA || path.join(process.env.USERPROFILE || '', 'AppData', 'Local');
+    const appData = process.env.APPDATA || path.join(process.env.USERPROFILE || '', 'AppData', 'Roaming');
+
+    const searchDirs = [
+      customDir,
+      DEFAULT_SESSIONS_DIR,
+      path.join(localAppData, 'GTAW-Log-Parser-FiveM', 'sessions'),
+      path.join(localAppData, 'GTAW-Log-Studio', 'sessions'),
+      path.join(localAppData, 'gtaw-log-studio', 'sessions'),
+      path.join(appData, 'GTAW Log Studio', 'sessions'),
+      path.join(appData, 'gtaw-log-studio', 'sessions'),
+    ].filter(Boolean);
+
+    const seenFiles = new Set();
+    const result = [];
+
+    for (const dir of searchDirs) {
+      if (!fs.existsSync(dir)) continue;
+      const files = fs.readdirSync(dir).filter((f) => f.endsWith('.txt'));
+      for (const f of files) {
+        if (seenFiles.has(f)) continue;
+        seenFiles.add(f);
+
+        const fullPath = path.join(dir, f);
+        const stat = fs.statSync(fullPath);
+        const content = fs.readFileSync(fullPath, 'utf8');
+        result.push({
+          fileName: f,
+          filePath: fullPath,
+          content: content,
+          modifiedAt: stat.mtimeMs,
+          size: stat.size,
+        });
+      }
+    }
+
+    return result.sort((a, b) => b.modifiedAt - a.modifiedAt);
   } catch (err) {
     console.error('Saved sessions read error:', err);
     return [];
@@ -442,38 +473,44 @@ ipcMain.handle('install-update', async (event, customInstallerPath) => {
 
     if (isPortable && (portableOrigFile || portableOrigDir)) {
       const targetExePath = portableOrigFile || path.join(portableOrigDir, path.basename(downloadedPath));
-      const updaterBatPath = path.join(app.getPath('temp'), `gtaw_update_${Date.now()}.bat`);
+      const vbsPath = path.join(app.getPath('temp'), `gtaw_update_${Date.now()}.vbs`);
 
-      const batScript = `@echo off
-timeout /t 2 /nobreak >nul
-copy /y "${downloadedPath}" "${targetExePath}" >nul
-start "" "${targetExePath}"
-del "%~f0"
+      // 100% sessiz, siyah CMD penceresi çıkarmayan Windows Script Host (wscript) köprüsü
+      const vbsContent = `
+Set WshShell = CreateObject("WScript.Shell")
+WScript.Sleep 1500
+Set fso = CreateObject("Scripting.FileSystemObject")
+On Error Resume Next
+fso.CopyFile "${downloadedPath.replace(/\\/g, '\\\\')}", "${targetExePath.replace(/\\/g, '\\\\')}", True
+WshShell.Run Chr(34) & "${targetExePath.replace(/\\/g, '\\\\')}" & Chr(34), 1, False
+fso.DeleteFile WScript.ScriptFullName
 `;
 
-      fs.writeFileSync(updaterBatPath, batScript, 'utf8');
+      fs.writeFileSync(vbsPath, vbsContent, 'utf8');
 
-      const child = spawn('cmd.exe', ['/c', updaterBatPath], {
+      const child = spawn('wscript.exe', [vbsPath], {
         detached: true,
         stdio: 'ignore',
+        windowsHide: true,
       });
       child.unref();
 
       setTimeout(() => {
         app.quit();
-      }, 400);
+      }, 300);
 
       return { success: true };
     } else {
       const child = spawn(downloadedPath, [], {
         detached: true,
         stdio: 'ignore',
+        windowsHide: true,
       });
       child.unref();
 
       setTimeout(() => {
         app.quit();
-      }, 500);
+      }, 400);
 
       return { success: true };
     }

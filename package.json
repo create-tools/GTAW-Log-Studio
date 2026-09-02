@@ -1,6 +1,6 @@
 {
   "name": "gtaw-log-studio",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "main": "electron/main.cjs",
   "description": "GTA World FiveM Native Chatlog Engine, Auto-Backup & Roleplay SS Studio by Altay",

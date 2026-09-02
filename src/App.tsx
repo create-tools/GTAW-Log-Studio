@@ -354,18 +354,31 @@ export function App() {
           if (Array.isArray(savedFiles) && savedFiles.length > 0) {
             let latestId = '';
             for (const file of savedFiles) {
-              const sessId = `sess_${file.modifiedAt}`;
-              const existingSess = allSessions.find((s) => s.id === sessId);
+              const baseName = file.fileName.replace(/\.txt$/i, '');
+              const sessId = `sess_${baseName}`;
+              const existingSess = allSessions.find((s) => s.id === sessId || s.id === `sess_${file.modifiedAt}`);
               const logCount = await db.logs.where('sessionId').equals(sessId).count();
 
               if (!existingSess || logCount === 0) {
                 const parsed = parseRawLogText(file.content, sessId);
-                const dateStr = new Date(file.modifiedAt).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
-                const timeStr = new Date(file.modifiedAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+                
+                // Dosya adından tarih ve saat çıkarma (session_2026-09-02_19-09)
+                let name = '';
+                const nameMatch = baseName.match(/session_(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})/);
+                if (nameMatch) {
+                  const [_, y, m, d, hh, mm] = nameMatch;
+                  const dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d), parseInt(hh), parseInt(mm));
+                  const dateStr = dateObj.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
+                  name = `${dateStr} • ${hh}:${mm}`;
+                } else {
+                  const dateStr = new Date(file.modifiedAt).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
+                  const timeStr = new Date(file.modifiedAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+                  name = `${dateStr} • ${timeStr}`;
+                }
 
                 const sess: GameSession = {
                   id: sessId,
-                  name: `${dateStr} • ${timeStr}`,
+                  name: name,
                   createdAt: file.modifiedAt,
                   startedAt: file.modifiedAt,
                   totalLines: parsed.length,
