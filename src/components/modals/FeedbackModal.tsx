@@ -44,10 +44,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
         ? t('feedback_type_feature')
         : t('feedback_type_general');
 
-    const summaryHeading = language === 'tr' ? 'Özet' : 'Summary';
-    const detailsHeading = language === 'tr' ? 'Açıklama & Detaylar' : 'Description & Details';
-    const envHeading = language === 'tr' ? 'Sistem & Çevre Bilgileri' : 'Environment & System Specs';
-    const typeHeading = language === 'tr' ? 'Bildirim Türü' : 'Type';
+    const summaryHeading = t('feedback_summary_title');
+    const detailsHeading = t('feedback_details_title');
+    const envHeading = t('feedback_env_title');
+    const typeHeading = t('feedback_type_title');
 
     return `### ${typeHeading}: ${typeLabel}
 

@@ -42,7 +42,7 @@ export const LineEditor: React.FC<LineEditorProps> = ({ lines, onUpdateLines }) 
   const addNewLine = () => {
     const newItem: SSLineItem = {
       id: `custom_${Date.now()}`,
-      text: '* John Doe yeni bir rol eylemi gerçekleştirir.',
+      text: '* John Doe performs an action.',
       color: CHANNEL_COLORS.me,
       channel: 'me',
       isCustom: true,
@@ -61,7 +61,7 @@ export const LineEditor: React.FC<LineEditorProps> = ({ lines, onUpdateLines }) 
           className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 text-xs font-semibold transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
-          Satır Ekle
+          {t('le_add_line')}
         </button>
       </div>
 

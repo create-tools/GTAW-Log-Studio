@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   RefreshCw, 
@@ -42,7 +42,7 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
           currentVersion: '1.0.0',
           latestVersion: '1.0.0',
           hasUpdate: false,
-          releaseNotes: language === 'tr' ? 'En güncel sürümü kullanıyorsunuz.' : 'You are using the latest version.',
+          releaseNotes: t('updates_latest_version'),
         });
         setLoading(false);
       }, 600);

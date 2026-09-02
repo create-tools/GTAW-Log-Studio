@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { X, Keyboard } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
 
@@ -13,24 +13,16 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
 
-  const shortcuts = language === 'tr' ? [
-    { key: 'Ctrl + F', desc: 'Arama kutusuna odaklan' },
-    { key: 'Ctrl + S', desc: 'SS Stüdyosu’nu aç' },
-    { key: 'Ctrl + Shift + F', desc: 'Saf Rol Modu’nu aç/kapat' },
-    { key: 'Ctrl + Shift + C', desc: 'Seçili satırları panoya kopyala' },
-    { key: 'Shift + Tık', desc: 'İki satır arasındaki tüm logları topluca seç' },
-    { key: 'Esc', desc: 'Açık modalları veya aktif aramayı kapat' },
-    { key: '?', desc: 'Klavye kısayolları kılavuzunu göster' },
-  ] : [
-    { key: 'Ctrl + F', desc: 'Focus search input' },
-    { key: 'Ctrl + S', desc: 'Open SS Studio' },
-    { key: 'Ctrl + Shift + F', desc: 'Toggle Clean Roleplay Mode' },
-    { key: 'Ctrl + Shift + C', desc: 'Copy selected lines to clipboard' },
-    { key: 'Shift + Click', desc: 'Range select lines between two clicks' },
-    { key: 'Esc', desc: 'Close open modals or clear search' },
-    { key: '?', desc: 'Show keyboard shortcuts guide' },
+  const shortcuts = [
+    { key: 'Ctrl + F', desc: t('sg_search') },
+    { key: 'Ctrl + S', desc: t('sg_ss_studio') },
+    { key: 'Ctrl + Shift + F', desc: t('sg_clean_rp') },
+    { key: 'Ctrl + Shift + C', desc: t('sg_export_clipboard') },
+    { key: 'Shift + ' + t('sg_click_label'), desc: t('sg_range_select') },
+    { key: 'Esc', desc: t('sg_close_modals') },
+    { key: '?', desc: t('sg_shortcuts_guide') },
   ];
 
   return (

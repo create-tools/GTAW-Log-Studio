@@ -199,19 +199,19 @@ export const BlackScreenKeyer: React.FC<BlackScreenKeyerProps> = ({
                 onClick={() => setPreviewMode('checker')}
                 className={`px-2 py-0.5 rounded ${previewMode === 'checker' ? 'bg-purple-600 text-white font-bold' : 'text-zinc-400 hover:text-zinc-200'}`}
               >
-                Şeffaf
+                {t('bsk_transparent')}
               </button>
               <button
                 onClick={() => setPreviewMode('white')}
                 className={`px-2 py-0.5 rounded ${previewMode === 'white' ? 'bg-purple-600 text-white font-bold' : 'text-zinc-400 hover:text-zinc-200'}`}
               >
-                Beyaz
+                {t('bsk_bg_white')}
               </button>
               <button
                 onClick={() => setPreviewMode('black')}
                 className={`px-2 py-0.5 rounded ${previewMode === 'black' ? 'bg-purple-600 text-white font-bold' : 'text-zinc-400 hover:text-zinc-200'}`}
               >
-                Orijinal Siyah
+                {t('bsk_bg_black')}
               </button>
             </div>
 

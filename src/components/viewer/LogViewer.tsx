@@ -70,9 +70,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
             {t('no_logs_found')}
           </h2>
           <p className="text-xs text-zinc-500 max-w-sm mb-4 leading-relaxed">
-            {language === 'tr'
-              ? "FiveM'e girdiğinizde oyun logları buraya anlık aktarılır. İsterseniz var olan bir chatlog dosyasını sürükleyip bırakabilir veya açabilirsiniz."
-              : 'When you play on FiveM, logs will be captured in real-time. You can also drag & drop or open an existing chatlog file.'}
+            {t('viewer_empty_desc')}
           </p>
 
           <button

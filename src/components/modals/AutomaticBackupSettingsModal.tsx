@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { 
   X, 
   Save, 
@@ -60,7 +60,7 @@ export const AutomaticBackupSettingsModal: React.FC<AutomaticBackupSettingsModal
           <div className="flex items-center gap-2.5">
             <HardDrive className="w-4 h-4 text-purple-400" />
             <h2 className="text-xs font-bold text-zinc-100">
-              {language === 'tr' ? 'Otomatik Yedekleme Ayarları' : 'Automatic Backup Settings'}
+              {t('backup_settings_title')}
             </h2>
           </div>
           <button
@@ -83,12 +83,10 @@ export const AutomaticBackupSettingsModal: React.FC<AutomaticBackupSettingsModal
             />
             <div>
               <span className="font-bold text-zinc-100 text-xs block">
-                {language === 'tr' ? 'Otomatik Arka Plan Yedeklemesini Etkinleştir' : 'Enable Automatic Background Backups'}
+                {t('backup_enable_auto')}
               </span>
               <span className="text-[11px] text-zinc-400 block mt-0.5">
-                {language === 'tr'
-                  ? 'FiveM chatlog dosyanızdaki yeni satırlar her 10 dakikada bir veya oyun kapandığında belirlenen klasöre .txt olarak kaydedilir.'
-                  : 'New lines from your FiveM chatlog are backed up periodically and on game close to your chosen folder as .txt files.'}
+                {t('backup_desc')}
               </span>
             </div>
           </label>
@@ -96,14 +94,14 @@ export const AutomaticBackupSettingsModal: React.FC<AutomaticBackupSettingsModal
           {/* Yedekleme Klasörü */}
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold text-zinc-300">
-              {language === 'tr' ? 'Yedekleme Klasörü:' : 'Backup Destination Folder:'}
+              {t('backup_folder_label')}
             </label>
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 value={form.backupPath}
                 onChange={(e) => setForm({ ...form, backupPath: e.target.value })}
-                placeholder={language === 'tr' ? 'Varsayılan: Belgelerim / GTAW_Log_Backups' : 'Default: Documents / GTAW_Log_Backups'}
+                placeholder={t('backup_folder_placeholder')}
                 className="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs font-mono text-zinc-200 focus:outline-none focus:border-purple-500 shadow-inner"
               />
               <button
@@ -111,7 +109,7 @@ export const AutomaticBackupSettingsModal: React.FC<AutomaticBackupSettingsModal
                 onClick={handleBrowseFolder}
                 className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-zinc-700 transition-colors shrink-0"
               >
-                {language === 'tr' ? 'Gözat...' : 'Browse...'}
+                {t('backup_browse')}
               </button>
             </div>
           </div>
@@ -119,7 +117,7 @@ export const AutomaticBackupSettingsModal: React.FC<AutomaticBackupSettingsModal
           {/* Periyodik Aralık */}
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold text-zinc-300">
-              {language === 'tr' ? 'Yedekleme Sıklığı (Dakika):' : 'Periodic Interval (Minutes):'}
+              {t('backup_interval_label')}
             </label>
             <input
               type="number"

@@ -266,6 +266,23 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
   }
 
   // 4. Telefon & SMS
+  const phoneCallMatch = text.match(/^([A-Za-z0-9_]+(?:\s+[A-Za-z0-9_]+)?)\s*\((?:telefon|phone)\):\s*(.*)/i);
+  if (phoneCallMatch) {
+    const sp = phoneCallMatch[1].trim();
+    return {
+      id,
+      raw,
+      cleaned: text,
+      channel: 'phone',
+      timestamp,
+      speaker: isValidCharacterName(sp) ? sp : undefined,
+      content: text,
+      colorHex: CHANNEL_COLORS.phone,
+      sessionId,
+      lineIndex,
+    };
+  }
+
   const phoneMatch = text.match(/^\[(?:SMS|Telefon|Phone|Call|Arama|Mesaj|WORK PHONE)[^\]]*\]\s*(.*)/i);
   if (phoneMatch) {
     return {
@@ -316,7 +333,7 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
   }
 
   // 7. Admin & Ceza
-  const adminMatch = text.match(/^\\[(?:ADM|ADMIN|YÖNETİCİ|SERVER|KICK|BAN|JAIL|REPORT|DUYURU|UYARI)\\]\\s*(.*)/i);
+  const adminMatch = text.match(/^\[(?:ADM|ADMIN|YÖNETİCİ|SERVER|KICK|BAN|JAIL|REPORT|DUYURU|UYARI)\]\s*(.*)/i);
   if (adminMatch || text.startsWith('Admin ') || text.startsWith('Yönetici ')) {
     return {
       id,

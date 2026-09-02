@@ -516,9 +516,9 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                         }
                         className="w-full bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 focus:outline-none"
                       >
-                        <option value="Segoe UI">Segoe UI (GTAW Standart)</option>
-                        <option value="Arial">Arial (Klasik SA-MP)</option>
-                        <option value="Tahoma">Tahoma (Kompakt)</option>
+                        <option value="Segoe UI">Segoe UI</option>
+                        <option value="Arial">Arial</option>
+                        <option value="Tahoma">Tahoma</option>
                         <option value="Courier New">Courier New</option>
                       </select>
                     </div>
@@ -578,11 +578,11 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                     </div>
                   </div>
 
-                  {/* 🌗 {t('ss_atmosphere_readability')} Sürgüleri */}
+                  {/* Atmosphere & Readability */}
                   <div className="space-y-2 bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-lg">
                     <span className="font-semibold text-zinc-300 text-[11px] flex items-center gap-1.5">
                       <SunMedium className="w-3 h-3 text-amber-400" />
-                      Atmosfer & Okunabilirlik
+                      {t('ss_canvas_cinematic')}
                     </span>
 
                     <div className="space-y-1">

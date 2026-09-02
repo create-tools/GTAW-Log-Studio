@@ -39,7 +39,7 @@ export const CanvasPreview: React.FC<CanvasPreviewProps> = ({ lines, config, pre
       }
     } catch (err) {
       console.error('Panoya kopyalama hatası:', err);
-      alert(language === 'tr' ? 'Görsel panoya kopyalanamadı.' : 'Failed to copy image to clipboard.');
+      alert(t('copy_failed'));
     }
   };
 
@@ -98,7 +98,7 @@ export const CanvasPreview: React.FC<CanvasPreviewProps> = ({ lines, config, pre
             <button
               onClick={() => setZoom(Math.max(0.7, zoom - 0.1))}
               className="p-1 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded"
-              title={language === 'tr' ? 'Küçült' : 'Zoom Out'}
+              title={t('zoom_out')}
             >
               <ZoomOut className="w-3 h-3" />
             </button>
@@ -108,7 +108,7 @@ export const CanvasPreview: React.FC<CanvasPreviewProps> = ({ lines, config, pre
             <button
               onClick={() => setZoom(Math.min(1.8, zoom + 0.1))}
               className="p-1 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded"
-              title={language === 'tr' ? 'Büyüt' : 'Zoom In'}
+              title={t('zoom_in')}
             >
               <ZoomIn className="w-3 h-3" />
             </button>

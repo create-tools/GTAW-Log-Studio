@@ -81,7 +81,7 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
           <div className="space-y-3">
             <span className="font-semibold text-zinc-300 text-[11px] flex items-center gap-1.5 border-b border-zinc-800 pb-1">
               <Bell className="w-3.5 h-3.5 text-amber-400" />
-              {language === 'tr' ? 'Canlı Sesli Uyarılar & AFK Alarmı' : 'Live Sound Alerts & AFK Alarm'}
+              {t('ps_sound_section_title')}
             </span>
 
             <div className="space-y-2.5">
@@ -107,16 +107,14 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
                     />
                     <span className="text-[10px] leading-tight">
                       <strong>{t('ps_alt_tab_only')}</strong>{' '}
-                      {language === 'tr'
-                        ? 'Oyunu aktif olarak oynarken sessiz kalır, masaüstüne veya tarayıcıya geçtiğinizde uyarır.'
-                        : 'Stays quiet while in-game, only plays chime when switched to desktop or browser.'}
+                      {t('ps_alt_tab_desc')}
                     </span>
                   </label>
 
                   {/* Karakter Adı */}
                   <div className="space-y-1">
                     <label className="text-[10px] text-zinc-400">
-                      {language === 'tr' ? 'Karakter Adınız (Bahsedilince uyar):' : 'Your Character Name (Alert when mentioned):'}
+                      {t('ps_char_name_desc')}
                     </label>
                     <input
                       type="text"
@@ -151,7 +149,7 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
                   {/* Özel Anahtar Kelimeler */}
                   <div className="space-y-1">
                     <label className="text-[10px] text-zinc-400">
-                      {language === 'tr' ? 'Acil Durum Kelimeleri (Virgülle ayırın):' : 'Urgent Keywords (Comma-separated):'}
+                      {t('ps_urgent_keywords_desc')}
                     </label>
                     <input
                       type="text"

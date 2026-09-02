@@ -5,6 +5,10 @@ export function cleanLogLine(raw: string): string {
   if (!raw) return '';
   let line = raw.trim();
 
+  // 0. ANSI terminal renk kodlarını ve kontrol karakterlerini temizle
+  line = line.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, '');
+  line = line.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+
   // 1. CitizenFX log öneklerini temizle: [ 12345] [ citizen-server-impl] vs.
   line = line.replace(/^\[\s*\d+\s*\]\s*\[[^\]]+\]\s*/i, '');
   line = line.replace(/^\[script:[^\]]+\]\s*/i, '');
