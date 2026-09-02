@@ -9,9 +9,13 @@ import {
   ArrowDown, 
   Sparkles,
   Palette,
-  AlignLeft
+  AlignLeft,
+  CheckSquare,
+  Square,
+  Pipette
 } from 'lucide-react';
 import type { SSLineItem } from '../../types/ssMaker';
+import { GTAW_PALETTE_COLORS } from '../../types/ssMaker';
 import type { LogChannel } from '../../types/log';
 import { parseSingleLogLine } from '../../core/parser';
 
@@ -24,11 +28,15 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
   lines,
   onUpdateLines,
 }) => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [editorMode, setEditorMode] = useState<'paragraph' | 'lines'>('paragraph');
   const [rawParagraphText, setRawParagraphText] = useState(() =>
     lines.map((l) => l.text).join('\n')
   );
+
+  const [selectedLineIndices, setSelectedLineIndices] = useState<Set<number>>(new Set());
+  const [activeColorPickerIdx, setActiveColorPickerIdx] = useState<number | null>(null);
+  const [customColor, setCustomColor] = useState('#FFFFFF');
 
   // Paragraf / Çoklu Satır Metin Alanı Güncellemesi
   const handleParagraphChange = (text: string) => {
@@ -62,6 +70,27 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
     handleParagraphChange(newText);
   };
 
+  // Tekil veya Seçili Satırlara Renk Uygulama
+  const applyColorToSelection = (colorHex: string) => {
+    if (selectedLineIndices.size === 0) {
+      if (lines.length > 0) {
+        const updated = [...lines];
+        const lastIdx = lines.length - 1;
+        updated[lastIdx] = { ...updated[lastIdx], color: colorHex };
+        onUpdateLines(updated);
+      }
+      return;
+    }
+
+    const updated = lines.map((line, idx) => {
+      if (selectedLineIndices.has(idx)) {
+        return { ...line, color: colorHex };
+      }
+      return line;
+    });
+    onUpdateLines(updated);
+  };
+
   // Tekil Satır Düzenleme
   const updateSingleLineText = (idx: number, newText: string) => {
     const updated = [...lines];
@@ -80,6 +109,24 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
     const updated = [...lines];
     updated[idx] = { ...updated[idx], color: newColor };
     onUpdateLines(updated);
+    setActiveColorPickerIdx(null);
+  };
+
+  const toggleSelectLine = (idx: number) => {
+    setSelectedLineIndices((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  };
+
+  const selectAllLines = () => {
+    if (selectedLineIndices.size === lines.length) {
+      setSelectedLineIndices(new Set());
+    } else {
+      setSelectedLineIndices(new Set(lines.map((_, i) => i)));
+    }
   };
 
   const moveLine = (from: number, to: number) => {
@@ -95,6 +142,14 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
     const updated = lines.filter((_, i) => i !== idx);
     onUpdateLines(updated);
     setRawParagraphText(updated.map((l) => l.text).join('\n'));
+    setSelectedLineIndices((prev) => {
+      const next = new Set<number>();
+      prev.forEach((val) => {
+        if (val < idx) next.add(val);
+        else if (val > idx) next.add(val - 1);
+      });
+      return next;
+    });
   };
 
   return (
@@ -125,6 +180,81 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
             <ListOrdered className="w-3.5 h-3.5" />
             <span>{t('pe_line_mode')} ({lines.length})</span>
           </button>
+        </div>
+
+        {editorMode === 'lines' && lines.length > 0 && (
+          <button
+            onClick={selectAllLines}
+            className="flex items-center gap-1 text-[11px] text-zinc-400 hover:text-purple-300 transition-colors"
+          >
+            {selectedLineIndices.size === lines.length ? (
+              <CheckSquare className="w-3.5 h-3.5 text-purple-400" />
+            ) : (
+              <Square className="w-3.5 h-3.5" />
+            )}
+            <span>{selectedLineIndices.size > 0 ? `${selectedLineIndices.size} ${t('filter_selected_count')}` : t('select_all')}</span>
+          </button>
+        )}
+      </div>
+
+      {/* 🎨 Hızlı GTAW Renk Paleti Çubuğu (Chatlog Magician Tarzı) */}
+      <div className="bg-zinc-900/90 border border-zinc-800 rounded-lg p-2 space-y-1.5 shadow-inner">
+        <div className="flex items-center justify-between text-[11px]">
+          <span className="font-semibold text-zinc-300 flex items-center gap-1">
+            <Palette className="w-3.5 h-3.5 text-purple-400" />
+            {t('color_palette_title')}
+          </span>
+          <span className="text-[10px] text-zinc-500 font-mono">
+            {selectedLineIndices.size > 0 ? `${selectedLineIndices.size} ${t('ss_apply_color_to_selected')}` : t('color_palette_title')}
+          </span>
+        </div>
+
+        {/* 16 Renk Kutucuk Grid'i */}
+        <div className="grid grid-cols-8 gap-1">
+          {GTAW_PALETTE_COLORS.map((cp) => (
+            <button
+              key={cp.id}
+              onClick={() => applyColorToSelection(cp.hex)}
+              title={`${t(cp.nameKey as any)} (${cp.hex})`}
+              className="group relative aspect-square rounded border border-zinc-700/80 hover:scale-110 hover:z-10 hover:border-white transition-all shadow-sm flex items-center justify-center cursor-pointer"
+              style={{ backgroundColor: cp.hex }}
+            >
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity absolute -bottom-5 left-1/2 -translate-x-1/2 bg-black/90 text-[9px] text-white font-mono px-1 py-0.2 rounded border border-zinc-700 whitespace-nowrap pointer-events-none z-30">
+                {cp.hex}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Özel Renk Seçici */}
+        <div className="flex items-center gap-2 pt-1 border-t border-zinc-800/80">
+          <label className="text-[10px] text-zinc-400 flex items-center gap-1 shrink-0">
+            <Pipette className="w-3 h-3 text-zinc-400" />
+            {t('ss_custom_color')}:
+          </label>
+          <div className="flex items-center gap-1.5 flex-1">
+            <input
+              type="color"
+              value={customColor}
+              onChange={(e) => {
+                setCustomColor(e.target.value);
+                applyColorToSelection(e.target.value);
+              }}
+              className="w-5 h-5 rounded border-0 bg-transparent cursor-pointer shrink-0"
+            />
+            <input
+              type="text"
+              value={customColor}
+              onChange={(e) => {
+                setCustomColor(e.target.value);
+                if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) {
+                  applyColorToSelection(e.target.value);
+                }
+              }}
+              placeholder="#FFFFFF"
+              className="w-20 bg-zinc-950 border border-zinc-800 rounded px-1.5 py-0.5 text-[10px] font-mono text-zinc-200 uppercase focus:outline-none focus:border-purple-500"
+            />
+          </div>
         </div>
       </div>
 
@@ -181,61 +311,108 @@ export const ParagraphEditor: React.FC<ParagraphEditorProps> = ({
               {t('pe_no_lines')}
             </div>
           ) : (
-            lines.map((line, idx) => (
-              <div
-                key={line.id || idx}
-                className="bg-zinc-950 border border-zinc-800/80 rounded-lg p-2 space-y-1.5 text-xs"
-              >
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-zinc-500 font-mono w-4 shrink-0">
-                    {idx + 1}.
-                  </span>
+            lines.map((line, idx) => {
+              const isSelected = selectedLineIndices.has(idx);
+              const showPicker = activeColorPickerIdx === idx;
 
-                  <input
-                    type="text"
-                    value={line.text}
-                    onChange={(e) => updateSingleLineText(idx, e.target.value)}
-                    className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 focus:outline-none focus:border-purple-500"
-                  />
+              return (
+                <div
+                  key={line.id || idx}
+                  className={`bg-zinc-950 border rounded-lg p-2 space-y-1.5 text-xs transition-colors ${
+                    isSelected ? 'border-purple-500/60 bg-purple-950/20' : 'border-zinc-800/80 hover:border-zinc-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 relative">
+                    {/* Seçim Onay Kutusu */}
+                    <button
+                      onClick={() => toggleSelectLine(idx)}
+                      className="text-zinc-500 hover:text-purple-300 p-0.5"
+                    >
+                      {isSelected ? (
+                        <CheckSquare className="w-3.5 h-3.5 text-purple-400" />
+                      ) : (
+                        <Square className="w-3.5 h-3.5" />
+                      )}
+                    </button>
 
-                  {/* Renk Seçici */}
-                  <input
-                    type="color"
-                    value={line.color}
-                    onChange={(e) => updateSingleLineColor(idx, e.target.value)}
-                    className="w-6 h-6 rounded border-0 bg-transparent cursor-pointer shrink-0"
-                    title={t('pe_line_color')}
-                  />
+                    <span className="text-[10px] text-zinc-500 font-mono w-3.5 shrink-0">
+                      {idx + 1}.
+                    </span>
 
-                  {/* Taşıma & Silme */}
-                  <button
-                    disabled={idx === 0}
-                    onClick={() => moveLine(idx, idx - 1)}
-                    className="p-1 text-zinc-500 hover:text-zinc-200 disabled:opacity-30"
-                    title={t('pe_move_up')}
-                  >
-                    <ArrowUp className="w-3.5 h-3.5" />
-                  </button>
+                    {/* Renk Noktası / Popover Butonu */}
+                    <button
+                      onClick={() => setActiveColorPickerIdx(showPicker ? null : idx)}
+                      style={{ backgroundColor: line.color }}
+                      className="w-4 h-4 rounded-full border border-white/30 shrink-0 shadow-sm hover:scale-110 transition-transform cursor-pointer"
+                      title={t('pe_line_color')}
+                    />
 
-                  <button
-                    disabled={idx === lines.length - 1}
-                    onClick={() => moveLine(idx, idx + 1)}
-                    className="p-1 text-zinc-500 hover:text-zinc-200 disabled:opacity-30"
-                    title={t('pe_move_down')}
-                  >
-                    <ArrowDown className="w-3.5 h-3.5" />
-                  </button>
+                    {/* Renk Seçici Popover */}
+                    {showPicker && (
+                      <div className="absolute left-10 top-6 z-40 bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 shadow-2xl space-y-1.5 w-48">
+                        <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                          {t('color_palette_title')}
+                        </div>
+                        <div className="grid grid-cols-4 gap-1">
+                          {GTAW_PALETTE_COLORS.map((cp) => (
+                            <button
+                              key={cp.id}
+                              onClick={() => updateSingleLineColor(idx, cp.hex)}
+                              title={`${t(cp.nameKey as any)} (${cp.hex})`}
+                              className="aspect-square rounded border border-zinc-700/80 hover:scale-110 hover:border-white transition-all shadow-sm"
+                              style={{ backgroundColor: cp.hex }}
+                            />
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-1 pt-1 border-t border-zinc-800">
+                          <input
+                            type="color"
+                            value={line.color}
+                            onChange={(e) => updateSingleLineColor(idx, e.target.value)}
+                            className="w-5 h-5 rounded border-0 bg-transparent cursor-pointer shrink-0"
+                          />
+                          <span className="text-[10px] font-mono text-zinc-300">{line.color}</span>
+                        </div>
+                      </div>
+                    )}
 
-                  <button
-                    onClick={() => deleteLine(idx)}
-                    className="p-1 text-zinc-500 hover:text-red-400"
-                    title={t('pe_delete_line')}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                    <input
+                      type="text"
+                      value={line.text}
+                      onChange={(e) => updateSingleLineText(idx, e.target.value)}
+                      className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 focus:outline-none focus:border-purple-500"
+                    />
+
+                    {/* Taşıma & Silme */}
+                    <button
+                      disabled={idx === 0}
+                      onClick={() => moveLine(idx, idx - 1)}
+                      className="p-1 text-zinc-500 hover:text-zinc-200 disabled:opacity-30"
+                      title={t('pe_move_up')}
+                    >
+                      <ArrowUp className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      disabled={idx === lines.length - 1}
+                      onClick={() => moveLine(idx, idx + 1)}
+                      className="p-1 text-zinc-500 hover:text-zinc-200 disabled:opacity-30"
+                      title={t('pe_move_down')}
+                    >
+                      <ArrowDown className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      onClick={() => deleteLine(idx)}
+                      className="p-1 text-zinc-500 hover:text-red-400"
+                      title={t('pe_delete_line')}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}

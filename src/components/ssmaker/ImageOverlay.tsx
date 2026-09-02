@@ -525,15 +525,38 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
                   : 'hover:ring-1 hover:ring-zinc-600/60'
               }`}
             >
-              {lines.map((line, idx) => (
-                <div
-                  key={line.id || idx}
-                  style={{ color: line.color }}
-                  className="leading-[1.22] select-none whitespace-pre-wrap break-words"
-                >
-                  {line.text}
-                </div>
-              ))}
+              {lines.map((line, idx) => {
+                const isAction = line.channel === 'me' || line.text.startsWith('*') || line.text.startsWith('>');
+                const fontStyle = config.italicizeActions && isAction ? 'italic' : 'normal';
+
+                let contentNode: React.ReactNode = line.text;
+                if (config.highlightCharacterNames) {
+                  const icMatch = line.text.match(/^([A-Za-z0-9_ÇĞİÖŞÜçğıöşü\u0400-\u04FF\s]+?)\s*(says|diyor ki|fısıldıyor|whispers|shouts|bağırıyor|konuşuyor)?\s*:\s*(.*)/i);
+                  if (icMatch) {
+                    const speakerPart = icMatch[1];
+                    const verbPart = icMatch[2] ? ` ${icMatch[2]}` : '';
+                    const rest = icMatch[3];
+                    contentNode = (
+                      <>
+                        <span style={{ color: config.characterNameColor || '#FFFFFF', fontWeight: 'bold' }}>
+                          {speakerPart}{verbPart}:
+                        </span>{' '}
+                        <span>{rest}</span>
+                      </>
+                    );
+                  }
+                }
+
+                return (
+                  <div
+                    key={line.id || idx}
+                    style={{ color: line.color, fontStyle }}
+                    className="select-none whitespace-pre-wrap break-words"
+                  >
+                    {contentNode}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

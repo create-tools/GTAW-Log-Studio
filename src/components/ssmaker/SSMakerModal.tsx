@@ -47,6 +47,10 @@ const DEFAULT_STYLE_CONFIG: SSStyleConfig = {
   paddingY: 8,
   boxWidth: 540,
 
+  highlightCharacterNames: false,
+  characterNameColor: '#FFFFFF',
+  italicizeActions: false,
+
   canvasPreset: '900x650',
   canvasWidth: 900,
   canvasHeight: 650,
@@ -575,6 +579,47 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                         }
                         className="w-full accent-purple-600"
                       />
+                    </div>
+
+                    <div className="pt-1.5 border-t border-zinc-800/80 space-y-1.5">
+                      {/* Karakter İsimlerini Vurgulama */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-zinc-300 text-[11px]">{t('ss_highlight_names')}</span>
+                        <div className="flex items-center gap-1">
+                          {config.highlightCharacterNames && (
+                            <input
+                              type="color"
+                              value={config.characterNameColor || '#FFFFFF'}
+                              onChange={(e) =>
+                                setConfig({ ...config, characterNameColor: e.target.value })
+                              }
+                              className="w-4 h-4 rounded border-0 bg-transparent cursor-pointer"
+                              title={t('ss_custom_color')}
+                            />
+                          )}
+                          <input
+                            type="checkbox"
+                            checked={config.highlightCharacterNames}
+                            onChange={(e) =>
+                              setConfig({ ...config, highlightCharacterNames: e.target.checked })
+                            }
+                            className="w-3.5 h-3.5 rounded border-zinc-700 bg-zinc-950 accent-purple-600 cursor-pointer"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Eylemleri İtalik Yap */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-zinc-300 text-[11px]">{t('ss_italicize_actions')}</span>
+                        <input
+                          type="checkbox"
+                          checked={config.italicizeActions}
+                          onChange={(e) =>
+                            setConfig({ ...config, italicizeActions: e.target.checked })
+                          }
+                          className="w-3.5 h-3.5 rounded border-zinc-700 bg-zinc-950 accent-purple-600 cursor-pointer"
+                        />
+                      </div>
                     </div>
                   </div>
 
