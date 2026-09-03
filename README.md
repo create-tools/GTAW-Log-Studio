@@ -132,6 +132,24 @@ GTAW Log Studio, FiveM sürecine doğrudan bağlanarak oyun içi sohbet satırla
 ### İndirme
 [GitHub Releases Sayfası](https://github.com/create-tools/GTAW-Log-Studio/releases) üzerinden Setup veya Portable sürümü indirebilirsiniz.
 
+### Kaynak Koddan Derleme
+Projeyi yerel ortamınızda kendiniz derlemek için:
+```bash
+# 1. Depoyu klonlayın
+git clone https://github.com/create-tools/GTAW-Log-Studio.git
+cd GTAW-Log-Studio
+
+# 2. Paketleri kurun
+npm install
+
+# 3. Geliştirici modunda çalıştırın
+npm run dev        # Terminal 1 (Vite)
+npm run electron   # Terminal 2 (Electron)
+
+# 4. Üretim .exe dosyalarını derleyin
+npm run dist       # release/ klasörüne Setup ve Portable üretir
+```
+
 </details>
 
 <details>
@@ -205,6 +223,52 @@ GTAW Log Studio es una aplicación de escritorio de código abierto diseñada pa
 Descargue el instalador o la versión portátil en la página de [GitHub Releases](https://github.com/create-tools/GTAW-Log-Studio/releases).
 
 </details>
+
+---
+
+## Building from Source
+
+If you want to compile and build **GTAW Log Studio** directly from the source code, follow these steps:
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v18.0.0 or higher recommended)
+- [Git](https://git-scm.com/)
+- Windows 10 / 11 (64-bit)
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/create-tools/GTAW-Log-Studio.git
+cd GTAW-Log-Studio
+```
+
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Development Mode
+Run the development environment locally:
+```bash
+# Terminal 1: Start Vite frontend dev server
+npm run dev
+
+# Terminal 2: Start Electron host window
+npm run electron
+```
+
+### 4. Build Production Binaries
+Compile and package the desktop binaries:
+```bash
+# Build both NSIS Setup and Standalone Portable .exe
+npm run dist
+
+# Or package only the Portable executable
+npm run dist:portable
+```
+
+The resulting executables will be outputted to the `release/` directory:
+- `release/GTAW Log Studio Setup 1.0.1.exe`
+- `release/GTAW Log Studio 1.0.1.exe`
 
 ---
 
