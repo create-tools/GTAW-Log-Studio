@@ -38,7 +38,7 @@ function extractInlineEmoteSegments(text) {
       token.endsWith('*') &&
       token.length >= 3 &&
       token.slice(1, -1).trim().length > 0;
-    segments.push({ text: token, isEmote: isSingleAsteriskPair });
+    segments.push({ text: isSingleAsteriskPair ? token.slice(1, -1) : token, isEmote: isSingleAsteriskPair });
     lastIndex = match.index + token.length;
   }
   if (lastIndex < text.length) {
@@ -87,23 +87,44 @@ function parseTestLine(raw) {
   if (/^\[(?:PAYCHECK|MAAŞ|ATM|BANKA|VEHICLE|ARAÇ|HASAR|DAMAGE)\]/i.test(text) || text.includes('PAYCHECK')) {
     return { channel: 'system', timestamp };
   }
+  const coreText = text.replace(/^\[!\]\s*/, '');
+  const charNamePattern = `([A-ZÇĞİÖŞÜ][A-Za-zÇĞİÖŞÜçğıöşüÀ-ÿ'\\-]+(?:[_\\s]+[A-ZÇĞİÖŞÜa-zçğıöşü][A-Za-zÇĞİÖŞÜçğıöşüÀ-ÿ'\\-]+){1,3})`;
+  const targetParenPattern = `(?:\\s*\\((?:to\\s+[^)]+|[^)]+?\\s+kişisine|[^)]+?\\s+kişilerine)\\))?`;
+
   // Whisper / Low
-  if (
-    /^(?:\[(?:Fısıltı|Whisper|Low|Kısık)\]\s*)?([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)\s*(?:(?:\[(?:low|whisper|fısıltı|kısık)\]|\((?:low|whisper|fısıltı|kısık)\))\s*(?:says|diyor ki)?|(?:says|diyor ki)\s*(?:\[(?:low|whisper|fısıltı|kısık)\]|\((?:low|whisper|fısıltı|kısık)\))|fısıldıyor|whispers)\s*:\s*(.*)/i.test(text) ||
-    /^\[(?:Fısıltı|Whisper|Low|Kısık)\]\s*([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)/i.test(text)
-  ) {
+  const whisperRegex1 = new RegExp(
+    `^(?:\\[(?:Fısıltı|Whisper|Low|Kısık(?:\\s*Ses)?)\\]\\s*)?${charNamePattern}${targetParenPattern}\\s*(?:(?:\\[(?:low|whisper|fısıltı|kısık(?:\\s*ses)?)\\]|\\((?:low|whisper|fısıltı|fısıldar|kısık(?:\\s*ses)?)\\))\\s*(?:says|diyor ki)?|(?:says|diyor ki)\\s*(?:\\[(?:low|whisper|fısıltı|kısık(?:\\s*ses)?)\\]|\\((?:low|whisper|fısıltı|fısıldar|kısık(?:\\s*ses)?)\\))|fısıldıyor|fısıldar|whispers)${targetParenPattern}\\s*:\\s*(.*)`,
+    'i'
+  );
+  const whisperRegex2 = new RegExp(
+    `^\\[(?:Fısıltı|Whisper|Low|Kısık(?:\\s*Ses)?)\\]\\s*${charNamePattern}${targetParenPattern}(?:\\s*\\[[^\\]]+\\])?\\s*(?:says|diyor ki|fısıldıyor|fısıldar|whispers)?${targetParenPattern}\\s*:\\s*(.*)`,
+    'i'
+  );
+  if (whisperRegex1.test(coreText) || whisperRegex2.test(coreText)) {
     return { channel: 'whisper', timestamp };
   }
+
   // Shout / Microphone / Megaphone
-  if (
-    /^(?:\[(?:Bağırma|Shout|Megafon|Megaphone|Microphone|Mikrofon)\]\s*)?([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)\s*(?:(?:\[(?:loud|shout|megaphone|megafon|microphone|mikrofon)\]|\((?:loud|shout|megaphone|megafon|microphone|mikrofon)\))\s*(?:says|diyor ki)?|(?:says|diyor ki)\s*(?:\[(?:loud|shout|megaphone|megafon|microphone|mikrofon)\]|\((?:loud|shout|megaphone|megafon|microphone|mikrofon)\))|shouts|bağırıyor)\s*:\s*(.*)/i.test(text) ||
-    /^\[(?:Bağırma|Shout|Megafon|Megaphone|Microphone|Mikrofon)\]\s*([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)/i.test(text)
-  ) {
+  const shoutRegex1 = new RegExp(
+    `^(?:\\[(?:Bağırma|Shout|Megafon|Megaphone|Microphone|Mikrofon)\\]\\s*)?${charNamePattern}${targetParenPattern}\\s*(?:(?:\\[(?:loud|shout|megaphone|megafon|microphone|mikrofon|bağırma)\\]|\\((?:loud|shout|megaphone|megafon|microphone|mikrofon|bağırır|bağırma)\\))\\s*(?:says|diyor ki)?|(?:says|diyor ki)\\s*(?:\\[(?:loud|shout|megaphone|megafon|microphone|mikrofon|bağırma)\\]|\\((?:loud|shout|megaphone|megafon|microphone|mikrofon|bağırır|bağırma)\\))|shouts|bağırıyor|bağırır)${targetParenPattern}\\s*:\\s*(.*)`,
+    'i'
+  );
+  const shoutRegex2 = new RegExp(
+    `^\\[(?:Bağırma|Shout|Megafon|Megaphone|Microphone|Mikrofon)\\]\\s*${charNamePattern}${targetParenPattern}(?:\\s*\\[[^\\]]+\\])?\\s*(?:says|diyor ki|shouts|bağırıyor|bağırır)?${targetParenPattern}\\s*:\\s*(.*)`,
+    'i'
+  );
+  if (shoutRegex1.test(coreText) || shoutRegex2.test(coreText)) {
     return { channel: 'shout', timestamp };
   }
+
   // IC
-  if (/^([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)(?:\s*\[[^\]]+\])?\s*(?:says|diyor ki|konuşuyor)?\s*:/i.test(text)) {
-    return { channel: 'ic', timestamp };
+  const icRegex = new RegExp(
+    `^${charNamePattern}${targetParenPattern}(?:\\s*\\[[^\\]]+\\])?\\s*(?:says|diyor ki|konuşuyor)?${targetParenPattern}\\s*:\\s*(.*)`,
+    'i'
+  );
+  const icM = coreText.match(icRegex);
+  if (icM) {
+    return { channel: 'ic', speaker: icM[1].trim(), timestamp };
   }
 
   return { channel: 'other', timestamp };
@@ -163,6 +184,24 @@ const testCases = [
     expectedChannel: 'shout',
     expectedTime: '18:36:25',
   },
+  {
+    raw: '[18:40:01] [!] Logan Ferman (Raymond Cannon kişisine): Nasıl gidiyor?',
+    expectedChannel: 'ic',
+    expectedSpeaker: 'Logan Ferman',
+    expectedTime: '18:40:01',
+  },
+  {
+    raw: '[18:40:12] [!] Juan Varela (Arturo Mendoza, Raymond Cannon kişisine): İyi misiniz?',
+    expectedChannel: 'ic',
+    expectedSpeaker: 'Juan Varela',
+    expectedTime: '18:40:12',
+  },
+  {
+    raw: '[18:40:20] [!] Logan Ferman (to Raymond Cannon) says: How is it going?',
+    expectedChannel: 'ic',
+    expectedSpeaker: 'Logan Ferman',
+    expectedTime: '18:40:20',
+  },
 ];
 
 let passed = 0;
@@ -182,7 +221,7 @@ for (const tc of testCases) {
 const inlineEmoteRes = extractInlineEmoteSegments('Michael Santos says: Hey there, *waves his hand* how is it going?');
 assert.strictEqual(inlineEmoteRes.length, 3);
 assert.strictEqual(inlineEmoteRes[0].isEmote, false);
-assert.strictEqual(inlineEmoteRes[1].text, '*waves his hand*');
+assert.strictEqual(inlineEmoteRes[1].text, 'waves his hand');
 assert.strictEqual(inlineEmoteRes[1].isEmote, true);
 assert.strictEqual(inlineEmoteRes[2].isEmote, false);
 
@@ -190,6 +229,6 @@ assert.strictEqual(inlineEmoteRes[2].isEmote, false);
 const radioEmoteRes = extractInlineEmoteSegments('** [S: 1 | CH: 911] John Doe: *coughs slightly* Copy that. **');
 const emotesFound = radioEmoteRes.filter((s) => s.isEmote);
 assert.strictEqual(emotesFound.length, 1);
-assert.strictEqual(emotesFound[0].text, '*coughs slightly*');
+assert.strictEqual(emotesFound[0].text, 'coughs slightly');
 
 console.log(`✅ Tüm ${passed} parser ve satır içi *emote* birim testleri başarıyla geçti!`);

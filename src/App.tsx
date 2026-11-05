@@ -12,7 +12,7 @@ import {
 import type { LogChannel, ParsedLogLine, GameSession, FilterOptions } from './types/log';
 import type { AppSettings } from './types/settings';
 import { DEFAULT_APP_SETTINGS } from './types/settings';
-import { parseRawLogText, extractSessionsFromLogText, formatSessionDate } from './core/parser';
+import { parseRawLogText, parseSingleLogLine, extractSessionsFromLogText, formatSessionDate } from './core/parser';
 import { generateCleanText } from './core/bbcode';
 import { soundAlerts } from './core/soundAlerts';
 import { Sparkles, Download, X } from 'lucide-react';
@@ -349,7 +349,23 @@ export function App() {
     [activeSessionId]
   ) || [];
 
-  const logs: ParsedLogLine[] = rawLogs;
+  const logs: ParsedLogLine[] = useMemo(() => {
+    return rawLogs.map((line) => {
+      if (line.channel === 'other' || !line.speaker) {
+        const reparsed = parseSingleLogLine(line.raw || line.content, line.lineIndex, line.sessionId);
+        if (reparsed && (reparsed.channel !== line.channel || reparsed.speaker !== line.speaker)) {
+          return {
+            ...line,
+            channel: reparsed.channel,
+            colorHex: reparsed.colorHex,
+            speaker: reparsed.speaker || line.speaker,
+            target: reparsed.target || line.target,
+          };
+        }
+      }
+      return line;
+    });
+  }, [rawLogs]);
 
   // Yeni Oturum Oluşturma
   const handleCreateSession = async (

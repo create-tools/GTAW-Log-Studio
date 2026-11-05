@@ -390,10 +390,93 @@ class FiveMChatCapture {
             }
           }
           if (!items || items.length === 0) return [];
+
+          const isPurpleMeColor = (colorStr) => {
+            if (!colorStr) return false;
+            const lower = String(colorStr).toLowerCase().trim();
+            if (
+              lower.includes('#c2a2da') ||
+              lower.includes('#c2a3da') ||
+              lower.includes('#b19cd9') ||
+              lower.includes('#c3a3da')
+            ) {
+              return true;
+            }
+            const rgbMatch = lower.match(/rgba?\\(\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)/);
+            if (rgbMatch) {
+              const r = parseInt(rgbMatch[1], 10);
+              const g = parseInt(rgbMatch[2], 10);
+              const b = parseInt(rgbMatch[3], 10);
+              // GTAW /me purple (#c2a2da = 194, 162, 218 / #c2a3da = 194, 163, 218)
+              return r >= 170 && r <= 215 && g >= 135 && g <= 180 && b >= 195 && b <= 240 && b > r && r > g;
+            }
+            return false;
+          };
+
+          const getNodeColor = (el) => {
+            if (!el || el.nodeType !== 1) return '';
+            const inlineColor = (el.style && el.style.color) || el.getAttribute('color') || '';
+            if (inlineColor) return inlineColor;
+            try {
+              return window.getComputedStyle(el).color || '';
+            } catch (e) {
+              return '';
+            }
+          };
+
+          const serializeNodeWithEmotes = (node, rootIsPurple) => {
+            if (!node) return '';
+            if (node.nodeType === 3) {
+              return node.nodeValue || '';
+            }
+            if (node.nodeType !== 1) return '';
+
+            const tag = (node.tagName || '').toUpperCase();
+            if (tag === 'BR') return '\\n';
+
+            const nodeColor = getNodeColor(node);
+            const cls = String(node.className || '').toLowerCase();
+            const isEmoteSpan =
+              !rootIsPurple &&
+              (isPurpleMeColor(nodeColor) || /\\b(me|ame|emote)\\b/.test(cls));
+
+            if (isEmoteSpan) {
+              const inner = (node.innerText || node.textContent || '').trim();
+              if (!inner) return '';
+              if (inner.startsWith('*') || inner.startsWith('((')) {
+                return node.innerText || node.textContent || '';
+              }
+              const rawText = node.innerText || node.textContent || '';
+              const leadSpace = /^\\s+/.exec(rawText)?.[0] || '';
+              const trailSpace = /\\s+$/.exec(rawText)?.[0] || '';
+              return leadSpace + '*' + inner + '*' + trailSpace;
+            }
+
+            if (!node.childNodes || node.childNodes.length === 0) {
+              return node.innerText || node.textContent || '';
+            }
+
+            let out = '';
+            for (let c = 0; c < node.childNodes.length; c++) {
+              out += serializeNodeWithEmotes(node.childNodes[c], rootIsPurple);
+            }
+            return out;
+          };
+
           const result = [];
           for (let i = 0; i < items.length; i++) {
-            const txt = (items[i].innerText || items[i].textContent || '').trim();
-            if (txt) result.push(txt);
+            const el = items[i];
+            const plain = (el.innerText || el.textContent || '').trim();
+            if (!plain) continue;
+
+            if (plain.startsWith('*') || plain.startsWith('>') || !el.children || el.children.length === 0) {
+              result.push(plain);
+              continue;
+            }
+
+            const rootIsPurple = isPurpleMeColor(getNodeColor(el));
+            const enriched = serializeNodeWithEmotes(el, rootIsPurple).replace(/\\s{2,}/g, ' ').trim();
+            result.push(enriched || plain);
           }
           return result;
         } catch (e) {

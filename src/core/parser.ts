@@ -105,7 +105,7 @@ export function extractInlineEmoteSegments(text: string): InlineEmoteSegment[] {
       token.slice(1, -1).trim().length > 0;
 
     segments.push({
-      text: token,
+      text: isSingleAsteriskPair ? token.slice(1, -1) : token,
       isEmote: isSingleAsteriskPair,
     });
 
@@ -171,15 +171,15 @@ const SYSTEM_WORDS = new Set([
 
 export function isValidCharacterName(name?: string): boolean {
   if (!name) return false;
-  const clean = name.trim();
-  if (clean.length < 3 || clean.length > 35) return false;
+  const clean = name.replace(/^\[!\]\s*/, '').trim();
+  if (clean.length < 3 || clean.length > 40) return false;
   if (SYSTEM_WORDS.has(clean.toLowerCase())) return false;
 
-  // Ad Soyad kontrolü (Örn: "Kevin Lucero", "Adrienne Volmer", "Dan Gutchess")
+  // Ad Soyad kontrolü (Örn: "Kevin Lucero", "Logan Ferman", "DeAngelo Williams", "O'Connor", "Juan Carlos")
   const parts = clean.split(/[\s_]+/);
-  if (parts.length < 2) return false;
+  if (parts.length < 2 || parts.length > 4) return false;
 
-  return parts.every((p) => /^[A-Za-zÇĞİÖŞÜçğıöşü]+$/.test(p));
+  return parts.every((p) => /^[A-Za-zÇĞİÖŞÜçğıöşüÀ-ÿ\u0400-\u04FF'-]+$/.test(p));
 }
 
 export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId?: string): ParsedLogLine | null {
@@ -195,10 +195,13 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
   const text = lineWithoutTime.trim();
   if (!text) return null;
 
+  // [!] hedefleme/vurgu önekini kanal tespiti için ayıkla ama ekranda (content) koru
+  const coreText = text.replace(/^\[!\]\s*/, '');
+
   const id = `${sessionId || 'temp'}_${lineIndex}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
   // 1. /me, /ame, /melow eylemleri
-  const meMatchLow = text.match(/^\*\s*\[(?:LOW|low|Low)\]\s*([A-Za-z0-9_]+(?:\s+[A-Za-z0-9_]+)?)\s+(.*)/);
+  const meMatchLow = coreText.match(/^\*\s*\[(?:LOW|low|Low)\]\s*([A-Za-z0-9_ÇĞİÖŞÜçğıöşüÀ-ÿ'-]+(?:\s+[A-Za-z0-9_ÇĞİÖŞÜçğıöşüÀ-ÿ'-]+){0,3})\s+(.*)/);
   if (meMatchLow) {
     const sp = meMatchLow[1].trim();
     return {
@@ -215,7 +218,7 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
     };
   }
 
-  const ameMatch = text.match(/^>\s*([A-Za-z0-9_]+(?:\s+[A-Za-z0-9_]+)?)\s+(.*)/);
+  const ameMatch = coreText.match(/^>\s*([A-Za-z0-9_ÇĞİÖŞÜçğıöşüÀ-ÿ'-]+(?:\s+[A-Za-z0-9_ÇĞİÖŞÜçğıöşüÀ-ÿ'-]+){0,3})\s+(.*)/);
   if (ameMatch) {
     const sp = ameMatch[1].trim();
     return {
@@ -232,7 +235,7 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
     };
   }
 
-  const doMatch = text.match(/^\*\s*(?:(\[(?:LOW|low|Low)\])\s*)?(.+?)\s*\(\(\s*([^\)]+?)(?:\s*\[\d+\])?\s*\)\)$/);
+  const doMatch = coreText.match(/^\*\s*(?:(\[(?:LOW|low|Low)\])\s*)?(.+?)\s*\(\(\s*([^\)]+?)(?:\s*\[\d+\])?\s*\)\)$/);
   if (doMatch) {
     const isLow = doMatch[1] ? '[LOW] ' : '';
     const sp = doMatch[3].trim();
@@ -250,7 +253,7 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
     };
   }
 
-  const meMatch = text.match(/^\*\s*([A-Za-z0-9_ÇĞİÖŞÜçğıöşü\u0400-\u04FF]+(?:\s+[A-Za-z0-9_ÇĞİÖŞÜçğıöşü\u0400-\u04FF]+)?)\s+(.*)/);
+  const meMatch = coreText.match(/^\*\s*([A-Za-z0-9_ÇĞİÖŞÜçğıöşüÀ-ÿ\u0400-\u04FF'-]+(?:\s+[A-Za-z0-9_ÇĞİÖŞÜçğıöşüÀ-ÿ\u0400-\u04FF'-]+){0,3})\s+(.*)/);
   if (meMatch) {
     const sp = meMatch[1].trim();
     return {
@@ -440,10 +443,23 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
     };
   }
 
+  // Ortak Karakter Adı ve Hedefleme Parantezi Desenleri
+  // Örn: "[!] Logan Ferman (Raymond Cannon kişisine): Nasıl gidiyor?"
+  // Örn: "[!] Juan Varela (Arturo Mendoza, Raymond Cannon kişisine): İyi misiniz?"
+  // Örn: "Logan Ferman (to Raymond Cannon) says: How is it going?"
+  const charNamePattern = `([A-ZÇĞİÖŞÜ][A-Za-zÇĞİÖŞÜçğıöşüÀ-ÿ'\\-]+(?:[_\\s]+[A-ZÇĞİÖŞÜa-zçğıöşü][A-Za-zÇĞİÖŞÜçğıöşüÀ-ÿ'\\-]+){1,3})`;
+  const targetParenPattern = `(?:\\s*\\((?:to\\s+[^)]+|[^)]+?\\s+kişisine|[^)]+?\\s+kişilerine)\\))?`;
+
   // 8A. Fısıltı & Kısık Ses (Whisper / Low)
-  const whisperMatch = text.match(
-    /^(?:\[(?:Fısıltı|Whisper|Low|Kısık)\]\s*)?([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)\s*(?:(?:\[(?:low|whisper|fısıltı|kısık)\]|\((?:low|whisper|fısıltı|kısık)\))\s*(?:says|diyor ki)?|(?:says|diyor ki)\s*(?:\[(?:low|whisper|fısıltı|kısık)\]|\((?:low|whisper|fısıltı|kısık)\))|fısıldıyor|whispers)\s*:\s*(.*)/i
-  ) || text.match(/^\[(?:Fısıltı|Whisper|Low|Kısık)\]\s*([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)(?:\s*\[[^\]]+\])?\s*(?:says|diyor ki|fısıldıyor|whispers)?\s*:\s*(.*)/i);
+  const whisperRegex1 = new RegExp(
+    `^(?:\\[(?:Fısıltı|Whisper|Low|Kısık(?:\\s*Ses)?)\\]\\s*)?${charNamePattern}${targetParenPattern}\\s*(?:(?:\\[(?:low|whisper|fısıltı|kısık(?:\\s*ses)?)\\]|\\((?:low|whisper|fısıltı|fısıldar|kısık(?:\\s*ses)?)\\))\\s*(?:says|diyor ki)?|(?:says|diyor ki)\\s*(?:\\[(?:low|whisper|fısıltı|kısık(?:\\s*ses)?)\\]|\\((?:low|whisper|fısıltı|fısıldar|kısık(?:\\s*ses)?)\\))|fısıldıyor|fısıldar|whispers)${targetParenPattern}\\s*:\\s*(.*)`,
+    'i'
+  );
+  const whisperRegex2 = new RegExp(
+    `^\\[(?:Fısıltı|Whisper|Low|Kısık(?:\\s*Ses)?)\\]\\s*${charNamePattern}${targetParenPattern}(?:\\s*\\[[^\\]]+\\])?\\s*(?:says|diyor ki|fısıldıyor|fısıldar|whispers)?${targetParenPattern}\\s*:\\s*(.*)`,
+    'i'
+  );
+  const whisperMatch = coreText.match(whisperRegex1) || coreText.match(whisperRegex2);
   if (whisperMatch) {
     const sp = whisperMatch[1].trim();
     if (isValidCharacterName(sp)) {
@@ -463,9 +479,15 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
   }
 
   // 8B. Bağırma, Megafon & Mikrofon (Shout / Megaphone / Microphone)
-  const shoutMatch = text.match(
-    /^(?:\[(?:Bağırma|Shout|Megafon|Megaphone|Microphone|Mikrofon)\]\s*)?([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)\s*(?:(?:\[(?:loud|shout|megaphone|megafon|microphone|mikrofon)\]|\((?:loud|shout|megaphone|megafon|microphone|mikrofon)\))\s*(?:says|diyor ki)?|(?:says|diyor ki)\s*(?:\[(?:loud|shout|megaphone|megafon|microphone|mikrofon)\]|\((?:loud|shout|megaphone|megafon|microphone|mikrofon)\))|shouts|bağırıyor)\s*:\s*(.*)/i
-  ) || text.match(/^\[(?:Bağırma|Shout|Megafon|Megaphone|Microphone|Mikrofon)\]\s*([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)(?:\s*\[[^\]]+\])?\s*(?:says|diyor ki|shouts|bağırıyor)?\s*:\s*(.*)/i);
+  const shoutRegex1 = new RegExp(
+    `^(?:\\[(?:Bağırma|Shout|Megafon|Megaphone|Microphone|Mikrofon)\\]\\s*)?${charNamePattern}${targetParenPattern}\\s*(?:(?:\\[(?:loud|shout|megaphone|megafon|microphone|mikrofon|bağırma)\\]|\\((?:loud|shout|megaphone|megafon|microphone|mikrofon|bağırır|bağırma)\\))\\s*(?:says|diyor ki)?|(?:says|diyor ki)\\s*(?:\\[(?:loud|shout|megaphone|megafon|microphone|mikrofon|bağırma)\\]|\\((?:loud|shout|megaphone|megafon|microphone|mikrofon|bağırır|bağırma)\\))|shouts|bağırıyor|bağırır)${targetParenPattern}\\s*:\\s*(.*)`,
+    'i'
+  );
+  const shoutRegex2 = new RegExp(
+    `^\\[(?:Bağırma|Shout|Megafon|Megaphone|Microphone|Mikrofon)\\]\\s*${charNamePattern}${targetParenPattern}(?:\\s*\\[[^\\]]+\\])?\\s*(?:says|diyor ki|shouts|bağırıyor|bağırır)?${targetParenPattern}\\s*:\\s*(.*)`,
+    'i'
+  );
+  const shoutMatch = coreText.match(shoutRegex1) || coreText.match(shoutRegex2);
   if (shoutMatch) {
     const sp = shoutMatch[1].trim();
     if (isValidCharacterName(sp)) {
@@ -484,11 +506,20 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
     }
   }
 
-  // 8C. Standart IC Konuşma (örn: John Doe: Eğer saldırı... VEYA John Doe says: ...)
-  const icPrefixMatch = text.match(/^([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)(?:\s*\[[^\]]+\])?\s*(?:says|diyor ki|konuşuyor)?\s*:\s*(.*)/i);
+  // 8C. Standart ve Hedefli IC Konuşma
+  // Örn: "[!] Logan Ferman (Raymond Cannon kişisine): Nasıl gidiyor?"
+  // Örn: "[!] Juan Varela (Arturo Mendoza, Raymond Cannon kişisine): İyi misiniz?"
+  // Örn: "John Doe (to Jane Doe) says: Hello!" veya "John Doe: Merhaba."
+  const icRegex = new RegExp(
+    `^${charNamePattern}${targetParenPattern}(?:\\s*\\[[^\\]]+\\])?\\s*(?:says|diyor ki|konuşuyor)?${targetParenPattern}\\s*:\\s*(.*)`,
+    'i'
+  );
+  const icPrefixMatch = coreText.match(icRegex);
   if (icPrefixMatch) {
     const sp = icPrefixMatch[1].trim();
     if (isValidCharacterName(sp)) {
+      const targetExtract = coreText.match(/\((?:to\s+([^)]+)|([^)]+?)\s+kişisine|([^)]+?)\s+kişilerine)\)/i);
+      const targetName = (targetExtract?.[1] || targetExtract?.[2] || targetExtract?.[3])?.trim();
       return {
         id,
         raw,
@@ -496,6 +527,7 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
         channel: 'ic',
         timestamp,
         speaker: sp,
+        target: targetName,
         content: text,
         colorHex: CHANNEL_COLORS.ic,
         sessionId,
@@ -505,7 +537,8 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
   }
 
   // Genel İsim: Mesaj formatı (IC fallback)
-  const generalIcMatch = text.match(/^([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)\s*:\s*(.*)/);
+  const generalIcRegex = new RegExp(`^${charNamePattern}\\s*:\\s*(.*)`);
+  const generalIcMatch = coreText.match(generalIcRegex);
   if (generalIcMatch) {
     const sp = generalIcMatch[1].trim();
     if (isValidCharacterName(sp)) {
