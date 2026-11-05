@@ -12,7 +12,7 @@ import {
 import type { LogChannel, ParsedLogLine, GameSession, FilterOptions } from './types/log';
 import type { AppSettings } from './types/settings';
 import { DEFAULT_APP_SETTINGS } from './types/settings';
-import { parseRawLogText, extractSessionsFromLogText } from './core/parser';
+import { parseRawLogText, extractSessionsFromLogText, formatSessionDate } from './core/parser';
 import { generateCleanText } from './core/bbcode';
 import { soundAlerts } from './core/soundAlerts';
 import { Sparkles, Download, X } from 'lucide-react';
@@ -39,6 +39,8 @@ import { useLanguage } from './i18n/LanguageContext';
 
 const INITIAL_CHANNELS: Record<LogChannel, boolean> = {
   ic: true,
+  whisper: true,
+  shout: true,
   me: true,
   do: true,
   radio: true,
@@ -181,11 +183,19 @@ export function App() {
       // Ctrl + F: Arama Kutusuna Odaklan
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f' && !e.shiftKey) {
         e.preventDefault();
-        const searchInput = document.querySelector('input[placeholder*="Mesaj, karakter"]') as HTMLInputElement;
+        const searchInput = (document.getElementById('global-log-search-input') ||
+          document.querySelector('input[placeholder*="Mesaj, karakter"]')) as HTMLInputElement;
         if (searchInput) {
           searchInput.focus();
           searchInput.select();
         }
+        return;
+      }
+
+      // Ctrl + Shift + C: Seçili veya Filtrelenmiş Logları Panoya Hızlı Kopyala
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        handleQuickCopyText();
         return;
       }
 
@@ -396,25 +406,31 @@ export function App() {
               if (!existingSess || logCount === 0) {
                 const parsed = parseRawLogText(file.content, sessId);
                 
-                // Dosya adından tarih ve saat çıkarma (session_2026-09-02_19-09)
-                let name = '';
-                const nameMatch = baseName.match(/session_(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})/);
-                if (nameMatch) {
-                  const [_, y, m, d, hh, mm] = nameMatch;
-                  const dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d), parseInt(hh), parseInt(mm));
-                  const dateStr = dateObj.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
-                  name = `${dateStr} • ${hh}:${mm}`;
-                } else {
-                  const dateStr = new Date(file.modifiedAt).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
-                  const timeStr = new Date(file.modifiedAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-                  name = `${dateStr} • ${timeStr}`;
+                // Dosya adından tarih ve saat çıkarma (session_2026-09-02_19-09 veya session_26-OCT-2026_15-00)
+                let sessionTs = file.modifiedAt;
+                const isoMatch = baseName.match(/session_(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})/);
+                const dmyAbbrMatch = baseName.match(/session_(\d{2})-([A-Za-z]{3})-(\d{4})_(\d{2})-(\d{2})/);
+                const dmyNumMatch = baseName.match(/session_(\d{2})-(\d{2})-(\d{4})_(\d{2})-(\d{2})/);
+
+                if (isoMatch) {
+                  const [_, y, m, d, hh, mm] = isoMatch;
+                  sessionTs = new Date(parseInt(y), parseInt(m) - 1, parseInt(d), parseInt(hh), parseInt(mm)).getTime();
+                } else if (dmyAbbrMatch) {
+                  const [_, d, mAbbr, y, hh, mm] = dmyAbbrMatch;
+                  const parsedD = new Date(`${d} ${mAbbr} ${y} ${hh}:${mm}:00`);
+                  if (!isNaN(parsedD.getTime())) sessionTs = parsedD.getTime();
+                } else if (dmyNumMatch) {
+                  const [_, d, m, y, hh, mm] = dmyNumMatch;
+                  sessionTs = new Date(parseInt(y), parseInt(m) - 1, parseInt(d), parseInt(hh), parseInt(mm)).getTime();
                 }
+
+                const name = formatSessionDate(sessionTs, appSettings.sessionDateFormat || 'DD/MMM/YYYY', true);
 
                 const sess: GameSession = {
                   id: sessId,
                   name: name,
-                  createdAt: file.modifiedAt,
-                  startedAt: file.modifiedAt,
+                  createdAt: sessionTs,
+                  startedAt: sessionTs,
                   totalLines: parsed.length,
                   characterNames: Array.from(new Set(parsed.map((l) => l.speaker).filter(Boolean))) as string[],
                   isLive: false,
@@ -479,9 +495,11 @@ export function App() {
             // Eğer "Sadece Alt-Tab'dayken uyar" açıksa ve kullanıcı FiveM'de aktifse ses çalma!
             if (currentSettings.onlyAlertWhenAltTabbed && electronAPI?.isFiveMForeground) {
               try {
-                const isFiveMActive = await electronAPI.isFiveMForeground();
+                const isFiveMActive = await electronAPI.isFiveMForeground(
+                  currentSettings.ignoreSecondMonitorAltTab ?? true
+                );
                 if (isFiveMActive) {
-                  return; // Oyunu aktif oynarken sessiz kal
+                  return; // Oyunu aktif oynarken (veya çift monitörde oyun yan ekranda açıkken) sessiz kal
                 }
               } catch (e) {}
             }
@@ -651,6 +669,16 @@ export function App() {
         }
       }
 
+      // Özel Kanal / Etiket İzolasyonu (Custom Channel)
+      if (filterOptions.customChannelPattern) {
+        const patternLower = filterOptions.customChannelPattern.toLowerCase();
+        const inContent = line.content.toLowerCase().includes(patternLower);
+        const inRaw = line.raw.toLowerCase().includes(patternLower);
+        if (!inContent && !inRaw) {
+          return false;
+        }
+      }
+
       if (filterOptions.searchQuery) {
         if (filterOptions.isRegex) {
           try {
@@ -768,7 +796,7 @@ export function App() {
 
   const handleQuickCopyText = () => {
     const targets = selectedLines.length > 0 ? selectedLines : filteredLogs;
-    const text = generateCleanText(targets);
+    const text = generateCleanText(targets, !appSettings.removeTimestamps);
     navigator.clipboard.writeText(text);
   };
 
@@ -895,6 +923,14 @@ export function App() {
           selectedCount={selectedLines.length}
           topSpeakers={topSpeakers}
           fiveMState={fiveMState}
+          sessionDateFormat={appSettings.sessionDateFormat}
+          customChannels={appSettings.customChannels || []}
+          onUpdateCustomChannels={(rules) =>
+            handleSaveSettings({
+              ...appSettings,
+              customChannels: rules,
+            })
+          }
           onExportBackup={handleExportBackup}
           onImportBackup={handleImportBackup}
         />
@@ -914,6 +950,7 @@ export function App() {
           <LogViewer
             lines={filteredLogs}
             highlightedLineId={highlightedLineId}
+            hideTimestamps={appSettings.removeTimestamps}
             isSearching={Boolean(
               filterOptions.searchQuery ||
                 filterOptions.speakerFilter ||

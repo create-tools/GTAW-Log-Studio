@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { 
   Search, 
   Clock, 
@@ -61,6 +61,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     filterOptions.searchQuery ||
     filterOptions.speakerFilter ||
     filterOptions.interplaySpeaker ||
+    filterOptions.customChannelPattern ||
     filterOptions.timeRange ||
     filterOptions.cleanRoleplayOnly ||
     filterOptions.starredOnly ||
@@ -73,6 +74,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       searchQuery: '',
       speakerFilter: '',
       interplaySpeaker: undefined,
+      customChannelPattern: undefined,
+      customChannelName: undefined,
       timeRange: undefined,
       cleanRoleplayOnly: false,
       starredOnly: false,
@@ -89,6 +92,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <Search className="w-4 h-4 text-zinc-400 mr-2 shrink-0 pointer-events-none" />
           
           <input
+            id="global-log-search-input"
             type="text"
             placeholder={t('search_placeholder')}
             value={filterOptions.searchQuery}
@@ -172,6 +176,29 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             <button
               onClick={() => onUpdateFilters((prev) => ({ ...prev, interplaySpeaker: undefined }))}
               className="text-indigo-400 hover:text-white font-bold ml-0.5"
+              title="Remove filter"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        )}
+
+        {/* Özel Kanal (Custom Channel) İzolasyon Rozeti */}
+        {filterOptions.customChannelPattern && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-950/70 border border-purple-500/50 rounded-lg text-xs text-purple-200 shrink-0 shadow-sm">
+            <span>
+              {language === 'tr' ? 'Özel Kanal' : 'Custom Channel'}:{' '}
+              <strong>{filterOptions.customChannelName || filterOptions.customChannelPattern}</strong>
+            </span>
+            <button
+              onClick={() =>
+                onUpdateFilters((prev) => ({
+                  ...prev,
+                  customChannelPattern: undefined,
+                  customChannelName: undefined,
+                }))
+              }
+              className="text-purple-400 hover:text-white font-bold ml-0.5"
               title="Remove filter"
             >
               <X className="w-3 h-3" />

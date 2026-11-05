@@ -8,6 +8,7 @@ interface LogViewerProps {
   lines: ParsedLogLine[];
   highlightedLineId?: string | null;
   isSearching?: boolean;
+  hideTimestamps?: boolean;
   onToggleSelect: (id: string, currentSelected: boolean, index: number, event: React.MouseEvent) => void;
   onToggleStar: (id: string, currentStarred: boolean) => void;
   onUpdateLineContent?: (id: string, newContent: string) => void;
@@ -22,6 +23,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
   lines,
   highlightedLineId,
   isSearching,
+  hideTimestamps,
   onToggleSelect,
   onToggleStar,
   onUpdateLineContent,
@@ -89,6 +91,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
               index={idx}
               isHighlighted={highlightedLineId === line.id}
               isSearching={isSearching}
+              hideTimestamps={hideTimestamps}
               onToggleSelect={(id, cur, e) => onToggleSelect(id, cur, idx, e)}
               onToggleStar={onToggleStar}
               onUpdateLineContent={onUpdateLineContent}

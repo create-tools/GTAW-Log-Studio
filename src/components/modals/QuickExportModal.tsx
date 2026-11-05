@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { 
   X, 
   Share2, 
@@ -11,6 +11,7 @@ import {
   Clock
 } from 'lucide-react';
 import type { ParsedLogLine } from '../../types/log';
+import { formatLineWithInlineEmoteBBCode } from '../../core/bbcode';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 interface QuickExportModalProps {
@@ -43,10 +44,10 @@ export const QuickExportModal: React.FC<QuickExportModalProps> = ({
       case 'bbcode_colored':
         return lines.map((l) => {
           const time = l.timestamp ? `[${l.timestamp}] ` : '';
-          if (l.channel === 'me' || l.channel === 'do' || l.channel === 'radio' || l.channel === 'phone' || l.channel === 'pm') {
-            return `${time}[color=${l.colorHex}]${l.content}[/color]`;
+          if (l.channel === 'me' || l.channel === 'do' || l.channel === 'radio' || l.channel === 'phone' || l.channel === 'pm' || l.channel === 'whisper' || l.channel === 'shout') {
+            return `${time}${formatLineWithInlineEmoteBBCode(l, l.colorHex)}`;
           }
-          return `${time}${l.content}`;
+          return `${time}${formatLineWithInlineEmoteBBCode(l)}`;
         }).join('\n');
 
       case 'timestamped':

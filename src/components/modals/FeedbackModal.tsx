@@ -30,7 +30,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
   const [copied, setCopied] = useState(false);
 
   // Otomatik Sistem Bilgileri
-  const appVersion = '1.0.0';
+  const appVersion = '1.0.2';
   const osInfo = typeof window !== 'undefined' ? `${navigator.platform || 'Windows'} (${navigator.language})` : 'Windows';
   const isElectron = typeof window !== 'undefined' && !!(window as any).electronAPI?.isElectron;
   const envInfo = isElectron ? 'Electron Native Desktop' : 'Web / Preview';

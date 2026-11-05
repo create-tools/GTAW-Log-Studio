@@ -67,7 +67,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
               <div className="flex items-center gap-2">
                 <h3 className="font-bold text-zinc-100 text-sm">GTAW Log Studio</h3>
                 <span className="px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 font-mono text-[10px] font-bold border border-purple-500/30">
-                  v1.0.0
+                  v1.0.2
                 </span>
               </div>
               <p className="text-[11px] text-zinc-400">FiveM Native Log Engine & SS Studio</p>

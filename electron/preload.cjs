@@ -9,7 +9,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
   openExternalUrl: (url) => ipcRenderer.invoke('open-external-url', url),
   setStartWithWindows: (enable) => ipcRenderer.invoke('set-start-with-windows', enable),
-  isFiveMForeground: () => ipcRenderer.invoke('is-fivem-foreground'),
+  isFiveMForeground: (ignoreSecondMonitor) => ipcRenderer.invoke('is-fivem-foreground', ignoreSecondMonitor),
   updateAppLanguage: (lang) => ipcRenderer.invoke('update-app-language', lang),
   getPersistedSettings: () => ipcRenderer.invoke('get-persisted-settings'),
   savePersistedSettings: (data) => ipcRenderer.invoke('save-persisted-settings', data),

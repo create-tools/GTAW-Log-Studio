@@ -1,9 +1,12 @@
 import type { LogChannel, ParsedLogLine } from '../types/log';
+import type { SessionDateFormat } from '../types/settings';
 import type { Language } from '../i18n/translations';
 import { cleanLogLine, extractTimestamp } from './cleaner';
 
 export const CHANNEL_COLORS: Record<LogChannel, string> = {
   ic: '#FFFFFF',
+  whisper: '#CBD5E1',
+  shout: '#FDBA74',
   me: '#c2a3da',
   do: '#4A90E2',
   radio: '#EAB308',
@@ -18,6 +21,8 @@ export const CHANNEL_COLORS: Record<LogChannel, string> = {
 
 export const CHANNEL_LABELS: Record<LogChannel, Record<Language, string>> = {
   ic: { tr: 'IC Konuşma', en: 'IC Chat', ru: 'IC Чат', fr: 'Discussion IC', es: 'Chat IC' },
+  whisper: { tr: 'Fısıltı & Kısık', en: 'Whisper / Low', ru: 'Шёпот / Тихо', fr: 'Chuchotement / Bas', es: 'Susurro / Bajo' },
+  shout: { tr: 'Bağırma & Mikrofon', en: 'Shout / Mic', ru: 'Крик / Микрофон', fr: 'Cri / Micro', es: 'Grito / Micrófono' },
   me: { tr: '/me & /ame', en: 'Action', ru: 'Действие (/me)', fr: 'Action (/me)', es: 'Acción (/me)' },
   do: { tr: '/do Durumu', en: 'Environment', ru: 'Окружение (/do)', fr: 'Environnement (/do)', es: 'Entorno (/do)' },
   radio: { tr: 'Telsiz', en: 'Radio', ru: 'Рация', fr: 'Radio', es: 'Radio' },
@@ -29,6 +34,93 @@ export const CHANNEL_LABELS: Record<LogChannel, Record<Language, string>> = {
   system: { tr: 'Sistem & Envanter', en: 'System', ru: 'Система', fr: 'Système', es: 'Sistema' },
   other: { tr: 'Genel', en: 'Other', ru: 'Прочее', fr: 'Autre', es: 'Otro' },
 };
+
+const MONTHS_SHORT_EN = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+export function formatSessionDate(
+  timestamp: number,
+  format: SessionDateFormat = 'DD/MMM/YYYY',
+  includeTime: boolean = false
+): string {
+  const d = new Date(timestamp || Date.now());
+  const day = String(d.getDate()).padStart(2, '0');
+  const monthNum = String(d.getMonth() + 1).padStart(2, '0');
+  const monthAbbr = MONTHS_SHORT_EN[d.getMonth()] || 'JAN';
+  const year = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+
+  let datePart = '';
+  switch (format) {
+    case 'DD/MMM/YYYY':
+      datePart = `${day}/${monthAbbr}/${year}`;
+      break;
+    case 'DD.MM.YYYY':
+      datePart = `${day}.${monthNum}.${year}`;
+      break;
+    case 'MM/DD/YYYY':
+      datePart = `${monthNum}/${day}/${year}`;
+      break;
+    case 'YYYY-MM-DD':
+    default:
+      datePart = `${year}-${monthNum}-${day}`;
+      break;
+  }
+
+  return includeTime ? `${datePart} ${hh}:${mm}` : datePart;
+}
+
+export interface InlineEmoteSegment {
+  text: string;
+  isEmote: boolean;
+}
+
+/**
+ * Normal konuşma satırları içindeki *emote* ifadelerini (** telsiz etiketleriyle çakışmadan) ayrıştırır.
+ */
+export function extractInlineEmoteSegments(text: string): InlineEmoteSegment[] {
+  if (!text || !text.includes('*')) {
+    return [{ text, isEmote: false }];
+  }
+
+  const regex = /(\*{2,}|\*[^*\n]+?\*)/g;
+  const segments: InlineEmoteSegment[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({
+        text: text.substring(lastIndex, match.index),
+        isEmote: false,
+      });
+    }
+
+    const token = match[0];
+    const isSingleAsteriskPair =
+      token.startsWith('*') &&
+      !token.startsWith('**') &&
+      token.endsWith('*') &&
+      token.length >= 3 &&
+      token.slice(1, -1).trim().length > 0;
+
+    segments.push({
+      text: token,
+      isEmote: isSingleAsteriskPair,
+    });
+
+    lastIndex = match.index + token.length;
+  }
+
+  if (lastIndex < text.length) {
+    segments.push({
+      text: text.substring(lastIndex),
+      isEmote: false,
+    });
+  }
+
+  return segments.length > 0 ? segments : [{ text, isEmote: false }];
+}
 
 const SYSTEM_WORDS = new Set([
   'premium',
@@ -249,8 +341,8 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
     };
   }
 
-  // HQ Anonsları: [HQ] Deputy Sheriff ... işbaşından ayrıldı!
-  const hqMatch = text.match(/^\[HQ\]\s*(.*)/i);
+  // HQ Anonsları & Birlik (Faction) Kanalı: [HQ] ... veya (( [F] ... ))
+  const hqMatch = text.match(/^\[HQ\]\s*(.*)/i) || text.match(/^\(\(\s*\[(?:F|FACTION|BİRLİK)[^\]]*\]\s*(.*?)\s*\)\)$/i);
   if (hqMatch) {
     return {
       id,
@@ -348,10 +440,54 @@ export function parseSingleLogLine(raw: string, lineIndex: number = 0, sessionId
     };
   }
 
-  // 8. Standart IC Konuşma (örn: John Doe: Eğer saldırı... VEYA John Doe says: ...)
-  const icPrefixMatch = text.match(/^(?:\[(Fısıltı|Whisper|Bağırma|Shout|Megafon|Megaphone)\]\s*)?([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)(?:\s*\[[^\]]+\])?\s*(?:says|diyor ki|fısıldıyor|whispers|shouts|bağırıyor|konuşuyor)?\s*:\s*(.*)/i);
+  // 8A. Fısıltı & Kısık Ses (Whisper / Low)
+  const whisperMatch = text.match(
+    /^(?:\[(?:Fısıltı|Whisper|Low|Kısık)\]\s*)?([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)\s*(?:(?:\[(?:low|whisper|fısıltı|kısık)\]|\((?:low|whisper|fısıltı|kısık)\))\s*(?:says|diyor ki)?|(?:says|diyor ki)\s*(?:\[(?:low|whisper|fısıltı|kısık)\]|\((?:low|whisper|fısıltı|kısık)\))|fısıldıyor|whispers)\s*:\s*(.*)/i
+  ) || text.match(/^\[(?:Fısıltı|Whisper|Low|Kısık)\]\s*([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)(?:\s*\[[^\]]+\])?\s*(?:says|diyor ki|fısıldıyor|whispers)?\s*:\s*(.*)/i);
+  if (whisperMatch) {
+    const sp = whisperMatch[1].trim();
+    if (isValidCharacterName(sp)) {
+      return {
+        id,
+        raw,
+        cleaned: text,
+        channel: 'whisper',
+        timestamp,
+        speaker: sp,
+        content: text,
+        colorHex: CHANNEL_COLORS.whisper,
+        sessionId,
+        lineIndex,
+      };
+    }
+  }
+
+  // 8B. Bağırma, Megafon & Mikrofon (Shout / Megaphone / Microphone)
+  const shoutMatch = text.match(
+    /^(?:\[(?:Bağırma|Shout|Megafon|Megaphone|Microphone|Mikrofon)\]\s*)?([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)\s*(?:(?:\[(?:loud|shout|megaphone|megafon|microphone|mikrofon)\]|\((?:loud|shout|megaphone|megafon|microphone|mikrofon)\))\s*(?:says|diyor ki)?|(?:says|diyor ki)\s*(?:\[(?:loud|shout|megaphone|megafon|microphone|mikrofon)\]|\((?:loud|shout|megaphone|megafon|microphone|mikrofon)\))|shouts|bağırıyor)\s*:\s*(.*)/i
+  ) || text.match(/^\[(?:Bağırma|Shout|Megafon|Megaphone|Microphone|Mikrofon)\]\s*([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)(?:\s*\[[^\]]+\])?\s*(?:says|diyor ki|shouts|bağırıyor)?\s*:\s*(.*)/i);
+  if (shoutMatch) {
+    const sp = shoutMatch[1].trim();
+    if (isValidCharacterName(sp)) {
+      return {
+        id,
+        raw,
+        cleaned: text,
+        channel: 'shout',
+        timestamp,
+        speaker: sp,
+        content: text,
+        colorHex: CHANNEL_COLORS.shout,
+        sessionId,
+        lineIndex,
+      };
+    }
+  }
+
+  // 8C. Standart IC Konuşma (örn: John Doe: Eğer saldırı... VEYA John Doe says: ...)
+  const icPrefixMatch = text.match(/^([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)(?:\s*\[[^\]]+\])?\s*(?:says|diyor ki|konuşuyor)?\s*:\s*(.*)/i);
   if (icPrefixMatch) {
-    const sp = icPrefixMatch[2].trim();
+    const sp = icPrefixMatch[1].trim();
     if (isValidCharacterName(sp)) {
       return {
         id,

@@ -7,7 +7,9 @@ import {
   Check, 
   Bell, 
   Play,
-  Globe
+  Globe,
+  Monitor,
+  Power
 } from 'lucide-react';
 import type { AppSettings } from '../../types/settings';
 import { DEFAULT_APP_SETTINGS } from '../../types/settings';
@@ -110,6 +112,29 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
                       {t('ps_alt_tab_desc')}
                     </span>
                   </label>
+
+                  {/* Çift Monitör + Windowed Borderless Koruması */}
+                  {form.onlyAlertWhenAltTabbed && (
+                    <label className="flex items-start gap-2 text-sky-300 cursor-pointer bg-sky-950/30 border border-sky-500/20 p-2 rounded-lg">
+                      <input
+                        type="checkbox"
+                        checked={form.ignoreSecondMonitorAltTab ?? true}
+                        onChange={(e) => setForm({ ...form, ignoreSecondMonitorAltTab: e.target.checked })}
+                        className="w-3.5 h-3.5 mt-0.5 rounded border-zinc-700 bg-zinc-950 accent-sky-500 cursor-pointer"
+                      />
+                      <span className="text-[10px] leading-tight">
+                        <strong className="flex items-center gap-1">
+                          <Monitor className="w-3 h-3 inline text-sky-400" />
+                          {language === 'tr'
+                            ? 'Çift Monitör (Windowed Borderless) Koruması:'
+                            : 'Dual-Monitor (Windowed Borderless) Mode:'}
+                        </strong>{' '}
+                        {language === 'tr'
+                          ? 'Oyun 1. ekranda açık ve görünürken 2. ekrana geçtiğinizde gereksiz sesli bildirim çalmasını engeller.'
+                          : 'Prevents false sound alerts when clicking on your 2nd monitor while FiveM remains visible on your main screen.'}
+                      </span>
+                    </label>
+                  )}
 
                   {/* Karakter Adı */}
                   <div className="space-y-1">
@@ -264,6 +289,58 @@ export const ProgramSettingsModal: React.FC<ProgramSettingsModalProps> = ({
                   className="w-4 h-4 rounded border-zinc-700 bg-zinc-950 accent-purple-600"
                 />
                 <span className="text-[11px]">{t('ps_show_ucp')}</span>
+              </label>
+            </div>
+
+            {/* Sistem Tepsisi (Tray) & Windows Başlangıç Ayarları */}
+            <span className="font-semibold text-zinc-300 text-[11px] flex items-center gap-1.5 border-b border-zinc-800 pb-1 pt-2">
+              <Power className="w-3.5 h-3.5 text-emerald-400" />
+              <span>
+                {language === 'tr' ? 'Sistem Tepsisi & Başlangıç' : 'System Tray & Startup'}
+              </span>
+            </span>
+
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={Boolean(form.startWithWindows)}
+                  onChange={(e) => setForm({ ...form, startWithWindows: e.target.checked })}
+                  className="w-4 h-4 rounded border-zinc-700 bg-zinc-950 accent-purple-600"
+                />
+                <span className="text-[11px]">
+                  {language === 'tr'
+                    ? 'Windows ile Birlikte Otomatik Başlat'
+                    : 'Start Automatically with Windows'}
+                </span>
+              </label>
+
+              <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={Boolean(form.startMinimizedToTray)}
+                  onChange={(e) => setForm({ ...form, startMinimizedToTray: e.target.checked })}
+                  className="w-4 h-4 rounded border-zinc-700 bg-zinc-950 accent-purple-600"
+                />
+                <span className="text-[11px]">
+                  {language === 'tr'
+                    ? 'Açılışta Sistem Tepsisinde (Arka Planda) Başlat'
+                    : 'Launch Minimized to System Tray'}
+                </span>
+              </label>
+
+              <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={Boolean(form.closeToTray)}
+                  onChange={(e) => setForm({ ...form, closeToTray: e.target.checked })}
+                  className="w-4 h-4 rounded border-zinc-700 bg-zinc-950 accent-purple-600"
+                />
+                <span className="text-[11px]">
+                  {language === 'tr'
+                    ? 'Kapatınca (X) Sistem Tepsisine Küçült'
+                    : 'Minimize to System Tray on Close (X)'}
+                </span>
               </label>
             </div>
           </div>

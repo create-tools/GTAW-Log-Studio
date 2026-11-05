@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   X, 
   Smartphone, 
@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import type { ParsedLogLine } from '../../types/log';
 import { extractPhoneConversations } from '../../core/smsParser';
+import { CHANNEL_COLORS, extractInlineEmoteSegments } from '../../core/parser';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 interface PhoneChatViewProps {
@@ -203,7 +204,16 @@ export const PhoneChatView: React.FC<PhoneChatViewProps> = ({
                               : 'bg-gradient-to-br from-purple-600 to-indigo-600 text-white rounded-tr-sm'
                           }`}
                         >
-                          <p className="leading-relaxed break-words">{msg.text}</p>
+                          <p className="leading-relaxed break-words">
+                            {extractInlineEmoteSegments(msg.text).map((seg, sIdx) => (
+                              <span
+                                key={sIdx}
+                                style={seg.isEmote ? { color: CHANNEL_COLORS.me } : undefined}
+                              >
+                                {seg.text}
+                              </span>
+                            ))}
+                          </p>
                           <div
                             className={`text-[9px] mt-1 text-right ${
                               isIncoming ? 'text-zinc-400' : 'text-purple-200'

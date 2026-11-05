@@ -4,10 +4,13 @@ import {
   Save, 
   RotateCcw, 
   Check, 
-  HardDrive
+  HardDrive,
+  Calendar,
+  FolderTree
 } from 'lucide-react';
-import type { AppSettings } from '../../types/settings';
+import type { AppSettings, SessionDateFormat } from '../../types/settings';
 import { DEFAULT_APP_SETTINGS } from '../../types/settings';
+import { formatSessionDate } from '../../core/parser';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 interface AutomaticBackupSettingsModalProps {
@@ -128,6 +131,72 @@ export const AutomaticBackupSettingsModal: React.FC<AutomaticBackupSettingsModal
               className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-purple-500 shadow-inner"
             />
           </div>
+
+          {/* Oturum & Kayıt Tarih Formatı (Örn: 26/OCT/2026 15:00) */}
+          <div className="space-y-2 pt-2 border-t border-zinc-800/80">
+            <label className="text-[11px] font-bold text-zinc-300 flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-purple-400" />
+              <span>
+                {language === 'tr' ? 'Oturum & Dosya Tarih Formatı' : 'Session & Backup Date Format'}
+              </span>
+            </label>
+
+            <div className="grid grid-cols-2 gap-1.5">
+              {(
+                [
+                  { id: 'DD/MMM/YYYY', label: '26/OCT/2026 15:00 (Chatlog Asst.)' },
+                  { id: 'DD.MM.YYYY', label: '26.10.2026 15:00 (GG.AA.YYYY)' },
+                  { id: 'YYYY-MM-DD', label: '2026-10-26 15:00 (ISO Standart)' },
+                  { id: 'MM/DD/YYYY', label: '10/26/2026 15:00 (US Format)' },
+                ] as { id: SessionDateFormat; label: string }[]
+              ).map((fmt) => (
+                <button
+                  key={fmt.id}
+                  type="button"
+                  onClick={() => setForm({ ...form, sessionDateFormat: fmt.id })}
+                  className={`p-2 rounded-xl border text-left transition-all ${
+                    (form.sessionDateFormat || 'DD/MMM/YYYY') === fmt.id
+                      ? 'bg-purple-950/50 border-purple-500 text-purple-200 font-bold shadow-sm'
+                      : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <span className="block font-mono text-[11px]">{fmt.label}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="text-[10px] text-zinc-400 font-mono bg-zinc-950/70 border border-zinc-800/80 rounded-lg px-2.5 py-1.5 flex items-center justify-between">
+              <span>{language === 'tr' ? 'Canlı Önizleme:' : 'Live Preview:'}</span>
+              <strong className="text-purple-300">
+                {formatSessionDate(Date.now(), form.sessionDateFormat || 'DD/MMM/YYYY', true)}
+              </strong>
+            </div>
+          </div>
+
+          {/* Aylık Klasörleme Seçeneği */}
+          <label className="flex items-center gap-3 p-3 rounded-xl bg-zinc-950 border border-zinc-800 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={Boolean(form.backupMonthlyFolders)}
+              onChange={(e) => setForm({ ...form, backupMonthlyFolders: e.target.checked })}
+              className="w-4 h-4 rounded border-zinc-700 bg-zinc-900 accent-purple-600 cursor-pointer"
+            />
+            <div className="flex-1">
+              <span className="font-bold text-zinc-100 text-xs flex items-center gap-1.5">
+                <FolderTree className="w-3.5 h-3.5 text-emerald-400" />
+                <span>
+                  {language === 'tr'
+                    ? 'Yedekleri Aylık Klasörlerde Grupla (Ay / Gün Düzeni)'
+                    : 'Group Backups in Monthly Subfolders (e.g. 2026-10_OCT)'}
+                </span>
+              </span>
+              <span className="text-[11px] text-zinc-400 block mt-0.5">
+                {language === 'tr'
+                  ? 'Oturum dosyalarını her ay için ayrı klasöre (örn. 2026-10_OCT/session_26-OCT-2026.txt) kaydeder.'
+                  : 'Organizes session files into monthly folders for easier tracking.'}
+              </span>
+            </div>
+          </label>
         </div>
 
         {/* Modal Footer */}

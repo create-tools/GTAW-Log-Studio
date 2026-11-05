@@ -1,7 +1,7 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Star, Check, Copy, Edit2, LocateFixed } from 'lucide-react';
 import type { ParsedLogLine } from '../../types/log';
-import { CHANNEL_LABELS } from '../../core/parser';
+import { CHANNEL_LABELS, CHANNEL_COLORS, extractInlineEmoteSegments } from '../../core/parser';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 interface LogRowProps {
@@ -9,6 +9,7 @@ interface LogRowProps {
   index: number;
   isHighlighted?: boolean;
   isSearching?: boolean;
+  hideTimestamps?: boolean;
   onToggleSelect: (id: string, currentSelected: boolean, event: React.MouseEvent) => void;
   onToggleStar: (id: string, currentStarred: boolean) => void;
   onUpdateLineContent?: (id: string, newContent: string) => void;
@@ -19,6 +20,7 @@ export const LogRow: React.FC<LogRowProps> = ({
   line,
   isHighlighted,
   isSearching,
+  hideTimestamps,
   onToggleSelect,
   onToggleStar,
   onUpdateLineContent,
@@ -78,12 +80,14 @@ export const LogRow: React.FC<LogRowProps> = ({
       </div>
 
       {/* Zaman Damgası */}
-      {line.timestamp ? (
-        <span className="font-mono text-[11px] text-zinc-500 pt-0.5 w-16 shrink-0 select-none">
-          [{line.timestamp}]
-        </span>
-      ) : (
-        <span className="w-16 shrink-0 select-none"></span>
+      {!hideTimestamps && (
+        line.timestamp ? (
+          <span className="font-mono text-[11px] text-zinc-500 pt-0.5 w-16 shrink-0 select-none">
+            [{line.timestamp}]
+          </span>
+        ) : (
+          <span className="w-16 shrink-0 select-none"></span>
+        )
       )}
 
       {/* Kanal Rozeti */}
@@ -129,7 +133,16 @@ export const LogRow: React.FC<LogRowProps> = ({
           </div>
         ) : (
           <span style={{ color: line.colorHex }}>
-            {line.content}
+            {line.channel === 'me' || line.channel === 'do'
+              ? line.content
+              : extractInlineEmoteSegments(line.content).map((seg, idx) => (
+                  <span
+                    key={idx}
+                    style={seg.isEmote ? { color: CHANNEL_COLORS.me } : undefined}
+                  >
+                    {seg.text}
+                  </span>
+                ))}
           </span>
         )}
       </div>

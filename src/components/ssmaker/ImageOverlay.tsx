@@ -45,9 +45,36 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
 
   const [downloading, setDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [fitToView, setFitToView] = useState(true);
+  const [containerSize, setContainerSize] = useState({ width: 920, height: 680 });
 
+  const previewViewportRef = useRef<HTMLDivElement>(null);
   const canvasFrameRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const el = previewViewportRef.current;
+    if (!el) return;
+    const updateSize = () => {
+      setContainerSize({
+        width: el.clientWidth || 920,
+        height: el.clientHeight || 680,
+      });
+    };
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const effectiveScale = React.useMemo(() => {
+    if (!fitToView) return 1;
+    const availW = Math.max(300, containerSize.width - 36);
+    const availH = Math.max(240, containerSize.height - 36);
+    const scaleW = availW / (config.canvasWidth || 900);
+    const scaleH = availH / (config.canvasHeight || 650);
+    return Math.min(1, Number(Math.min(scaleW, scaleH).toFixed(3)));
+  }, [fitToView, containerSize, config.canvasWidth, config.canvasHeight]);
 
   // Panodan Görsel Yapıştırma Desteği (Ctrl+V)
   useEffect(() => {
@@ -94,10 +121,14 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
     setIsDragging(true);
     setActiveDragMode(mode);
 
+    const scale = effectiveScale || 1;
+    const scaledClientX = e.clientX / scale;
+    const scaledClientY = e.clientY / scale;
+
     if (mode === 'text') {
-      setDragStart({ x: e.clientX - chatX, y: e.clientY - chatY });
+      setDragStart({ x: scaledClientX - chatX, y: scaledClientY - chatY });
     } else {
-      setDragStart({ x: e.clientX - imgPanX, y: e.clientY - imgPanY });
+      setDragStart({ x: scaledClientX - imgPanX, y: scaledClientY - imgPanY });
     }
   };
 
@@ -105,13 +136,17 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
     if (!isDragging) return;
     e.preventDefault();
 
+    const scale = effectiveScale || 1;
+    const scaledClientX = e.clientX / scale;
+    const scaledClientY = e.clientY / scale;
+
     if (activeDragMode === 'text') {
-      const newX = Math.max(0, Math.min(config.canvasWidth - 100, e.clientX - dragStart.x));
-      const newY = Math.max(0, Math.min(config.canvasHeight - 40, e.clientY - dragStart.y));
+      const newX = Math.max(0, Math.min(config.canvasWidth - 100, Math.round(scaledClientX - dragStart.x)));
+      const newY = Math.max(0, Math.min(config.canvasHeight - 40, Math.round(scaledClientY - dragStart.y)));
       onUpdateScene({ chatX: newX, chatY: newY });
     } else {
-      const newPanX = e.clientX - dragStart.x;
-      const newPanY = e.clientY - dragStart.y;
+      const newPanX = Math.round(scaledClientX - dragStart.x);
+      const newPanY = Math.round(scaledClientY - dragStart.y);
       onUpdateScene({ imgPanX: newPanX, imgPanY: newPanY });
     }
   };
@@ -137,30 +172,73 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
   };
 
   const handleCanvasPresetChange = (preset: SSStyleConfig['canvasPreset']) => {
-    let width = 900;
-    let height = 650;
+    let width = config.canvasWidth || 900;
+    let height = config.canvasHeight || 650;
+    let nextFontSize = config.fontSize;
+    let nextBoxWidth = config.boxWidth;
+    let nextStroke = config.strokeWidth;
 
     switch (preset) {
       case '800x600':
         width = 800;
         height = 600;
+        nextFontSize = 12;
+        nextBoxWidth = 520;
+        nextStroke = 1;
         break;
       case '900x650':
         width = 900;
         height = 650;
+        nextFontSize = 12;
+        nextBoxWidth = 540;
+        nextStroke = 1;
         break;
       case '1000x700':
         width = 1000;
         height = 700;
+        nextFontSize = 12;
+        nextBoxWidth = 580;
+        nextStroke = 1;
         break;
       case '1200x800':
         width = 1200;
         height = 800;
+        nextFontSize = 13;
+        nextBoxWidth = 650;
+        nextStroke = 1;
         break;
       case '1920x1080':
         width = 1920;
         height = 1080;
+        nextFontSize = 15;
+        nextBoxWidth = 820;
+        nextStroke = 1;
         break;
+      case '2560x1440':
+        width = 2560;
+        height = 1440;
+        nextFontSize = 19;
+        nextBoxWidth = 1080;
+        nextStroke = 1.5;
+        break;
+      case '3840x2160':
+        width = 3840;
+        height = 2160;
+        nextFontSize = 26;
+        nextBoxWidth = 1600;
+        nextStroke = 2;
+        break;
+      case 'custom':
+        break;
+    }
+
+    const scaleRatioX = width / (config.canvasWidth || 900);
+    const scaleRatioY = height / (config.canvasHeight || 650);
+    if (preset !== 'custom') {
+      onUpdateScene({
+        chatX: Math.max(20, Math.min(width - 200, Math.round(chatX * scaleRatioX))),
+        chatY: Math.max(20, Math.min(height - 100, Math.round(chatY * scaleRatioY))),
+      });
     }
 
     onUpdateConfig({
@@ -168,6 +246,9 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
       canvasPreset: preset,
       canvasWidth: width,
       canvasHeight: height,
+      fontSize: nextFontSize,
+      boxWidth: nextBoxWidth,
+      strokeWidth: nextStroke,
     });
   };
 
@@ -175,8 +256,14 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
   const generateProcessedDataUrl = async (): Promise<string> => {
     if (!canvasFrameRef.current) return '';
 
+    const targetWidth = config.canvasWidth || 900;
+    const targetHeight = config.canvasHeight || 650;
+    const exportPixelRatio = targetWidth >= 1920 ? 1 : 2;
+
     const rawDataUrl = await toPng(canvasFrameRef.current, {
-      pixelRatio: 2,
+      width: targetWidth,
+      height: targetHeight,
+      pixelRatio: exportPixelRatio,
       cacheBust: true,
     });
 
@@ -330,21 +417,65 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
           </button>
 
           {/* Kadraj Boyut Seçimi */}
-          <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 p-0.5 rounded-md text-xs">
+          <div className="flex flex-wrap items-center gap-1 bg-zinc-900 border border-zinc-800 p-0.5 rounded-md text-xs">
             <span className="text-zinc-500 px-1 text-[11px] font-medium">{t('io_frame_label')}:</span>
-            {(['800x600', '900x650', '1000x700', '1200x800', '1920x1080'] as const).map((preset) => (
+            {(
+              [
+                { id: '800x600', label: '800x600' },
+                { id: '900x650', label: '900x650' },
+                { id: '1000x700', label: '1000x700' },
+                { id: '1200x800', label: '1200x800' },
+                { id: '1920x1080', label: '1080p' },
+                { id: '2560x1440', label: '2K (1440p)' },
+                { id: '3840x2160', label: '4K (2160p)' },
+                { id: 'custom', label: language === 'tr' ? 'Özel' : 'Custom' },
+              ] as const
+            ).map((preset) => (
               <button
-                key={preset}
-                onClick={() => handleCanvasPresetChange(preset)}
+                key={preset.id}
+                onClick={() => handleCanvasPresetChange(preset.id)}
                 className={`px-2 py-0.5 rounded text-[11px] font-mono font-medium transition-colors ${
-                  config.canvasPreset === preset
+                  config.canvasPreset === preset.id
                     ? 'bg-purple-600 text-white font-bold'
                     : 'text-zinc-400 hover:text-zinc-200'
                 }`}
+                title={preset.id}
               >
-                {preset}
+                {preset.label}
               </button>
             ))}
+
+            {config.canvasPreset === 'custom' && (
+              <div className="flex items-center gap-1 pl-1 pr-0.5">
+                <input
+                  type="number"
+                  min={320}
+                  max={7680}
+                  value={config.canvasWidth}
+                  onChange={(e) =>
+                    onUpdateConfig({
+                      ...config,
+                      canvasWidth: Math.max(320, Math.min(7680, Number(e.target.value) || 1920)),
+                    })
+                  }
+                  className="w-14 bg-zinc-950 border border-zinc-700 rounded px-1 py-0.5 text-[10px] font-mono text-zinc-200 text-center"
+                />
+                <span className="text-zinc-500 text-[10px]">×</span>
+                <input
+                  type="number"
+                  min={240}
+                  max={4320}
+                  value={config.canvasHeight}
+                  onChange={(e) =>
+                    onUpdateConfig({
+                      ...config,
+                      canvasHeight: Math.max(240, Math.min(4320, Number(e.target.value) || 1080)),
+                    })
+                  }
+                  className="w-14 bg-zinc-950 border border-zinc-700 rounded px-1 py-0.5 text-[10px] font-mono text-zinc-200 text-center"
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -406,6 +537,22 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Ekrana Sığdır (Fit to View) Butonu - 1080p/2K/4K İçin */}
+            <button
+              onClick={() => setFitToView((prev) => !prev)}
+              className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold border transition-colors ${
+                fitToView
+                  ? 'bg-purple-950/60 border-purple-500/50 text-purple-200'
+                  : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+              }`}
+              title={language === 'tr' ? 'Tuvali Önizleme Alanına Sığdır (Çıktı çözünürlüğünü düşürmez)' : 'Fit Canvas to Viewport (Exports at full resolution)'}
+            >
+              <Maximize2 className="w-3 h-3 text-purple-400" />
+              <span>
+                {language === 'tr' ? 'Ekrana Sığdır' : 'Fit View'} ({Math.round(effectiveScale * 100)}%)
+              </span>
+            </button>
+
             <div className="flex items-center gap-1 bg-zinc-950 border border-zinc-800 rounded px-2 py-0.5">
               <span className="text-zinc-500 text-[10px]">{t('ss_zoom_label')}</span>
               <button
@@ -438,6 +585,7 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
 
       {/* Ana Önizleme Tuvali */}
       <div 
+        ref={previewViewportRef}
         className="flex-1 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:16px_16px] bg-zinc-950/80 border border-zinc-800 rounded-xl p-4 overflow-auto flex items-center justify-center relative min-h-[420px]"
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -463,14 +611,29 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
           </div>
         ) : (
           <div
-            ref={canvasFrameRef}
-            onWheel={handleWheel}
             style={{
-              width: `${config.canvasWidth}px`,
-              height: `${config.canvasHeight}px`,
+              width: `${Math.round(config.canvasWidth * effectiveScale)}px`,
+              height: `${Math.round(config.canvasHeight * effectiveScale)}px`,
             }}
-            className="relative overflow-hidden bg-black shadow-2xl rounded select-none shrink-0 border border-zinc-800"
+            className="relative shrink-0 overflow-hidden shadow-2xl rounded border border-zinc-800"
           >
+            <div
+              style={{
+                width: `${config.canvasWidth}px`,
+                height: `${config.canvasHeight}px`,
+                transform: effectiveScale !== 1 ? `scale(${effectiveScale})` : undefined,
+                transformOrigin: 'top left',
+              }}
+            >
+              <div
+                ref={canvasFrameRef}
+                onWheel={handleWheel}
+                style={{
+                  width: `${config.canvasWidth}px`,
+                  height: `${config.canvasHeight}px`,
+                }}
+                className="relative overflow-hidden bg-black select-none shrink-0"
+              >
             {/* Arkaplan Görseli Katmanı */}
             <div
               onMouseDown={(e) => handleMouseDown(e, 'image')}
@@ -540,6 +703,8 @@ export const ImageOverlay: React.FC<ImageOverlayProps> = ({
                   </div>
                 );
               })}
+            </div>
+              </div>
             </div>
           </div>
         )}

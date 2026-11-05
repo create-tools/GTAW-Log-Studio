@@ -273,8 +273,8 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
     } else {
       setTimeout(() => {
         setUpdateInfo({
-          currentVersion: '1.0.1',
-          latestVersion: '1.0.1',
+          currentVersion: '1.0.2',
+          latestVersion: '1.0.2',
           hasUpdate: false,
           releaseNotes: t('updates_latest_version'),
         });
@@ -430,11 +430,11 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
                     {t('updates_available')}
                   </span>
                   <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-200 font-bold border border-purple-500/30">
-                    v{String(updateInfo.latestVersion || '1.0.1').replace(/^v+/, '')}
+                    v{String(updateInfo.latestVersion || '1.0.2').replace(/^v+/, '')}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-0.5">
-                  <span>{t('updates_current')}: v{String(updateInfo.currentVersion || '1.0.0').replace(/^v+/, '')}</span>
+                  <span>{t('updates_current')}: v{String(updateInfo.currentVersion || '1.0.2').replace(/^v+/, '')}</span>
                   {updateInfo.isPortable && (
                     <span className="text-[10px] text-purple-300 font-medium px-1.5 py-0.2 bg-purple-900/40 rounded border border-purple-700/40">
                       Portable (Taşınabilir)
@@ -566,7 +566,7 @@ export const CheckUpdatesModal: React.FC<CheckUpdatesModalProps> = ({
               <div>
                 <h3 className="font-bold text-zinc-100 text-sm">{t('updates_up_to_date')}</h3>
                 <p className="text-[11px] text-zinc-400 mt-0.5 font-mono">
-                  v{String(updateInfo?.currentVersion || '1.0.1').replace(/^v+/, '')}
+                  v{String(updateInfo?.currentVersion || '1.0.2').replace(/^v+/, '')}
                 </p>
               </div>
             </div>

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { 
   X, 
   GitMerge, 
@@ -11,7 +11,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import type { ParsedLogLine } from '../../types/log';
-import { parseRawLogText } from '../../core/parser';
+import { parseRawLogText, CHANNEL_COLORS, extractInlineEmoteSegments } from '../../core/parser';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 interface LogMergerModalProps {
@@ -185,7 +185,18 @@ export const LogMergerModal: React.FC<LogMergerModalProps> = ({
                 {mergedLines.map((l, idx) => (
                   <div key={idx} className="leading-relaxed truncate" style={{ color: l.colorHex }}>
                     {l.timestamp && <span className="text-zinc-500 mr-1.5">[{l.timestamp}]</span>}
-                    <span>{l.content}</span>
+                    <span>
+                      {l.channel === 'me' || l.channel === 'do'
+                        ? l.content
+                        : extractInlineEmoteSegments(l.content).map((seg, sIdx) => (
+                            <span
+                              key={sIdx}
+                              style={seg.isEmote ? { color: CHANNEL_COLORS.me } : undefined}
+                            >
+                              {seg.text}
+                            </span>
+                          ))}
+                    </span>
                   </div>
                 ))}
               </div>

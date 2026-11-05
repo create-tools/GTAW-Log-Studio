@@ -1,15 +1,24 @@
 export type LogChannel =
-  | 'ic'         // Normal diyalog, fısıltı, bağırma (Beyaz)
+  | 'ic'         // Normal diyalog (Beyaz - #FFFFFF)
+  | 'whisper'    // Fısıltı, Kısık ses /low, /w (Açık Gri/Eflatun - #CBD5E1)
+  | 'shout'      // Bağırma /s, Megafon /m, Mikrofon [Microphone] (Açık Turuncu - #FDBA74)
   | 'me'         // /me, /ame, /melow (Mor - #c2a3da)
   | 'do'         // /do, /dolow (Mavi - #4A90E2)
-  | 'radio'      // [R: ...], [Telsiz] (Yeşil - #8AE234)
+  | 'radio'      // [R: ...], [Telsiz] (Sarı/Kehribar - #EAB308)
   | 'phone'      // [SMS], [Arama] (Sarı - #FCE94F)
   | 'pm'         // (( PM to/from ... )) (Altın/Turuncu - #E9B96E)
   | 'ooc'        // (( Local OOC /b ... )), (( [OOC] ... )) (Açık Mor - #AD7FA8)
-  | 'faction'    // (( [F] ... )), [D], [HQ] (Açık Yeşil - #68D391)
+  | 'faction'    // (( [F] ... )), [D], [HQ] (Açık Mavi/Turkuaz - #38BDF8)
   | 'admin'      // [ADM], [Admin], [Ceza], [Kick] (Kırmızı - #EF2929)
   | 'system'     // [PAYCHECK], [Maaş], [ATM], [Araç], [Hasar] (Açık Mavi - #729FCF)
   | 'other';     // Genel
+
+export interface CustomChannelRule {
+  id: string;
+  name: string;
+  pattern: string;
+  color: string;
+}
 
 export interface ParsedLogLine {
   id: string;
@@ -59,4 +68,6 @@ export interface FilterOptions {
   };
   cleanRoleplayOnly?: boolean;
   interplaySpeaker?: string;
+  customChannelPattern?: string;
+  customChannelName?: string;
 }

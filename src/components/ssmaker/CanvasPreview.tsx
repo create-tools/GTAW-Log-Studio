@@ -1,5 +1,5 @@
 import { useLanguage } from '../../i18n/LanguageContext';
-﻿import React, { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { toPng, toBlob } from 'html-to-image';
 import { Download, Copy, Check, ZoomIn, ZoomOut } from 'lucide-react';
 import type { SSLineItem, SSStyleConfig } from '../../types/ssMaker';

@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v1.0.1-purple?style=flat-square" alt="Release" />
+  <img src="https://img.shields.io/badge/Release-v1.0.2-purple?style=flat-square" alt="Release" />
   <img src="https://img.shields.io/badge/Platform-Windows%20x64-blue?style=flat-square" alt="Platform" />
   <img src="https://img.shields.io/badge/FiveM-Native%20Engine-black?style=flat-square" alt="FiveM" />
   <img src="https://img.shields.io/badge/i18n-5%20Languages-emerald?style=flat-square" alt="i18n" />
@@ -102,8 +102,8 @@ Chronologically interleaves chatlogs from multiple players present at a scene, a
 
 Download the latest official release from the [GitHub Releases](https://github.com/create-tools/GTAW-Log-Studio/releases) page:
 
-- **Installer:** `GTAW Log Studio Setup 1.0.1.exe` (Standard Windows NSIS Setup)
-- **Portable:** `GTAW Log Studio 1.0.1.exe` (Standalone single executable, no installation required)
+- **Installer:** `GTAW Log Studio Setup 1.0.2.exe` (Standard Windows NSIS Setup)
+- **Portable:** `GTAW Log Studio 1.0.2.exe` (Standalone single executable, no installation required)
 
 ---
 
@@ -267,8 +267,8 @@ npm run dist:portable
 ```
 
 The resulting executables will be outputted to the `release/` directory:
-- `release/GTAW Log Studio Setup 1.0.1.exe`
-- `release/GTAW Log Studio 1.0.1.exe`
+- `release/GTAW Log Studio Setup 1.0.2.exe`
+- `release/GTAW Log Studio 1.0.2.exe`
 
 ---
 

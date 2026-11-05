@@ -1,4 +1,4 @@
-﻿const assert = require('assert');
+const assert = require('assert');
 
 function cleanLogLine(raw) {
   if (!raw) return '';
@@ -19,6 +19,32 @@ function extractTimestamp(line) {
   const match2 = line.match(/^(\d{1,2}:\d{2}(?::\d{2})?)\s*[-:]\s*(.*)/);
   if (match2) return { timestamp: match2[1], lineWithoutTime: match2[2] };
   return { lineWithoutTime: line };
+}
+
+function extractInlineEmoteSegments(text) {
+  if (!text || !text.includes('*')) return [{ text, isEmote: false }];
+  const regex = /(\*{2,}|\*[^*\n]+?\*)/g;
+  const segments = [];
+  let lastIndex = 0;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({ text: text.substring(lastIndex, match.index), isEmote: false });
+    }
+    const token = match[0];
+    const isSingleAsteriskPair =
+      token.startsWith('*') &&
+      !token.startsWith('**') &&
+      token.endsWith('*') &&
+      token.length >= 3 &&
+      token.slice(1, -1).trim().length > 0;
+    segments.push({ text: token, isEmote: isSingleAsteriskPair });
+    lastIndex = match.index + token.length;
+  }
+  if (lastIndex < text.length) {
+    segments.push({ text: text.substring(lastIndex), isEmote: false });
+  }
+  return segments;
 }
 
 function parseTestLine(raw) {
@@ -61,15 +87,29 @@ function parseTestLine(raw) {
   if (/^\[(?:PAYCHECK|MAAŞ|ATM|BANKA|VEHICLE|ARAÇ|HASAR|DAMAGE)\]/i.test(text) || text.includes('PAYCHECK')) {
     return { channel: 'system', timestamp };
   }
+  // Whisper / Low
+  if (
+    /^(?:\[(?:Fısıltı|Whisper|Low|Kısık)\]\s*)?([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)\s*(?:(?:\[(?:low|whisper|fısıltı|kısık)\]|\((?:low|whisper|fısıltı|kısık)\))\s*(?:says|diyor ki)?|(?:says|diyor ki)\s*(?:\[(?:low|whisper|fısıltı|kısık)\]|\((?:low|whisper|fısıltı|kısık)\))|fısıldıyor|whispers)\s*:\s*(.*)/i.test(text) ||
+    /^\[(?:Fısıltı|Whisper|Low|Kısık)\]\s*([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)/i.test(text)
+  ) {
+    return { channel: 'whisper', timestamp };
+  }
+  // Shout / Microphone / Megaphone
+  if (
+    /^(?:\[(?:Bağırma|Shout|Megafon|Megaphone|Microphone|Mikrofon)\]\s*)?([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)\s*(?:(?:\[(?:loud|shout|megaphone|megafon|microphone|mikrofon)\]|\((?:loud|shout|megaphone|megafon|microphone|mikrofon)\))\s*(?:says|diyor ki)?|(?:says|diyor ki)\s*(?:\[(?:loud|shout|megaphone|megafon|microphone|mikrofon)\]|\((?:loud|shout|megaphone|megafon|microphone|mikrofon)\))|shouts|bağırıyor)\s*:\s*(.*)/i.test(text) ||
+    /^\[(?:Bağırma|Shout|Megafon|Megaphone|Microphone|Mikrofon)\]\s*([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)/i.test(text)
+  ) {
+    return { channel: 'shout', timestamp };
+  }
   // IC
-  if (/^(?:\[(Fısıltı|Whisper|Bağırma|Shout|Megafon|Megaphone)\]\s*)?([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)(?:\s*\[[^\]]+\])?\s*(?:says|diyor ki|fısıldıyor|whispers|shouts|bağırıyor|konuşuyor)?\s*:/i.test(text)) {
+  if (/^([A-Z][a-z]+(?:_[A-Z][a-z]+|\s+[A-Z][a-z]+)?)(?:\s*\[[^\]]+\])?\s*(?:says|diyor ki|konuşuyor)?\s*:/i.test(text)) {
     return { channel: 'ic', timestamp };
   }
 
   return { channel: 'other', timestamp };
 }
 
-console.log('--- GTA World Parser Tests ---');
+console.log('--- GTA World Parser & Inline Emote Tests ---');
 
 const testCases = [
   {
@@ -79,7 +119,7 @@ const testCases = [
     expectedTime: '18:32:10',
   },
   {
-    raw: '[18:32:14] Michael Santos says: Plan hazır, gidelim.',
+    raw: '[18:32:14] Michael Santos says: Plan hazır, *masadaki haritayı işaret eder* hemen gidelim.',
     expectedChannel: 'ic',
     expectedTime: '18:32:14',
   },
@@ -110,8 +150,18 @@ const testCases = [
   },
   {
     raw: '[ 14210] [ citizen-server-impl] [18:35:30] [Bağırma] Michael Santos: Çantaları kapın!',
-    expectedChannel: 'ic',
+    expectedChannel: 'shout',
     expectedTime: '18:35:30',
+  },
+  {
+    raw: '[18:36:10] Michael Santos says [low]: Burada konuştuğumuz aramızda kalsın.',
+    expectedChannel: 'whisper',
+    expectedTime: '18:36:10',
+  },
+  {
+    raw: '[18:36:25] [Microphone] Kevin Lucero says: Toplantıya hoş geldiniz arkadaşlar.',
+    expectedChannel: 'shout',
+    expectedTime: '18:36:25',
   },
 ];
 
@@ -128,4 +178,18 @@ for (const tc of testCases) {
   passed++;
 }
 
-console.log(`✅ Tüm ${passed} parser birim testi başarıyla geçti!`);
+// Satır içi *emote* ayrıştırma testleri
+const inlineEmoteRes = extractInlineEmoteSegments('Michael Santos says: Hey there, *waves his hand* how is it going?');
+assert.strictEqual(inlineEmoteRes.length, 3);
+assert.strictEqual(inlineEmoteRes[0].isEmote, false);
+assert.strictEqual(inlineEmoteRes[1].text, '*waves his hand*');
+assert.strictEqual(inlineEmoteRes[1].isEmote, true);
+assert.strictEqual(inlineEmoteRes[2].isEmote, false);
+
+// Telsiz ** etiketleri ile satır içi *emote* çakışmama testi
+const radioEmoteRes = extractInlineEmoteSegments('** [S: 1 | CH: 911] John Doe: *coughs slightly* Copy that. **');
+const emotesFound = radioEmoteRes.filter((s) => s.isEmote);
+assert.strictEqual(emotesFound.length, 1);
+assert.strictEqual(emotesFound[0].text, '*coughs slightly*');
+
+console.log(`✅ Tüm ${passed} parser ve satır içi *emote* birim testleri başarıyla geçti!`);

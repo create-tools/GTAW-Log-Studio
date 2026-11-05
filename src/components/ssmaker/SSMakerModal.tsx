@@ -26,6 +26,7 @@ import { BlackScreenKeyer } from './BlackScreenKeyer';
 import { PhoneChatMockup } from './PhoneChatMockup';
 import { StorylineManager } from './StorylineManager';
 import { splitLinesIntoScenes } from '../../core/sceneSplitter';
+import { extractInlineEmoteSegments, CHANNEL_COLORS } from '../../core/parser';
 
 interface SSMakerModalProps {
   isOpen: boolean;
@@ -219,9 +220,19 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
     ctx.miterLimit = 2;
 
     scene.lines.forEach((line) => {
-      ctx.fillStyle = line.color || '#FFFFFF';
-      ctx.strokeText(line.text, startX, currentY);
-      ctx.fillText(line.text, startX, currentY);
+      const isActionLine = line.channel === 'me' || line.channel === 'do' || line.text.trim().startsWith('*') || line.text.trim().startsWith('>');
+      const segments = isActionLine
+        ? [{ text: line.text, isEmote: false }]
+        : extractInlineEmoteSegments(line.text);
+
+      let cursorX = startX;
+      segments.forEach((seg) => {
+        ctx.fillStyle = seg.isEmote ? CHANNEL_COLORS.me : line.color || '#FFFFFF';
+        ctx.strokeText(seg.text, cursorX, currentY);
+        ctx.fillText(seg.text, cursorX, currentY);
+        cursorX += ctx.measureText(seg.text).width;
+      });
+
       currentY += fontSize * (config.lineHeight || 1.22);
     });
 
@@ -537,8 +548,19 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                         <span className="text-zinc-400">{t('ss_font_size')}</span>
                         <span className="text-zinc-300 font-mono font-bold">{config.fontSize}px</span>
                       </div>
+                      <input
+                        type="range"
+                        min="10"
+                        max="42"
+                        step="1"
+                        value={config.fontSize}
+                        onChange={(e) =>
+                          setConfig({ ...config, fontSize: Number(e.target.value) })
+                        }
+                        className="w-full accent-purple-600"
+                      />
                       <div className="grid grid-cols-6 gap-1">
-                        {[10, 11, 12, 13, 14, 16].map((sz) => (
+                        {[11, 12, 14, 18, 22, 26].map((sz) => (
                           <button
                             key={sz}
                             onClick={() => setConfig({ ...config, fontSize: sz })}
@@ -558,7 +580,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                       <input
                         type="range"
                         min="0"
-                        max="2"
+                        max="4"
                         step="0.5"
                         value={config.strokeWidth}
                         onChange={(e) =>
@@ -576,7 +598,7 @@ export const SSMakerModal: React.FC<SSMakerModalProps> = ({
                       <input
                         type="range"
                         min="320"
-                        max="750"
+                        max="2400"
                         step="10"
                         value={config.boxWidth}
                         onChange={(e) =>

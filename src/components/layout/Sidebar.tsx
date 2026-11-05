@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   History, 
   Filter, 
@@ -12,10 +12,12 @@ import {
   Clock,
   Search,
   Check,
-  X
+  X,
+  Crosshair
 } from 'lucide-react';
-import type { LogChannel, GameSession, FilterOptions } from '../../types/log';
-import { CHANNEL_COLORS, CHANNEL_LABELS } from '../../core/parser';
+import type { LogChannel, GameSession, FilterOptions, CustomChannelRule } from '../../types/log';
+import type { SessionDateFormat } from '../../types/settings';
+import { CHANNEL_COLORS, CHANNEL_LABELS, formatSessionDate } from '../../core/parser';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 interface SidebarProps {
@@ -31,6 +33,9 @@ interface SidebarProps {
   selectedCount: number;
   topSpeakers: { name: string; count: number }[];
   fiveMState?: string;
+  sessionDateFormat?: SessionDateFormat;
+  customChannels?: CustomChannelRule[];
+  onUpdateCustomChannels?: (rules: CustomChannelRule[]) => void;
   onExportBackup: () => void;
   onImportBackup: (file: File) => void;
 }
@@ -48,12 +53,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   selectedCount,
   topSpeakers,
   fiveMState,
+  sessionDateFormat = 'DD/MMM/YYYY',
+  customChannels = [],
+  onUpdateCustomChannels,
   onExportBackup,
   onImportBackup,
 }) => {
   const { language, t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'sessions' | 'filters' | 'speakers'>('sessions');
   const [speakerSearch, setSpeakerSearch] = useState('');
+  const [showAddCustomChannel, setShowAddCustomChannel] = useState(false);
+  const [newCustomName, setNewCustomName] = useState('');
+  const [newCustomPattern, setNewCustomPattern] = useState('');
   const importInputRef = React.useRef<HTMLInputElement>(null);
 
   const toggleChannel = (channel: LogChannel) => {
@@ -64,6 +75,48 @@ export const Sidebar: React.FC<SidebarProps> = ({
         [channel]: !prev.channels[channel],
       },
     }));
+  };
+
+  const isolateSingleChannel = (channel: LogChannel, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onUpdateFilters((prev) => {
+      const allKeys = Object.keys(CHANNEL_LABELS) as LogChannel[];
+      const enabledCount = allKeys.filter((k) => prev.channels[k]).length;
+      const isAlreadySolo = enabledCount === 1 && prev.channels[channel];
+
+      const nextChannels = { ...prev.channels };
+      allKeys.forEach((ch) => {
+        nextChannels[ch] = isAlreadySolo ? true : ch === channel;
+      });
+      return { ...prev, channels: nextChannels };
+    });
+  };
+
+  const handleAddCustomChannelRule = () => {
+    if (!newCustomName.trim() || !newCustomPattern.trim() || !onUpdateCustomChannels) return;
+    const newRule: CustomChannelRule = {
+      id: `cc_${Date.now()}`,
+      name: newCustomName.trim(),
+      pattern: newCustomPattern.trim(),
+      color: '#A855F7',
+    };
+    onUpdateCustomChannels([...customChannels, newRule]);
+    setNewCustomName('');
+    setNewCustomPattern('');
+    setShowAddCustomChannel(false);
+  };
+
+  const handleDeleteCustomChannelRule = (id: string, pattern: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!onUpdateCustomChannels) return;
+    onUpdateCustomChannels(customChannels.filter((c) => c.id !== id));
+    if (filterOptions.customChannelPattern === pattern) {
+      onUpdateFilters((prev) => ({
+        ...prev,
+        customChannelPattern: undefined,
+        customChannelName: undefined,
+      }));
+    }
   };
 
   const toggleAllChannels = (state: boolean) => {
@@ -155,19 +208,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
               ) : (
                 sessions.map((sess) => {
                   const isSelected = sess.id === activeSessionId;
-                  const startTimeStr = sess.startedAt
-                    ? new Date(sess.startedAt).toLocaleTimeString(language === 'tr' ? 'tr-TR' : 'en-US', { hour: '2-digit', minute: '2-digit' })
-                    : new Date(sess.createdAt).toLocaleTimeString(language === 'tr' ? 'tr-TR' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+                  const baseTime = sess.startedAt || sess.createdAt;
+                  const dObj = new Date(baseTime);
+                  const startTimeStr = `${String(dObj.getHours()).padStart(2, '0')}:${String(dObj.getMinutes()).padStart(2, '0')}`;
 
                   const endTimeStr = sess.endedAt
-                    ? new Date(sess.endedAt).toLocaleTimeString(language === 'tr' ? 'tr-TR' : 'en-US', { hour: '2-digit', minute: '2-digit' })
+                    ? `${String(new Date(sess.endedAt).getHours()).padStart(2, '0')}:${String(new Date(sess.endedAt).getMinutes()).padStart(2, '0')}`
                     : sess.isLive ? (language === 'tr' ? 'Canlı' : 'Live') : '';
 
-                  const dateFormatted = new Date(sess.startedAt || sess.createdAt).toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                  });
+                  const dateFormatted = formatSessionDate(baseTime, sessionDateFormat, true);
 
                   return (
                     <div
@@ -305,12 +354,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   const isChecked = filterOptions.channels[ch] ?? true;
                   const count = channelCounts[ch] || 0;
                   const color = CHANNEL_COLORS[ch];
+                  const allKeys = Object.keys(CHANNEL_LABELS) as LogChannel[];
+                  const isSolo = allKeys.filter((k) => filterOptions.channels[k]).length === 1 && isChecked;
 
                   return (
-                    <button
+                    <div
                       key={ch}
                       onClick={() => toggleChannel(ch)}
-                      className={`w-full flex items-center justify-between px-2 py-1.2 rounded-lg text-xs font-medium transition-colors ${
+                      className={`group/ch w-full flex items-center justify-between px-2 py-1.2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                         isChecked
                           ? 'bg-zinc-800/70 hover:bg-zinc-800 text-zinc-100'
                           : 'text-zinc-500 hover:text-zinc-300 opacity-50 bg-zinc-950/30'
@@ -325,8 +376,121 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           {CHANNEL_LABELS[ch][language]}
                         </span>
                       </div>
-                      <span className="text-[10px] text-zinc-500 font-mono">{count.toLocaleString()}</span>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => isolateSingleChannel(ch, e)}
+                          className={`px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-tight transition-all ${
+                            isSolo
+                              ? 'bg-purple-600 text-white opacity-100 shadow-sm'
+                              : 'bg-zinc-700/80 text-zinc-300 hover:bg-purple-600 hover:text-white opacity-0 group-hover/ch:opacity-100'
+                          }`}
+                          title={language === 'tr' ? 'Sadece bu kanalı izole et (Solo)' : 'Isolate only this channel (Solo)'}
+                        >
+                          {isSolo ? 'SOLO' : language === 'tr' ? 'İzole' : 'Solo'}
+                        </button>
+                        <span className="text-[10px] text-zinc-500 font-mono min-w-[24px] text-right">
+                          {count.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Özel Kanal & Toplantı Etiketi İzolasyonu (Custom Channels) */}
+            <div className="space-y-1.5 pt-2 border-t border-zinc-800">
+              <div className="flex items-center justify-between text-[11px] text-zinc-400 px-1">
+                <span className="font-semibold uppercase text-[10px] tracking-wider text-zinc-500 flex items-center gap-1">
+                  <Crosshair className="w-3 h-3 text-purple-400" />
+                  <span>{language === 'tr' ? 'Özel Kanal İzolasyonu' : 'Custom Channels'}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowAddCustomChannel((p) => !p)}
+                  className="text-[10px] text-purple-400 hover:text-purple-300 font-semibold flex items-center gap-0.5"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>{language === 'tr' ? 'Ekle' : 'Add'}</span>
+                </button>
+              </div>
+
+              {showAddCustomChannel && (
+                <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-800 space-y-1.5 text-xs">
+                  <input
+                    type="text"
+                    placeholder={language === 'tr' ? 'Kanal Adı (örn: Toplantı Mikrofonu)' : 'Channel Name (e.g. Meeting Mic)'}
+                    value={newCustomName}
+                    onChange={(e) => setNewCustomName(e.target.value)}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-[11px] text-zinc-200 focus:outline-none focus:border-purple-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder={language === 'tr' ? 'Aranan Etiket/Metin (örn: [Microphone] veya CH: TAC)' : 'Match Tag/Text (e.g. [Microphone] or CH: TAC)'}
+                    value={newCustomPattern}
+                    onChange={(e) => setNewCustomPattern(e.target.value)}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-[11px] font-mono text-zinc-200 focus:outline-none focus:border-purple-500"
+                  />
+                  <div className="flex justify-end gap-1 pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddCustomChannel(false)}
+                      className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 text-[10px]"
+                    >
+                      {t('cancel')}
                     </button>
+                    <button
+                      type="button"
+                      onClick={handleAddCustomChannelRule}
+                      className="px-2.5 py-0.5 rounded bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-semibold"
+                    >
+                      {t('save')}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                {customChannels.map((rule) => {
+                  const isActive = filterOptions.customChannelPattern === rule.pattern;
+                  return (
+                    <div
+                      key={rule.id}
+                      onClick={() =>
+                        onUpdateFilters((prev) => ({
+                          ...prev,
+                          customChannelPattern: isActive ? undefined : rule.pattern,
+                          customChannelName: isActive ? undefined : rule.name,
+                        }))
+                      }
+                      className={`group/cc flex items-center justify-between px-2 py-1.5 rounded-lg border text-xs cursor-pointer transition-all ${
+                        isActive
+                          ? 'bg-purple-950/60 border-purple-500/60 text-purple-100 shadow-sm'
+                          : 'bg-zinc-950/40 border-zinc-800/70 hover:bg-zinc-800/60 text-zinc-300'
+                      }`}
+                    >
+                      <div className="truncate flex-1 pr-2">
+                        <div className="font-semibold text-[11px] truncate">{rule.name}</div>
+                        <div className="text-[10px] text-zinc-500 font-mono truncate">{rule.pattern}</div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {isActive && (
+                          <span className="px-1.5 py-0.2 rounded bg-purple-600 text-white text-[9px] font-bold">
+                            AKTİF
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteCustomChannelRule(rule.id, rule.pattern, e)}
+                          className="opacity-0 group-hover/cc:opacity-100 p-1 hover:bg-red-950 text-zinc-500 hover:text-red-300 rounded transition-opacity"
+                          title={t('delete')}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
                   );
                 })}
               </div>

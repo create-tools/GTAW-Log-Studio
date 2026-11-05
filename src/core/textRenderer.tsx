@@ -1,5 +1,6 @@
 import React from 'react';
 import type { SSStyleConfig, SSLineItem } from '../types/ssMaker';
+import { extractInlineEmoteSegments, CHANNEL_COLORS } from './parser';
 
 export function getCensorChar(style: SSStyleConfig['censorStyle'], customChar?: string): string {
   switch (style) {
@@ -33,11 +34,41 @@ export function applyAutoCensor(text: string, config: SSStyleConfig): string {
   return result;
 }
 
+function renderSegmentWithInlineEmotes(
+  segText: string,
+  baseColor: string,
+  keyPrefix: string,
+  config: SSStyleConfig,
+  isActionLine: boolean
+): React.ReactNode[] {
+  if (isActionLine || baseColor.toLowerCase() === CHANNEL_COLORS.me.toLowerCase()) {
+    return [
+      <span key={keyPrefix} style={{ color: baseColor }}>
+        {segText}
+      </span>,
+    ];
+  }
+
+  const emoteParts = extractInlineEmoteSegments(segText);
+  return emoteParts.map((part, idx) => (
+    <span
+      key={`${keyPrefix}_em_${idx}`}
+      style={{
+        color: part.isEmote ? CHANNEL_COLORS.me : baseColor,
+        fontStyle: part.isEmote && config.italicizeActions ? 'italic' : undefined,
+      }}
+    >
+      {part.text}
+    </span>
+  ));
+}
+
 export function renderLineSegments(
   line: SSLineItem,
   config: SSStyleConfig
 ): React.ReactNode {
   const rawText = applyAutoCensor(line.text, config);
+  const isActionLine = line.channel === 'me' || line.channel === 'do' || rawText.trim().startsWith('*') || rawText.trim().startsWith('>');
 
   // 1. Karakter Adı Vurgulama
   let speakerNode: React.ReactNode = null;
@@ -45,7 +76,7 @@ export function renderLineSegments(
 
   if (config.highlightCharacterNames) {
     const icMatch = rawText.match(
-      /^([A-Za-z0-9_ÇĞİÖŞÜçğıöşü\u0400-\u04FF\s]+?)\s*(says|diyor ki|fısıldıyor|whispers|shouts|bağırıyor|konuşuyor)?\s*:\s*(.*)/i
+      /^([A-Za-z0-9_ÇĞİÖŞÜçğıöşü\u0400-\u04FF\s\[\]\(\)]+?)\s*(says|diyor ki|fısıldıyor|whispers|shouts|bağırıyor|konuşuyor)?\s*:\s*(.*)/i
     );
     if (icMatch) {
       const speakerPart = icMatch[1];
@@ -59,7 +90,7 @@ export function renderLineSegments(
     }
   }
 
-  // 2. Metin İçi Hex Renk Etiketlerini Ayrıştır ({FFFFFF}, {#FFFFFF})
+  // 2. Metin İçi Hex Renk Etiketlerini ({FFFFFF}, {#FFFFFF}) ve Satır İçi *emote* İfadelerini Ayrıştır
   const colorRegex = /\{#?([0-9a-fA-F]{6})\}/g;
   let lastIndex = 0;
   let currentColor = line.color || '#FFFFFF';
@@ -70,9 +101,7 @@ export function renderLineSegments(
     if (match.index > lastIndex) {
       const segText = textToParse.substring(lastIndex, match.index);
       nodes.push(
-        <span key={`seg_${lastIndex}`} style={{ color: currentColor }}>
-          {segText}
-        </span>
+        ...renderSegmentWithInlineEmotes(segText, currentColor, `seg_${lastIndex}`, config, isActionLine)
       );
     }
     currentColor = `#${match[1]}`;
@@ -82,16 +111,14 @@ export function renderLineSegments(
   if (lastIndex < textToParse.length) {
     const segText = textToParse.substring(lastIndex);
     nodes.push(
-      <span key={`seg_${lastIndex}`} style={{ color: currentColor }}>
-        {segText}
-      </span>
+      ...renderSegmentWithInlineEmotes(segText, currentColor, `seg_${lastIndex}`, config, isActionLine)
     );
   }
 
   return (
     <>
       {speakerNode}
-      {nodes.length > 0 ? nodes : <span style={{ color: currentColor }}>{textToParse}</span>}
+      {nodes.length > 0 ? nodes : renderSegmentWithInlineEmotes(textToParse, currentColor, 'seg_0', config, isActionLine)}
     </>
   );
 }

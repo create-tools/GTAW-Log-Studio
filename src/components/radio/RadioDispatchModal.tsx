@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   X, 
   Radio, 
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import type { ParsedLogLine } from '../../types/log';
 import { extractRadioLogs, StructuredRadioItem } from '../../core/radioParser';
+import { CHANNEL_COLORS, extractInlineEmoteSegments } from '../../core/parser';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 interface RadioDispatchModalProps {
@@ -327,7 +328,14 @@ export const RadioDispatchModal: React.FC<RadioDispatchModalProps> = ({
 
                   {/* Mesaj */}
                   <span className="text-zinc-300 flex-1 break-words">
-                    {item.message}
+                    {extractInlineEmoteSegments(item.message).map((seg, sIdx) => (
+                      <span
+                        key={sIdx}
+                        style={seg.isEmote ? { color: CHANNEL_COLORS.me } : undefined}
+                      >
+                        {seg.text}
+                      </span>
+                    ))}
                   </span>
                 </div>
               );

@@ -1,5 +1,5 @@
 import { useLanguage } from '../../i18n/LanguageContext';
-﻿import React from 'react';
+import React from 'react';
 import { X, BarChart3, Users, MessageSquare } from 'lucide-react';
 import type { ParsedLogLine, LogChannel } from '../../types/log';
 import { CHANNEL_COLORS, CHANNEL_LABELS } from '../../core/parser';

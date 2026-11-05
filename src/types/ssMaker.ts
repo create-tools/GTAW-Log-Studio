@@ -60,7 +60,7 @@ export interface SSStyleConfig {
   autoCensorWords: string;
 
   // Kadraj & Tuval Boyutu (Boyut daima sabit kalır)
-  canvasPreset: '800x600' | '900x650' | '1000x700' | '1200x800' | '1920x1080' | 'custom';
+  canvasPreset: '800x600' | '900x650' | '1000x700' | '1200x800' | '1920x1080' | '2560x1440' | '3840x2160' | 'custom';
   canvasWidth: number;
   canvasHeight: number;
 

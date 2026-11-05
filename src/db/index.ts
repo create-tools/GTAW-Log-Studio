@@ -67,9 +67,35 @@ export async function appendLogsToSession(sessionId: string, newLogs: ParsedLogL
       await db.sessions.put(session);
     }
 
-    const startIndex = session ? session.totalLines : 0;
+    const existingLogs = await db.logs.where('sessionId').equals(sessionId).sortBy('lineIndex');
+    let logsToInsert = newLogs;
 
-    const reindexedLogs = newLogs.map((log, idx) => ({
+    if (existingLogs.length > 0) {
+      const maxOverlap = Math.min(existingLogs.length, newLogs.length);
+      let overlapCount = 0;
+      for (let len = maxOverlap; len > 0; len--) {
+        let isMatch = true;
+        for (let i = 0; i < len; i++) {
+          if (existingLogs[existingLogs.length - len + i].content !== newLogs[i].content) {
+            isMatch = false;
+            break;
+          }
+        }
+        if (isMatch) {
+          overlapCount = len;
+          break;
+        }
+      }
+      if (overlapCount > 0) {
+        logsToInsert = newLogs.slice(overlapCount);
+      }
+    }
+
+    if (logsToInsert.length === 0) return;
+
+    const startIndex = existingLogs.length;
+
+    const reindexedLogs = logsToInsert.map((log, idx) => ({
       ...log,
       sessionId: sessionId,
       id: `${sessionId}_${startIndex + idx}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
@@ -78,10 +104,10 @@ export async function appendLogsToSession(sessionId: string, newLogs: ParsedLogL
 
     await db.logs.bulkPut(reindexedLogs);
     if (session) {
-      session.totalLines += newLogs.length;
+      session.totalLines = existingLogs.length + logsToInsert.length;
       session.isLive = true;
       const newChars = new Set(session.characterNames || []);
-      newLogs.forEach(l => { if (l.speaker) newChars.add(l.speaker); });
+      logsToInsert.forEach(l => { if (l.speaker) newChars.add(l.speaker); });
       session.characterNames = Array.from(newChars);
       await db.sessions.put(session);
     }

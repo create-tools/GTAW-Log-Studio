@@ -43,6 +43,40 @@ class FiveMChatCapture {
       backupPeriodic: true,
       periodicIntervalMinutes: 10,
       removeTimestamps: false,
+      sessionDateFormat: 'DD/MMM/YYYY',
+      backupMonthlyFolders: false,
+    };
+  }
+
+  formatDateByPreference(timestamp) {
+    const date = new Date(timestamp || Date.now());
+    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const day = String(date.getDate()).padStart(2, '0');
+    const monthNum = String(date.getMonth() + 1).padStart(2, '0');
+    const monthAbbr = months[date.getMonth()] || 'JAN';
+    const year = date.getFullYear();
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+
+    const fmt = this.settings.sessionDateFormat || 'DD/MMM/YYYY';
+    let displayDate = `${day}/${monthAbbr}/${year}`;
+    let fileDate = `${day}-${monthAbbr}-${year}`;
+
+    if (fmt === 'DD.MM.YYYY') {
+      displayDate = `${day}.${monthNum}.${year}`;
+      fileDate = `${day}-${monthNum}-${year}`;
+    } else if (fmt === 'MM/DD/YYYY') {
+      displayDate = `${monthNum}/${day}/${year}`;
+      fileDate = `${monthNum}-${day}-${year}`;
+    } else if (fmt === 'YYYY-MM-DD') {
+      displayDate = `${year}-${monthNum}-${day}`;
+      fileDate = `${year}-${monthNum}-${day}`;
+    }
+
+    return {
+      display: `${displayDate} ${hh}:${mm}`,
+      fileStem: `session_${fileDate}_${hh}-${mm}`,
+      monthFolder: `${year}-${monthNum}_${monthAbbr}`,
     };
   }
 
@@ -337,9 +371,24 @@ class FiveMChatCapture {
     const extractionScript = `
       (() => {
         try {
-          const items = document.querySelectorAll(
-            '.chat__messages > li, .chat-messages > li, .chat__messages > *, .chat > ul > li, .chat-message, #chat-messages > li, #messages > div, #chat > ul > li'
-          );
+          const selectors = [
+            '.chat__messages > li',
+            '.chat-messages > li',
+            '#chat-messages > li',
+            '.chat > ul > li',
+            '#chat > ul > li',
+            '#messages > div',
+            '.chat-message',
+            '.chat__messages > *'
+          ];
+          let items = [];
+          for (let s = 0; s < selectors.length; s++) {
+            const found = document.querySelectorAll(selectors[s]);
+            if (found && found.length > 0) {
+              items = found;
+              break;
+            }
+          }
           if (!items || items.length === 0) return [];
           const result = [];
           for (let i = 0; i < items.length; i++) {
@@ -408,20 +457,13 @@ class FiveMChatCapture {
     this.sessionRawLines = [];
     this.sessionLogLines = [];
     this.lastSavedIndex = 0;
+    this.activeSessionFilePath = null;
 
-    const dateStr = new Date(this.sessionStartTime).toLocaleDateString('tr-TR', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-    const timeStr = new Date(this.sessionStartTime).toLocaleTimeString('tr-TR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const formatted = this.formatDateByPreference(this.sessionStartTime);
 
     const sessionObj = {
       id: this.activeSessionId,
-      name: `${dateStr} • ${timeStr}`,
+      name: formatted.display,
       createdAt: this.sessionStartTime,
       startedAt: this.sessionStartTime,
       totalLines: 0,
@@ -475,7 +517,8 @@ class FiveMChatCapture {
     if (!oldLines || oldLines.length === 0) return 0;
     if (!newLines || newLines.length === 0) return 0;
 
-    const maxCheck = Math.min(oldLines.length, newLines.length, 100);
+    // 1. Tam Sonek-Önek (Suffix-Prefix) Eşleşmesi (100 satır sınırı kaldırıldı)
+    const maxCheck = Math.min(oldLines.length, newLines.length);
 
     for (let len = maxCheck; len > 0; len--) {
       let match = true;
@@ -487,6 +530,36 @@ class FiveMChatCapture {
       }
       if (match) return len;
     }
+
+    // 2. Kuyruk Çapası (Tail Anchor) Yedek Kontrolü:
+    // DOM içerisindeki eski bir satır değişmiş/silinmiş olsa bile oldLines'ın son satırlarını newLines içinde sondan başa doğru ara
+    for (let anchorLen = Math.min(3, oldLines.length, newLines.length); anchorLen >= 2; anchorLen--) {
+      const anchorStartInOld = oldLines.length - anchorLen;
+      for (let pos = newLines.length - anchorLen; pos >= 0; pos--) {
+        let anchorMatch = true;
+        for (let k = 0; k < anchorLen; k++) {
+          if (oldLines[anchorStartInOld + k] !== newLines[pos + k]) {
+            anchorMatch = false;
+            break;
+          }
+        }
+        if (anchorMatch) {
+          return pos + anchorLen;
+        }
+      }
+    }
+
+    // 3. Eğer newLines'ın son satırları zaten oldLines içinde ardışık olarak mevcutsa (yeni satır gelmemiş bir yeniden tarama ise)
+    if (newLines.length >= 2 && oldLines.length >= newLines.length) {
+      const tailA = newLines[newLines.length - 2];
+      const tailB = newLines[newLines.length - 1];
+      for (let i = oldLines.length - 2; i >= 0; i--) {
+        if (oldLines[i] === tailA && oldLines[i + 1] === tailB) {
+          return newLines.length;
+        }
+      }
+    }
+
     return 0;
   }
 
@@ -540,16 +613,22 @@ class FiveMChatCapture {
   saveSessionToFile(isFinal = false) {
     if (!this.sessionStartTime || this.sessionLogLines.length === 0) return;
 
-    const outDir = this.settings.backupPath || DEFAULT_SESSIONS_DIR;
+    const baseOutDir = this.settings.backupPath || DEFAULT_SESSIONS_DIR;
+    const formatted = this.formatDateByPreference(this.sessionStartTime);
+    const outDir = this.settings.backupMonthlyFolders
+      ? path.join(baseOutDir, formatted.monthFolder)
+      : baseOutDir;
+
     if (!fs.existsSync(outDir)) {
       try {
         fs.mkdirSync(outDir, { recursive: true });
       } catch (e) {}
     }
 
-    const date = new Date(this.sessionStartTime);
-    const dateFormatted = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}_${String(date.getHours()).padStart(2, '0')}-${String(date.getMinutes()).padStart(2, '0')}`;
-    const filePath = path.join(outDir, `session_${dateFormatted}.txt`);
+    if (!this.activeSessionFilePath || path.dirname(this.activeSessionFilePath) !== outDir) {
+      this.activeSessionFilePath = path.join(outDir, `${formatted.fileStem}.txt`);
+    }
+    const filePath = this.activeSessionFilePath;
 
     let contentToSave = this.sessionLogLines;
     if (this.settings.removeTimestamps) {
@@ -558,7 +637,7 @@ class FiveMChatCapture {
 
     const fileText = [
       `============================================================`,
-      `GTA World Oturum Kaydı - ${date.toLocaleDateString('tr-TR')} ${date.toLocaleTimeString('tr-TR')}`,
+      `GTA World Oturum Kaydı - ${formatted.display}`,
       `Toplam Satır: ${contentToSave.length}`,
       `Durum: ${isFinal ? 'Tamamlandı' : 'Oyun İçi Canlı Yedek'}`,
       `============================================================`,

@@ -58,7 +58,7 @@ const PERSISTED_SETTINGS_FILE = path.join(
   'app_settings.json'
 );
 
-ipcMain.handle('get-persisted-settings', () => {
+function readPersistedSettingsSync() {
   try {
     if (fs.existsSync(PERSISTED_SETTINGS_FILE)) {
       const data = fs.readFileSync(PERSISTED_SETTINGS_FILE, 'utf8');
@@ -68,6 +68,10 @@ ipcMain.handle('get-persisted-settings', () => {
     console.error('Read persisted settings error:', err);
   }
   return null;
+}
+
+ipcMain.handle('get-persisted-settings', () => {
+  return readPersistedSettingsSync();
 });
 
 ipcMain.handle('save-persisted-settings', (event, data) => {
@@ -143,8 +147,22 @@ function createWindow() {
     }
   });
 
+  const initialData = readPersistedSettingsSync();
+  const initialSettings = initialData?.settings || {};
+  if (typeof initialSettings.closeToTray === 'boolean') {
+    closeToTrayEnabled = initialSettings.closeToTray;
+  }
+  if (initialData?.language) {
+    currentAppLanguage = initialData.language;
+  }
+
+  const isLaunchedMinimized =
+    process.argv.includes('--minimized') || Boolean(initialSettings.startMinimizedToTray);
+
   mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
+    if (!isLaunchedMinimized) {
+      mainWindow.show();
+    }
   });
 
   // FiveM Canlı Yakalama Motorunu Başlat
@@ -153,10 +171,16 @@ function createWindow() {
       mainWindow.webContents.send(`fivem-${type}`, payload);
     }
   });
+  if (initialSettings) {
+    captureEngine.updateSettings(initialSettings);
+  }
 
   mainWindow.webContents.on('did-finish-load', () => {
-    captureEngine.start();
+    if (!captureEngine.pollInterval) {
+      captureEngine.start();
+    }
     if (captureEngine.activeSessionId) {
+      const formatted = captureEngine.formatDateByPreference(captureEngine.sessionStartTime);
       mainWindow.webContents.send('fivem-status', {
         state: 'capturing',
         message: 'GTA World Canlı Kaydediliyor',
@@ -164,7 +188,7 @@ function createWindow() {
       mainWindow.webContents.send('fivem-session-start', {
         session: {
           id: captureEngine.activeSessionId,
-          name: `${new Date(captureEngine.sessionStartTime).toLocaleDateString('tr-TR')} • ${new Date(captureEngine.sessionStartTime).toLocaleTimeString('tr-TR')}`,
+          name: formatted.display,
           createdAt: captureEngine.sessionStartTime,
           startedAt: captureEngine.sessionStartTime,
           totalLines: captureEngine.sessionLogLines.length,
@@ -280,24 +304,48 @@ ipcMain.handle('get-saved-session-files', (event, customDir) => {
     const seenFiles = new Set();
     const result = [];
 
-    for (const dir of searchDirs) {
-      if (!fs.existsSync(dir)) continue;
-      const files = fs.readdirSync(dir).filter((f) => f.endsWith('.txt'));
-      for (const f of files) {
-        if (seenFiles.has(f)) continue;
-        seenFiles.add(f);
-
-        const fullPath = path.join(dir, f);
-        const stat = fs.statSync(fullPath);
-        const content = fs.readFileSync(fullPath, 'utf8');
-        result.push({
-          fileName: f,
-          filePath: fullPath,
-          content: content,
-          modifiedAt: stat.mtimeMs,
-          size: stat.size,
-        });
+    const collectTxtFilesFromDir = (dirPath) => {
+      if (!fs.existsSync(dirPath)) return;
+      const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dirPath, entry.name);
+        if (entry.isDirectory()) {
+          // Aylık alt klasörleri de tara (1 seviye derinlik)
+          try {
+            const subFiles = fs.readdirSync(fullPath).filter((f) => f.endsWith('.txt'));
+            for (const sf of subFiles) {
+              if (seenFiles.has(sf)) continue;
+              seenFiles.add(sf);
+              const sfPath = path.join(fullPath, sf);
+              const stat = fs.statSync(sfPath);
+              const content = fs.readFileSync(sfPath, 'utf8');
+              result.push({
+                fileName: sf,
+                filePath: sfPath,
+                content,
+                modifiedAt: stat.mtimeMs,
+                size: stat.size,
+              });
+            }
+          } catch (e) {}
+        } else if (entry.isFile() && entry.name.endsWith('.txt')) {
+          if (seenFiles.has(entry.name)) continue;
+          seenFiles.add(entry.name);
+          const stat = fs.statSync(fullPath);
+          const content = fs.readFileSync(fullPath, 'utf8');
+          result.push({
+            fileName: entry.name,
+            filePath: fullPath,
+            content,
+            modifiedAt: stat.mtimeMs,
+            size: stat.size,
+          });
+        }
       }
+    };
+
+    for (const dir of searchDirs) {
+      collectTxtFilesFromDir(dir);
     }
 
     return result.sort((a, b) => b.modifiedAt - a.modifiedAt);
@@ -332,21 +380,48 @@ ipcMain.handle('update-capture-settings', (event, newSettings) => {
   return { success: true };
 });
 
-ipcMain.handle('is-fivem-foreground', () => {
+let lastForegroundCheck = { timestamp: 0, state: 'ALTTAB_HIDDEN' };
+
+ipcMain.handle('is-fivem-foreground', (event, ignoreSecondMonitor = true) => {
   return new Promise((resolve) => {
+    const now = Date.now();
+    const evaluateState = (stateStr) => {
+      if (stateStr === 'FOREGROUND_FIVEM' || stateStr === 'FOREGROUND_STUDIO') {
+        return true; // Oyunda veya doğrudan Log Studio içindeyken ses çalma
+      }
+      if (stateStr === 'VISIBLE_SECOND_MONITOR' && ignoreSecondMonitor) {
+        return true; // Çift monitörde Windowed Borderless oyun yan ekranda açıkken ses çalma
+      }
+      return false; // Alt+Tab'da (simge durumunda veya aynı ekranda başka pencere altında) -> ses çal
+    };
+
+    if (now - lastForegroundCheck.timestamp < 1500) {
+      return resolve(evaluateState(lastForegroundCheck.state));
+    }
+
     const scriptPath = path.join(__dirname, 'getActiveProcess.ps1');
-    require('child_process').exec(`powershell -NoProfile -ExecutionPolicy Bypass -File "${scriptPath}"`, (err, stdout) => {
-      if (err) return resolve(false);
-      const name = (stdout || '').trim().toLowerCase();
-      resolve(name.includes('fivem') || name.includes('gta5'));
-    });
+    require('child_process').exec(
+      `powershell -NoProfile -ExecutionPolicy Bypass -File "${scriptPath}"`,
+      { windowsHide: true, timeout: 2500 },
+      (err, stdout) => {
+        if (err) {
+          // Hata veya zaman aşımı durumunda oyundaymış gibi varsay (yanlış alarm çalmasını önle)
+          return resolve(true);
+        }
+        const stateStr = (stdout || '').trim().toUpperCase();
+        lastForegroundCheck = { timestamp: Date.now(), state: stateStr };
+        resolve(evaluateState(stateStr));
+      }
+    );
   });
 });
 
 ipcMain.handle('set-start-with-windows', (event, enable) => {
   try {
+    const targetExe = process.env.PORTABLE_EXECUTABLE_FILE || app.getPath('exe');
     app.setLoginItemSettings({
-      openAtLogin: enable,
+      openAtLogin: Boolean(enable),
+      path: targetExe,
       args: ['--minimized'],
     });
     return { success: true };
@@ -443,8 +518,28 @@ function isPortableApp() {
   return !isInstalled;
 }
 
+function isNewerVersion(latest, current) {
+  if (!latest || !current) return false;
+  const parse = (v) =>
+    String(v)
+      .replace(/^v+/i, '')
+      .split('-')[0]
+      .split('.')
+      .map((n) => parseInt(n, 10) || 0);
+  const l = parse(latest);
+  const c = parse(current);
+  const len = Math.max(l.length, c.length);
+  for (let i = 0; i < len; i++) {
+    const lv = l[i] || 0;
+    const cv = c[i] || 0;
+    if (lv > cv) return true;
+    if (lv < cv) return false;
+  }
+  return false;
+}
+
 ipcMain.handle('check-for-updates', async () => {
-  const currentVer = (app.getVersion() || '1.0.0').replace(/^v+/, '');
+  const currentVer = (app.getVersion() || '1.0.2').replace(/^v+/, '');
 
   return new Promise((resolve) => {
     const options = {
@@ -461,7 +556,7 @@ ipcMain.handle('check-for-updates', async () => {
           const json = JSON.parse(data);
           latestReleaseData = json;
           const rawTag = (json.tag_name || currentVer).replace(/^v+/, '');
-          const hasUpdate = rawTag !== currentVer && json.tag_name !== undefined;
+          const hasUpdate = Boolean(json.tag_name && isNewerVersion(rawTag, currentVer));
 
           const isPortable = isPortableApp();
           let targetAsset = null;
